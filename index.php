@@ -1,7 +1,7 @@
 <?php
 
 
-use Buzz\Listener\OAuthListener;
+//use Buzz\Listener\OAuthListener;
 
 /**
  * @file index.php
@@ -147,7 +147,7 @@ function github_get_client($auth = TRUE) {
   }
 
   $conf = conf();
-  $cache = new Github\HttpClient\CachedHttpClient(array('cache_dir' => __DIR__ . '/github-api-cache'));
+  $cache = new Github\HttpClient\CachedHttpClient(array('cache_dir' => __DIR__ . '/.github-api-cache'));
   $gh_client = new Github\Client($cache);
 
   if ($auth) {
@@ -241,93 +241,45 @@ function github_status() {
  * Checks that desk can auth
  */
 function desk_status() {
-  $conf = conf();
-  require_once('lib/OAuth-PHP/OAuth.php');
-  $desk_consumer = new OAuthConsumer($conf['desk_consumer_key'], $conf['desk_consumer_secret']);
-  $desk_token = new OAuthToken($conf['desk_token'], $conf['desk_token_secret']);
-  //print_r($desk_oauth);
-  $req = new OAuthRequest('get', 'https://jsagotsky.desk.com/api/v2/cases/4');
-  //print_r($req->from_consumer_and_token($consumer, $token, $http_method, $http_url));
-  $from = OAuthRequest::from_consumer_and_token($desk_consumer, $desk_token, 'get', 'https://jsagotsky.desk.com/api/v2/cases/4');
-  $from->sign_request(new OAuthSignatureMethod_PLAINTEXT(), $desk_consumer, $desk_token);
+  $json = desk_http('get', 'https://jsagotsky.desk.com/api/v2/cases/search', array('case_id' => '4'));
+  return ($json && (!isset($json->message) || $json->message != 'Unauthorized') && empty($json->errors)) ? 'Logged into desk.com' : 'Error logging into desk.';
+   
+}
+
+function desk_http($method, $url, $parameters = array()) {
+  $conf = conf(); 
   
-  print_r($from->to_url());
-  $opts = array(
-      'http'=>array(
-          'method'=>"GET",
-          'header'=>$from->to_header(),
-          )
-      );
-          
-          
-print_r($from->to_header());
-  $url = $from->to_url();
-  $context = stream_context_create($opts);
-//  print_r(file_get_contents($url, false, $context));
+  static $desk_consumer, $desk_token;
+  if (!isset($desk_consumer, $desk_token)) {
+    require_once('lib/OAuth-PHP/OAuth.php');
+    $desk_consumer = new OAuthConsumer($conf['desk_consumer_key'], $conf['desk_consumer_secret']);
+    $desk_token = new OAuthToken($conf['desk_token'], $conf['desk_token_secret']);
+  }
+  
+  $request = OAuthRequest::from_consumer_and_token($desk_consumer, $desk_token, $method, $url);
+  $request->sign_request(new OAuthSignatureMethod_PLAINTEXT(), $desk_consumer, $desk_token);
+  foreach($parameters as $name => $value) {
+    $request->set_parameter($name, $value);
+  }
   
   $ch = curl_init();
-  curl_setopt($ch, CURLOPT_URL, $url);
+  curl_setopt($ch, CURLOPT_URL, $request->to_url());
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
   $data = curl_exec($ch);
   curl_close($ch);
   
-  print_r($data);
-  
-  
-  //lets try buzz...  hard to get oauth talking.  looks like the gh version did something gh specific - basic auth with a magic token
-//   $browser = new Buzz\Browser();
-//   $browser->addListener(new OAuthListener('AUTH_URL_CLIENT_ID', array('client_id' => $conf['desk_token'], 'client_secret' => $conf['desk_token_secret'])));
-//   $browser->get('https://jsagotsky.desk.com/api/v2/cases/4');
-//   print_r($browser->getLastRequest());
-  
-  // https://gist.github.com/jrmey/2564090/abe665155c6fcc417b470913358f0f8c5305b4ab
-//   try {
-//     //Create a new Oauth request.
-//     $oauth = new OAuth($conf['desk_consumer_key'], $conf['desk_consumer_secret']);
-//     $oauth->enableDebug();
-//     $oauth->setToken($conf['desk_token'], $conf['desk_token_secret']);
-//     $query = '';
-//     $my_desk_url = 'http://jsagotsky.desk.com';
-//     $oauth->fetch($my_desk_url."/api/v1/cases.json".$query,array(),OAUTH_HTTP_METHOD_GET);
-//     $json = json_decode($oauth->getLastResponse());
-//     return var_export($json, TRUE);
-//   } catch (Exception $e) {
-//     print_r($e);
-//     return FALSE;
-//   }
-  
+  return ($data && $json = json_decode($data)) ? $json : FALSE; 
 }
 
-// function desk_status() {
-
-// this function uses bradfeehan's desk-php.  seems unstable so far.
-
-//   //use Guzzle\Service\Builder;
+// function desk_case($op, $args = array()) {
 //   $conf = conf();
-//   $config = array();
-//   foreach(array('token', 'token_secret', 'consumer_key', 'consumer_secret') as $value) {
-//     $config[$value] = $conf['desk_' . $value];
+//   $url = 'https://' . $conf['subdomain'] . 'desk.com/api/v2/cases';
+
+//   switch ($op) {
+//     case 'search':
+//       $url = $url . '/search'
 //   }
-//   $config['subdomain'] = 'jsagotsky';
-
-//   //$desk = new Desk\Client($conf['desk_url'], $config);
-// //   $factory = $desk::factory($config);
-//   $desk = Desk\Client::factory($config);
-//   $cmd = $desk->getCommand('ListCases', array());
-//   $results = $desk->execute($cmd);
-  
-//   print_r($results);
-  
-// //   $customers = $results->getEmbedded('entries');
-// //   print_r($customers);
-  
-// //   $result = $cmd->getResponse();
-// //   print_r($result);
-//   //$desk = new Factory();
-//   //Guzzle\Service\Builder\ServiceBuilder(array());//::factory($config);
-  
-//   return 'var_export($desk, TRUE)';
 // }
-
 
 /**
  * @function github_hook_comments
@@ -346,10 +298,7 @@ function github_hook_comment() {
   $milestone = $json->issue['milestone']['title'];
   $state = $json->issue['state'];
   
-  //add note to desk.com case?
-//   if (strpos($json->comment['body'], '@desk.com') !== FALSE) {
-//     $comment = $json->comment['body'];
-//   }
+  https://yoursite.desk.com/api/v2/cases/search\?subject\=please+help\&name\=jimmy\&page\=1\&per_page\=2 \
 
 }
 

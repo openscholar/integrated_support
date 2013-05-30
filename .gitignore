@@ -1,2 +1,3 @@
+.github-api-cache/*
 env_overrides.inc
 *.swp
