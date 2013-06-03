@@ -14,9 +14,35 @@
         "url":"https://{subdomain}.desk.com/api/v2/cases/{id}",
         "method":"get"
       },
+      "create":{
+        "method":"post",
+        "url":"https://{subdomain}.desk.com/api/v2/customers/{customer_id}/cases"
+      },
       "update":{
         "url":"https://{subdomain}.desk.com/api/v2/cases/{id}",
         "method":"patch"
+      }
+    },
+    "integration_urls":{
+      "list":{
+        "url":"https://{subdomain.desk.com/api/v2/integration_urls",
+        "method":"get"
+      },
+      "show":{
+        "url":"https://{subdomain.desk.com/api/v2/integration_urls/{id}",
+        "method":"get"
+      },
+      "create":{
+        "url":"https://{subdomain.desk.com/api/v2/integration_urls",
+        "method":"post"
+      },
+      "update":{
+        "url":"https://{subdomain.desk.com/api/v2/integration_urls/{id}",
+        "method":"patch"
+      },
+      "delete":{
+        "url":"https://{subdomain.desk.com/api/v2/integration_urls/{id}",
+        "method":"delete"
       }
     }
   }
