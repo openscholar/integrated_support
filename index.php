@@ -249,6 +249,20 @@ function desk_status() {
 function desk_http($method, $url, $parameters = array()) {
   $conf = conf(); 
   
+
+  /* tapir */
+  require_once('lib/tapir/tapir.php');
+  $desk = new Tapir('desk');
+  $desk->setParameters(array('subdomain' => 'jsagotsky'));
+  $desk->useOAuth($conf['desk_consumer_key'], $conf['desk_consumer_secret'], $conf['desk_token'], $conf['desk_token_secret']);
+  $api = $desk->api('case');
+  $result = $api->call('list');
+  print_r($result);
+  
+  return $result;
+  
+  /* /tapir */
+  /*
   static $desk_consumer, $desk_token;
   if (!isset($desk_consumer, $desk_token)) {
     require_once('lib/OAuth-PHP/OAuth.php');
@@ -267,8 +281,8 @@ function desk_http($method, $url, $parameters = array()) {
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
   $data = curl_exec($ch);
   curl_close($ch);
-  
-  return ($data && $json = json_decode($data)) ? $json : FALSE; 
+  */
+  //return ($data && $json = json_decode($data)) ? $json : FALSE; 
 }
 
 // function desk_case($op, $args = array()) {

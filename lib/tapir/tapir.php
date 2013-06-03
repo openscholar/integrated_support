@@ -8,7 +8,20 @@ class Tapir {
 
   public function __construct($config) {
     $this->parameters = array();
-    foreach ($config as $api => $calls) {
+    
+    //load conf from file
+    if (is_string($config)) {
+      $filename = __DIR__ . '/api/' . $config . '.json';
+      if (is_readable($filename) && ($file = file_get_contents($filename))) {
+        $config = json_decode($file, TRUE);
+        if (!$config) {
+          throw new Exception('Could not load json file: ' . $file);
+          return FALSE;
+        }
+      }
+    }
+    
+    foreach ($config['apis'] as $api => $calls) {
       $this->APIs[$api] = new API($this, $calls);
     }
   }
@@ -27,7 +40,7 @@ class Tapir {
       throw new Exception('Authentication has already been set.');
     }
 
-    require_once('OAuth-PHP/OAuth.php');
+    require_once(__DIR__ . '/OAuth-PHP/OAuth.php');
     $this->auth = 'oauth';
     $this->auth_opts = array(
       'consumer' => new OAuthConsumer($consumer_key, $consumer_secret),
@@ -163,4 +176,3 @@ class API {
 
 
 }
-/********************/
