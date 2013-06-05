@@ -53,10 +53,8 @@ function desk_create_github_issue() {
   }
 
   $conf = conf();
-
   $gh = github_get_client();
 
-  //print_r($gh);
   //create an issue
   $issue_body = array('**From Desk.com** ' . 'http://jsagotsky.desk.com/agent/case/'.$data->case_id);
 
@@ -91,7 +89,9 @@ function desk_create_github_issue() {
   $i = $gh->api('issue')->create($conf['github_repo_owner'], $conf['github_repo_repository'], $issue);
 
   //take $i and send id or number back to desk.com
-  print_r($i);
+  //print_r($i);
+  $desk = desk_get_client();
+  $desk->api('case')->update(array('id' => $data->case_id, 'custom_github_issue_id' => $i));
 }
 
 /**
@@ -241,59 +241,46 @@ function github_status() {
  * Checks that desk can auth
  */
 function desk_status() {
-  $json = desk_http('get', 'https://jsagotsky.desk.com/api/v2/cases/search', array('case_id' => '4'));
-  return ($json && (!isset($json->message) || $json->message != 'Unauthorized') && empty($json->errors)) ? 'Logged into desk.com' : 'Error logging into desk.';
+  $desk = desk_get_client();
+  $search = $desk->api('case')->call('search', array('case_id' => 4));
+  return (isset($search->total_entries)) ? 'Logged into desk.com' : 'Error logging in to desk.';
+//   $json = desk_http('get', 'https://jsagotsky.desk.com/api/v2/cases/search', array('case_id' => '4'));
+//   return ($json && (!isset($json->message) || $json->message != 'Unauthorized') && empty($json->errors)) ? 'Logged into desk.com' : 'Error logging into desk.';
    
 }
 
-function desk_http($method, $url, $parameters = array()) {
-  $conf = conf(); 
+// function desk_http($method, $url, $parameters = array()) {
+//   $conf = conf(); 
   
 
-  /* tapir */
+//   /* tapir */
+//   require_once('lib/tapir/tapir.php');
+//   $desk = new Tapir('desk');
+//   $desk->setParameters(array('subdomain' => 'jsagotsky'));
+//   $desk->useOAuth($conf['desk_consumer_key'], $conf['desk_consumer_secret'], $conf['desk_token'], $conf['desk_token_secret']);
+//   $api = $desk->api('case');
+//   $result = $api->call('list');
+    
+//   return $result;
+  
+// }
+
+function desk_get_client() {
+  static $desk_client;
+  if (!empty($desk_client)) {
+    return $desk_client;
+  }
+  
+  $conf = conf();
   require_once('lib/tapir/tapir.php');
+
   $desk = new Tapir('desk');
   $desk->setParameters(array('subdomain' => 'jsagotsky'));
   $desk->useOAuth($conf['desk_consumer_key'], $conf['desk_consumer_secret'], $conf['desk_token'], $conf['desk_token_secret']);
-  $api = $desk->api('case');
-  $result = $api->call('list');
-  print_r($result);
-  
-  return $result;
-  
-  /* /tapir */
-  /*
-  static $desk_consumer, $desk_token;
-  if (!isset($desk_consumer, $desk_token)) {
-    require_once('lib/OAuth-PHP/OAuth.php');
-    $desk_consumer = new OAuthConsumer($conf['desk_consumer_key'], $conf['desk_consumer_secret']);
-    $desk_token = new OAuthToken($conf['desk_token'], $conf['desk_token_secret']);
-  }
-  
-  $request = OAuthRequest::from_consumer_and_token($desk_consumer, $desk_token, $method, $url);
-  $request->sign_request(new OAuthSignatureMethod_PLAINTEXT(), $desk_consumer, $desk_token);
-  foreach($parameters as $name => $value) {
-    $request->set_parameter($name, $value);
-  }
-  
-  $ch = curl_init();
-  curl_setopt($ch, CURLOPT_URL, $request->to_url());
-  curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-  $data = curl_exec($ch);
-  curl_close($ch);
-  */
-  //return ($data && $json = json_decode($data)) ? $json : FALSE; 
+ 
+  return $desk;
 }
 
-// function desk_case($op, $args = array()) {
-//   $conf = conf();
-//   $url = 'https://' . $conf['subdomain'] . 'desk.com/api/v2/cases';
-
-//   switch ($op) {
-//     case 'search':
-//       $url = $url . '/search'
-//   }
-// }
 
 /**
  * @function github_hook_comments
@@ -312,7 +299,8 @@ function github_hook_comment() {
   $milestone = $json->issue['milestone']['title'];
   $state = $json->issue['state'];
   
-  https://yoursite.desk.com/api/v2/cases/search\?subject\=please+help\&name\=jimmy\&page\=1\&per_page\=2 \
+  $desk = desk_get_client();
+  //https://yoursite.desk.com/api/v2/cases/search\?subject\=please+help\&name\=jimmy\&page\=1\&per_page\=2 \
 
 }
 

@@ -63,8 +63,6 @@ class Tapir {
       $return = $url . '?' . http_build_query($parameters);
     }
 
-    print_r($return);
-    echo "\n\n";
     return $return;
 
   }
