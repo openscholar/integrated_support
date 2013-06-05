@@ -146,8 +146,6 @@ class API {
 
     $result = $tapir->query($call->method(), $url);
     return $result;
-
-
   }
 
   public function addCall($name, $method, $url) {

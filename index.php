@@ -87,11 +87,31 @@ function desk_create_github_issue() {
   );
 
   $i = $gh->api('issue')->create($conf['github_repo_owner'], $conf['github_repo_repository'], $issue);
-
+  
+//   $gh_properties = array(
+//     'github_issue_id' => $i['number'],
+//     'github_status' => $i['state'],
+//   );
+  
+//   if ($i['milestone']) {
+//     $gh_properties['github_milestone'] = $i['milestone'];
+//   }
+  $gh_properties = new stdClass;
+  $gh_properties->github_issue_id = $i['number'];
+  $gh_properties->github_status = $i['state'];
+      
+  if ($i['milestone']) {
+    $gh_properties->github_milestone = $i['milestone'];
+  }
+  
+  
   //take $i and send id or number back to desk.com
-  //print_r($i);
+  $update = array('id' => $data->case_id, 'custom_fields' => $gh_properties);
   $desk = desk_get_client();
-  $desk->api('case')->update(array('id' => $data->case_id, 'custom_github_issue_id' => $i));
+  $desk_out = $desk->api('case')->call('update', $update);
+   
+  error_log('Payload: ' . json_encode($update));
+  error_log('Response: ' . var_export($desk_out, TRUE));
 }
 
 /**
