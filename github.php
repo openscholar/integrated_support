@@ -29,6 +29,7 @@ function github_get_client($auth = TRUE) {
  * Recieves github's webhook for comments being added to an issue
  */
 function github_hook_comment() {
+  //get info from github payload
   $body = file_get_contents(STDIN);
   $json = json_decode($body);
 
@@ -40,9 +41,21 @@ function github_hook_comment() {
   $milestone = $json->issue['milestone']['title'];
   $state = $json->issue['state'];
 
-  $desk = desk_get_client();
-  //https://yoursite.desk.com/api/v2/cases/search\?subject\=please+help\&name\=jimmy\&page\=1\&per_page\=2 \
 
+  //get related desk issues
+  $desk = desk_get_client();
+  $results = $desk->api('case')->call('search', array('case_custom_github_issue_id' => $id));
+  
+  //send changes to desk.com
+  if ($results->total_entries) {
+    //this will need another loop if we ever go over 50 items.  desk makes it easy with the next link, but I'm not sure other apis will do that
+    foreach($results->_embedded->entries as $entry) {
+      if (($milestone != $entry->custom_fields['github_milestone']) || ($state != $entry->custom_fields['github_status'])) {
+        $case_id = end(explode('/', $entry->_links->self->href));      
+        desk_update_case($case_id, $id, $milestone, $state);
+      }
+    }
+  }
 }
 
 /**
@@ -51,7 +64,8 @@ function github_hook_comment() {
  * Recieves github's webhook for issues being created or deleted
  */
 function github_hook_issue() {
-
+  //this is actually the same as the comment hook, but I wanted to keep the urls separate in case we ever want to handle them differently.
+  github_hook_comment();
 }
 
 /**

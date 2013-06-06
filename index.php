@@ -24,6 +24,7 @@ $pages = array(
   'app/config' => 'app_config_page',
   'app/config/desk' => 'app_config_desk_page',
   'app/config/github' => 'app_config_github',
+  'app/testpage' => 'app_testpage',
 );
 
 /**
@@ -153,25 +154,21 @@ function app_config_github() {
 
 }
 
-
-
-
-// function desk_http($method, $url, $parameters = array()) {
-//   $conf = conf(); 
+//designated test page.  this was getting cluttered without one.
+function app_testpage() {
+  $desk = desk_get_client();
+  $results = $desk->api('case')->call('search', array('case_custom_github_issue_id' => 4));
   
-
-//   /* tapir */
-//   require_once('lib/tapir/tapir.php');
-//   $desk = new Tapir('desk');
-//   $desk->setParameters(array('subdomain' => 'jsagotsky'));
-//   $desk->useOAuth($conf['desk_consumer_key'], $conf['desk_consumer_secret'], $conf['desk_token'], $conf['desk_token_secret']);
-//   $api = $desk->api('case');
-//   $result = $api->call('list');
-    
-//   return $result;
-  
-// }
-
+  echo 'all desk cases with ghid = 4: <Br /><Br />';
+  //print_r($results);
+  if ($results->total_entries) {
+    foreach($results->_embedded->entries as $entry) {
+      print_r($entry);
+//       echo $entry->_links->self->href . "\n\n";
+//       print_r($entry->custom_fields);
+    }
+  }
+}
 
 
 ?>
