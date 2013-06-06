@@ -1,17 +1,17 @@
 <?php
 
 
-//use Buzz\Listener\OAuthListener;
-
 /**
  * @file index.php
  * 
  * Desk.com <-> Github <-> GetSatisfaction   Integration 
  */
 
-require_once('vendor/autoload.php');
+foreach (array('vendor/autoload.php', 'desk.php', 'github.php') as $file) {
+  require_once($file);
+}
+
 error_reporting(E_ALL ^ E_NOTICE);
-// use Desk\Client;
 
 /**
  * $pages array maps path to function 
@@ -116,24 +116,6 @@ function desk_create_github_issue() {
 }
 
 
-function desk_update_test_issue() {
-  $desk = desk_get_client();
-  
-  $custom = array('github_issue_id'=>'0');
-  
-  $update = array(
-     'id' => 4,
-     'subject' => 'this case has been updated via the api',
-     'custom_fields' => $custom, 
-  );
-  
-  //var_export($update);
-     
-  
-  //custom fields are part of curls data body.  is that being pushed right?
-  $ret = $desk->api('case')->call('update', $update); 
-  return "\n\n<br><Br>" . var_export($ret, TRUE);
-}
 
 /**
  * @function json_post
@@ -181,27 +163,6 @@ function conf() {
   return $conf;
 }
 
-function github_get_client($auth = TRUE) {
-  static $gh_client;
-  if (!empty($gh_client)) {
-    return $gh_client;
-  }
-
-  $conf = conf();
-  $cache = new Github\HttpClient\CachedHttpClient(array('cache_dir' => __DIR__ . '/.github-api-cache'));
-  $gh_client = new Github\Client($cache);
-
-  if ($auth) {
-    try {
-      $gh_client->authenticate($conf['github_auth_token'], '', Github\Client::AUTH_HTTP_PASSWORD);
-    } catch (Exception $e) {
-      print 'error';
-      $gh_client = NULL;
-    }
-  }
-
-  return $gh_client;
-}
 
 //show conf vars
 function app_config_page() {
@@ -225,8 +186,8 @@ function app_config_desk_page() {
   require_once('liquid.inc');
   echo "<b>Use the following json as the desk.com app post payload</b><br /><br /\n\n";
 
-$vars = desk_liquid_template();
-//this approach is wrong.  some items need to be iterated over...
+  $vars = desk_liquid_template();
+  //this approach is wrong.  some items need to be iterated over...
   echo '<code>' . $vars . '</code>';
 }
 
@@ -265,30 +226,8 @@ function app_config_github() {
 
 }
 
-/**
- * @function github_status
- * 
- * Checks that github can auth 
- */
-function github_status() {
-  $gh = github_get_client();
-  $me = $gh->api('current_user')->show();
-  return ($me) ? 'Logged into github as: ' . $me['login'] : 'Could not auth github';
-}
 
-/**
- * @function desk_status
- * 
- * Checks that desk can auth
- */
-function desk_status() {
-  $desk = desk_get_client();
-  $search = $desk->api('case')->call('search', array('case_id' => 4));
-  return (isset($search->total_entries)) ? 'Logged into desk.com' : 'Error logging in to desk.';
-//   $json = desk_http('get', 'https://jsagotsky.desk.com/api/v2/cases/search', array('case_id' => '4'));
-//   return ($json && (!isset($json->message) || $json->message != 'Unauthorized') && empty($json->errors)) ? 'Logged into desk.com' : 'Error logging into desk.';
-   
-}
+
 
 // function desk_http($method, $url, $parameters = array()) {
 //   $conf = conf(); 
@@ -306,52 +245,6 @@ function desk_status() {
   
 // }
 
-function desk_get_client() {
-  static $desk_client;
-  if (!empty($desk_client)) {
-    return $desk_client;
-  }
-  
-  $conf = conf();
-  require_once('lib/tapir/tapir.php');
 
-  $desk = new Tapir('desk');
-  $desk->setParameters(array('subdomain' => 'jsagotsky'));
-  $desk->useOAuth($conf['desk_consumer_key'], $conf['desk_consumer_secret'], $conf['desk_token'], $conf['desk_token_secret']);
- 
-  return $desk;
-}
-
-
-/**
- * @function github_hook_comments
- * 
- * Recieves github's webhook for comments being added to an issue
- */
-function github_hook_comment() {
-  $body = file_get_contents(STDIN);
-  $json = json_decode($body);
-  
-  if ($json->action != 'created') {
-    return;
-  }
-  
-  $id = $json->issue['number'];
-  $milestone = $json->issue['milestone']['title'];
-  $state = $json->issue['state'];
-  
-  $desk = desk_get_client();
-  //https://yoursite.desk.com/api/v2/cases/search\?subject\=please+help\&name\=jimmy\&page\=1\&per_page\=2 \
-
-}
-
-/**
- * @function github_hook_issue
- *
- * Recieves github's webhook for issues being created or deleted
- */
-function github_hook_issue() {
-  
-}
 
 ?>

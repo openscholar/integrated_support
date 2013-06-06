@@ -70,8 +70,6 @@ class Tapir {
   public function query($method, $url, $parameters = array()) {
     if (!isset($this->auth) || $this->auth == 'oauth') {
       $ch = curl_init();
-      curl_setopt($ch, CURLOPT_URL, $url);
-      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 
       switch (strtolower($method)) {
         case 'put':
@@ -79,28 +77,23 @@ class Tapir {
           //TRUE to HTTP PUT a file. The file to PUT must be set with CURLOPT_INFILE and CURLOPT_INFILESIZE.
           break;
         case 'patch':
-          //if params is specified earlier it doesn't work.
-          //maybe it must not be called as oath set param
-          //$parameters = array('id' => '4', 'custom_fields' => array('github_issue_id' => '9'));
-          $data = json_encode($parameters);
-          print_r($data);
-          print("\n");
-          //$data = '{"custom_fields":{"github_issue_id":"4"}}';
-          print_r($data);
-          //print_r($parameters);
-          //$data = array('subject'=>'another api subject patch');
+
           curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH' );
           curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Accept: application/json'));
-          curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+          curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($parameters));
           //http://stackoverflow.com/questions/11532363/does-php-curl-support-patch
           break;
         case 'post':
           curl_setopt($ch, CURLOPT_POST, TRUE);
 
         case 'get':
+          $url .= '&' . http_build_query($parameters);
           //default, do nothing
           break;
       }
+      
+      curl_setopt($ch, CURLOPT_URL, $url);
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 
       $data = curl_exec($ch);
       curl_close($ch);
@@ -139,14 +132,12 @@ class APICall {
       $use_params = array_combine($this->post, $this->post);
       return array_intersect_key($parameters, $use_params);
     } else {
-      return array();
+      return $parameters; //no limit, just keep them.
     }
   }
 
   public function query($parameters) {
-    if ($this->post) {
-      return array_diff_key($parameters, array_flip($this->post));
-    }
+    return ($this->post) ? array_diff_key($parameters, array_flip($this->post)) : array();
   }
 }
 
@@ -174,7 +165,7 @@ class API {
 
     $call = $this->APICalls[$cmd];
     $url = $this->getUrl($call->url(), $parameters);
-    $url = $tapir->buildQuery($call->method(), $url, $call->query(parameters));
+    $url = $tapir->buildQuery($call->method(), $url, $call->query($parameters));
 
     $result = $tapir->query($call->method(), $url, $call->parameters($parameters));
     return $result;
