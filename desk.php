@@ -91,15 +91,17 @@ function desk_create_github_issue() {
     'body' => github_template_body($body), //implode("\n", $issue_body),
   );
 
-  $issue_ret = github_create_issue($issue['title'], $issue);
+  $issue_ret = github_create_issue($issue);
+  $state = (in_array(ucfirst($state), array('Open', 'Closed'))) ? ucfirst($state) : '--'; //must be one of these three values.
   
   //send response back to desk
-  desk_update_case($data->case_id, $issue_ret['number'], $issue_ret['milestone'], $issue_ret['state']); 
+  $desk_ret = desk_update_case($data->case_id, $issue_ret['number'], $issue_ret['milestone'], $state); 
 //   //take $i and send id or number back to desk.com
 //   $update = array('id' => $data->case_id, 'custom_fields' => $gh_properties);
 //   $desk = desk_get_client();
 //   $desk_out = $desk->api('case')->call('update', $update);
    
 //   error_log('Payload: ' . json_encode($update));
-//   error_log('Response: ' . var_export($desk_out, TRUE));
+  error_log('GH Response: ' . var_export($issue_ret, TRUE) . "\n\n");
+  error_log('Desk Response: ' . var_export($desk_ret, TRUE));
 }

@@ -66,12 +66,14 @@ function github_status() {
 }
 
 
-function github_create_issue() {
+function github_create_issue($issue) {
   $gh = github_get_client();
   $conf = conf();
+  if (!isset($issue['title'])) {
+    throw new Exception('Can\'t create a github issue with no title.');
+  }
   
-  $i = $gh->api('issue')->create($conf['github_repo_owner'], $conf['github_repo_repository'], $issue);
-  
+  return $gh->api('issue')->create($conf['github_repo_owner'], $conf['github_repo_repository'], $issue);
 }
 
 /**
@@ -93,16 +95,14 @@ function github_template_body($opts = array()) {
   
   //link
   if (isset($opts['source'])) {
-    $body[] = (isset($opts[link])) ? "**From $opts[source]:** $opts[links]" : "From $opts[source]**";
+    $body[] = (isset($opts['link'])) ? "**From $opts[source]:** $opts[link]" : "**From $opts[source]**";
   }
   
   //body - quote original
   if (is_string($opts['text'])) {
     $body[] = '```' . $opts['text'] . '```';
   } elseif (is_array($opts['text'])) {
-    $body[] = '```';
-    $body[] = implode("\n\n", $opts['text']);
-    $body[] = '```';
+    $body[] = '> ' . implode("\n>> ", $opts['text']);
   }
   
   //os
