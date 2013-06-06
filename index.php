@@ -18,6 +18,7 @@ error_reporting(E_ALL ^ E_NOTICE);
  */
 $pages = array(
   'desk/create_github_issue' => 'desk_create_github_issue',
+  'desk/update_test_issue' => 'desk_update_test_issue', 
   'github/close_issue' => 'github_close_issue',
   'github/close_milestone' => 'github_close_milestone',
   'app/config' => 'app_config_page',
@@ -112,6 +113,26 @@ function desk_create_github_issue() {
    
   error_log('Payload: ' . json_encode($update));
   error_log('Response: ' . var_export($desk_out, TRUE));
+}
+
+
+function desk_update_test_issue() {
+  $desk = desk_get_client();
+  
+  $custom = array('github_issue_id'=>'0');
+  
+  $update = array(
+     'id' => 4,
+     'subject' => 'this case has been updated via the api',
+     'custom_fields' => $custom, 
+  );
+  
+  //var_export($update);
+     
+  
+  //custom fields are part of curls data body.  is that being pushed right?
+  $ret = $desk->api('case')->call('update', $update); 
+  return "\n\n<br><Br>" . var_export($ret, TRUE);
 }
 
 /**

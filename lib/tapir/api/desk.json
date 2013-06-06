@@ -20,7 +20,8 @@
       },
       "update":{
         "url":"https://{subdomain}.desk.com/api/v2/cases/{id}",
-        "method":"patch"
+        "method":"patch",
+        "post_parameters":["custom_fields"]
       }
     },
     "integration_urls":{

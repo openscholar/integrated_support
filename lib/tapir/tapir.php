@@ -67,7 +67,7 @@ class Tapir {
 
   }
 
-  public function query($method, $url) {
+  public function query($method, $url, $parameters = array()) {
     if (!isset($this->auth) || $this->auth == 'oauth') {
       $ch = curl_init();
       curl_setopt($ch, CURLOPT_URL, $url);
@@ -79,7 +79,19 @@ class Tapir {
           //TRUE to HTTP PUT a file. The file to PUT must be set with CURLOPT_INFILE and CURLOPT_INFILESIZE.
           break;
         case 'patch':
+          //if params is specified earlier it doesn't work.
+          //maybe it must not be called as oath set param
+          //$parameters = array('id' => '4', 'custom_fields' => array('github_issue_id' => '9'));
+          $data = json_encode($parameters);
+          print_r($data);
+          print("\n");
+          //$data = '{"custom_fields":{"github_issue_id":"4"}}';
+          print_r($data);
+          //print_r($parameters);
+          //$data = array('subject'=>'another api subject patch');
           curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH' );
+          curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Accept: application/json'));
+          curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
           //http://stackoverflow.com/questions/11532363/does-php-curl-support-patch
           break;
         case 'post':
@@ -108,15 +120,34 @@ class Tapir {
 
 
 class APICall {
-  private $method, $url;
+  private $method = null;
+  private $url; 
+  private $post;
 
-  public function __construct($url, $method = 'get') {
-    $this->method = $method;
-    $this->url = $url;
+  public function __construct($call) {
+    $this->method = $call['method'];
+    $this->url = $call['url'];
+    $this->post = (isset($call['post_parameters'])) ? $call['post_parameters'] : NULL;
   }
 
   public function method() { return $this->method; }
+
   public function url() { return $this->url; }
+
+  public function parameters($parameters) {
+    if ($this->post) {
+      $use_params = array_combine($this->post, $this->post);
+      return array_intersect_key($parameters, $use_params);
+    } else {
+      return array();
+    }
+  }
+
+  public function query($parameters) {
+    if ($this->post) {
+      return array_diff_key($parameters, array_flip($this->post));
+    }
+  }
 }
 
 
@@ -128,7 +159,7 @@ class API {
     $this->tapirService = $tapirService;
     $this->APICalls = array();
     foreach ($calls as $name => $call) {
-      $this->addCall($name, $call['url'], $call['method']);
+      $this->addCall($name, $call);
     }
   }
 
@@ -140,16 +171,17 @@ class API {
       throw new Exception('Call does not exist: ' . $cmd);
     }
 
+
     $call = $this->APICalls[$cmd];
     $url = $this->getUrl($call->url(), $parameters);
-    $url = $tapir->buildQuery($call->method(), $url, $parameters);
+    $url = $tapir->buildQuery($call->method(), $url, $call->query(parameters));
 
-    $result = $tapir->query($call->method(), $url);
+    $result = $tapir->query($call->method(), $url, $call->parameters($parameters));
     return $result;
   }
 
-  public function addCall($name, $method, $url) {
-    $this->APICalls[$name] = new APICall($method, $url);
+  public function addCall($name, $call) {
+    $this->APICalls[$name] = new APICall($call);
   }
 
   private function getUrl($url, &$parameters) {
