@@ -64,3 +64,56 @@ function github_status() {
   $me = $gh->api('current_user')->show();
   return ($me) ? 'Logged into github as: ' . $me['login'] : 'Could not auth github';
 }
+
+
+function github_create_issue() {
+  $gh = github_get_client();
+  $conf = conf();
+  
+  $i = $gh->api('issue')->create($conf['github_repo_owner'], $conf['github_repo_repository'], $issue);
+  
+}
+
+/**
+ * @function github_template_body
+ * 
+ * Builds markdown for a github body
+ * 
+ * Available options:
+ *  source
+ *  link
+ *  text
+ *  os
+ *  os_version
+ *  browser 
+ *  browser_version
+ */
+function github_template_body($opts = array()) {
+  $body = array();
+  
+  //link
+  if (isset($opts['source'])) {
+    $body[] = (isset($opts[link])) ? "**From $opts[source]:** $opts[links]" : "From $opts[source]**";
+  }
+  
+  //body - quote original
+  if (is_string($opts['text'])) {
+    $body[] = '```' . $opts['text'] . '```';
+  } elseif (is_array($opts['text'])) {
+    $body[] = '```';
+    $body[] = implode("\n\n", $opts['text']);
+    $body[] = '```';
+  }
+  
+  //os
+  if (isset($opts['os'], $opts['os_version'])) {
+    $body[] = 'OS: ' . $opts['os'] . ' ' . $opts['os_version'];
+  }
+  
+  //browser  
+  if (isset($opts['browser'], $opts['browser_version'])) {
+    $body[] = 'Browser: ' . $opts['browser'] . ' ' . $opts['browser_version'];
+  }
+  
+  return implode("\n\n", $body);
+}

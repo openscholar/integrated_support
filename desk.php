@@ -59,3 +59,47 @@ function desk_status() {
   $search = $desk->api('case')->call('search', array('case_id' => 4));
   return (isset($search->total_entries)) ? 'Logged into desk.com' : 'Error logging in to desk.';
 }
+
+
+/**
+ * @function desk_create_github_issue
+ *
+ * Callback function for creating a github issue from a desk.com api post
+ */
+function desk_create_github_issue() {
+  if (!($data = json_post('data'))) {
+    error_log('No json data in post.  $_POST:' . var_export($_POST, TRUE));
+  }
+
+  $conf = conf();
+
+  //create github issue
+  $body = array(
+    'source' => 'Desk.com',
+    'link' => $conf['desk_url'] . '/agent/case/' . $data->case_id, 
+    'text' => $data->case_body,
+    'os' => $data->os,
+    'os_version' => $data->os_version,
+    'browser' => $data->os_browser,
+    'browser_version' => $data->os_browser,
+  );
+  
+  $issue = array(
+    'title' => ($data->case_subject) ? $data->case_subject : 'Issue from desk.com',
+    'assignee' => (isset($conf['user_map'][$data->case_user])) ? $conf['user_map'][$data->case_user] : NULL,
+    'labels' => 'desk',
+    'body' => github_template_body($body), //implode("\n", $issue_body),
+  );
+
+  $issue_ret = github_create_issue($issue['title'], $issue);
+  
+  //send response back to desk
+  desk_update_case($data->case_id, $issue_ret['number'], $issue_ret['milestone'], $issue_ret['state']); 
+//   //take $i and send id or number back to desk.com
+//   $update = array('id' => $data->case_id, 'custom_fields' => $gh_properties);
+//   $desk = desk_get_client();
+//   $desk_out = $desk->api('case')->call('update', $update);
+   
+//   error_log('Payload: ' . json_encode($update));
+//   error_log('Response: ' . var_export($desk_out, TRUE));
+}
