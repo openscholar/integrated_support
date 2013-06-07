@@ -70,6 +70,10 @@ function desk_create_github_issue() {
   if (!($data = json_post('data'))) {
     error_log('No json data in post.  $_POST:' . var_export($_POST, TRUE));
   }
+  
+  if (!isset($data->case_id)) {
+    return;
+  }
 
   $conf = conf();
 

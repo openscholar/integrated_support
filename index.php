@@ -19,8 +19,7 @@ error_reporting(E_ALL ^ E_NOTICE);
 $pages = array(
   'desk/create_github_issue' => 'desk_create_github_issue',
   'desk/update_test_issue' => 'desk_update_test_issue', 
-  'github/close_issue' => 'github_close_issue',
-  'github/close_milestone' => 'github_close_milestone',
+  'github/hook_issue' => 'github_hook_issue',
   'app/config' => 'app_config_page',
   'app/config/desk' => 'app_config_desk_page',
   'app/config/github' => 'app_config_github',
@@ -124,7 +123,8 @@ function app_config_github() {
   $gh = github_get_client();
   $conf = conf();
   $name = 'web';
-  $target_url = 'http://requestb.in/wmmxenwm'; 
+//   $target_url = 'http://requestb.in/wmmxenwm';
+  $target_url = $_SERVER['SERVER_NAME'] . '?page=github/hook_issue';
   $user = $conf['github_repo_owner'];
   $repo = $conf['github_repo_repository'];
 
@@ -168,6 +168,14 @@ function app_testpage() {
 //       print_r($entry->custom_fields);
     }
   }
+  
+  $gh = github_get_client();
+  $conf = conf();
+  $user = $conf['github_repo_owner'];
+  $repo = $conf['github_repo_repository'];
+  
+  $hooks = $gh->api('repo')->hooks()->all($user, $repo);
+  print_r($hooks);
 }
 
 
