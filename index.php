@@ -124,7 +124,7 @@ function app_config_github() {
   $conf = conf();
   $name = 'web';
 //   $target_url = 'http://requestb.in/wmmxenwm';
-  $target_url = $_SERVER['SERVER_NAME'] . '?page=github/hook_issue';
+  $target_url = 'http://' . $_SERVER['SERVER_NAME'] . '?page=github/hook_issue';
   $user = $conf['github_repo_owner'];
   $repo = $conf['github_repo_repository'];
 
@@ -145,7 +145,7 @@ function app_config_github() {
       'content_type' => 'json',
       'secret' => 'some secret text', 
     ),
-    'events' => array('issues', 'issue_comment', 'status'),
+    'events' => array('issues', 'issue_comment'),//, 'status'),
   );
   $new = $gh->api('repo')->hooks()->create($user, $repo, $hook_conf);
 
