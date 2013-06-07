@@ -4,7 +4,7 @@ class Tapir {
   private $auth;
   private $auth_opts;
   private $APIs;
-  private $parameters;
+  private $parameters; //all parameters - data and args
 
   public function __construct($config) {
     $this->parameters = array();
@@ -70,25 +70,29 @@ class Tapir {
   public function query($method, $url, $parameters = array()) {
     if (!isset($this->auth) || $this->auth == 'oauth') {
       $ch = curl_init();
+      
+      $methods = array(
+        'put' => array(CURLOPT_PUT, TRUE),
+        'patch' => array(CURLOPT_CUSTOMREQUEST, 'PATCH'),
+        'post' => array(CURLOPT_POST, TRUE),
+        'get' => array(CURLOPT_HTTPGET, TRUE),
+        'delete' => array(CURLOPT_CUSTOMREQUEST, 'DELETE'),  
+       );
+      
+      //set http method
+      list($opt, $val) = $methods[strtolower($method)];
+      curl_setopt($ch, $opt, $val);
 
+      //set any other options for this method
       switch (strtolower($method)) {
-        case 'put':
-          curl_setopt($ch, CURLOPT_PUT, TRUE);
-          //TRUE to HTTP PUT a file. The file to PUT must be set with CURLOPT_INFILE and CURLOPT_INFILESIZE.
-          break;
+        case 'post':
         case 'patch':
-
-          curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH' );
           curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/json', 'Accept: application/json'));
           curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($parameters));
           //http://stackoverflow.com/questions/11532363/does-php-curl-support-patch
           break;
-        case 'post':
-          curl_setopt($ch, CURLOPT_POST, TRUE);
-
         case 'get':
           $url .= '&' . http_build_query($parameters);
-          //default, do nothing
           break;
       }
       
@@ -115,29 +119,29 @@ class Tapir {
 class APICall {
   private $method = null;
   private $url; 
-  private $post;
+  private $data; //data must be passed in post body, not as a parameter
 
   public function __construct($call) {
     $this->method = $call['method'];
     $this->url = $call['url'];
-    $this->post = (isset($call['post_parameters'])) ? $call['post_parameters'] : NULL;
+    $this->data = (isset($call['data'])) ? $call['data'] : NULL;
   }
 
   public function method() { return $this->method; }
 
   public function url() { return $this->url; }
 
-  public function parameters($parameters) {
-    if ($this->post) {
-      $use_params = array_combine($this->post, $this->post);
+  public function data($parameters) {
+    if ($this->data) {
+      $use_params = array_combine($this->data, $this->data);
       return array_intersect_key($parameters, $use_params);
     } else {
       return $parameters; //no limit, just keep them.
     }
   }
 
-  public function query($parameters) {
-    return ($this->post) ? array_diff_key($parameters, array_flip($this->post)) : array();
+  public function query_args($parameters) {
+    return ($this->data) ? array_diff_key($parameters, array_flip($this->data)) : array();
   }
 }
 
@@ -165,9 +169,9 @@ class API {
 
     $call = $this->APICalls[$cmd];
     $url = $this->getUrl($call->url(), $parameters);
-    $url = $tapir->buildQuery($call->method(), $url, $call->query($parameters));
+    $url = $tapir->buildQuery($call->method(), $url, $call->query_args($parameters));
 
-    $result = $tapir->query($call->method(), $url, $call->parameters($parameters));
+    $result = $tapir->query($call->method(), $url, $call->data($parameters));
     return $result;
   }
 

@@ -18,7 +18,8 @@ error_reporting(E_ALL ^ E_NOTICE);
  */
 $pages = array(
   'desk/create_github_issue' => 'desk_create_github_issue',
-  'desk/update_test_issue' => 'desk_update_test_issue', 
+  'desk/update_test_issue' => 'desk_update_test_issue',
+  'desk/preview_github' => 'desk_preview_github', 
   'github/hook_issue' => 'github_hook_issue',
   'app/config' => 'app_config_page',
   'app/config/desk' => 'app_config_desk_page',
@@ -111,11 +112,40 @@ function app_config_page() {
 function app_config_desk_page() {
   //liquid template vars
   require_once('liquid.inc');
-  echo "<b>Use the following json as the desk.com app post payload</b><br /><br /\n\n";
+  $desk = desk_get_client();
+  
+//   echo "<b>Use the following json as the desk.com app post payload</b><br /><br /\n\n";
 
   $vars = desk_liquid_template();
   //this approach is wrong.  some items need to be iterated over...
   echo '<code>' . $vars . '</code>';
+  
+  //prune old services.
+  $service_name = 'Create GitHub Issue';
+  $results = $desk->api('integration_urls')->call('list');
+  if ($results->total_entries) {
+    foreach ($results->_embedded->entries as $entry) {
+      if ($entry->name == $service_name) {
+        $href = $entry->_links->self->href;
+        list(,,,,$id) = explode('/', $href);
+        $desk->api('integration_urls')->call('delete', array('id' => $id));
+      }
+    }
+  }
+  
+  //create a service
+  $url = _url() . '?page=/desk/preview_github&payload=' . desk_liquid_template();
+  $integration_url = array(
+    'name' => $service_name,
+    'description' => 'Send tickets to github',
+    'enabled' => TRUE,    
+    'markup' => $url,
+  );
+  
+  $results = $desk->api('integration_urls')->call('create', $integration_url);
+  
+  print_r($results);
+  //return $results;
 }
 
 //add our hooks to github
@@ -124,7 +154,7 @@ function app_config_github() {
   $conf = conf();
   $name = 'web';
 //   $target_url = 'http://requestb.in/wmmxenwm';
-  $target_url = 'http://' . $_SERVER['SERVER_NAME'] . '?page=github/hook_issue';
+  $target_url = _url() . '?page=github/hook_issue';
   $user = $conf['github_repo_owner'];
   $repo = $conf['github_repo_repository'];
 
@@ -157,26 +187,14 @@ function app_config_github() {
 //designated test page.  this was getting cluttered without one.
 function app_testpage() {
   $desk = desk_get_client();
-  $results = $desk->api('case')->call('search', array('case_custom_github_issue_id' => 4));
-  
-  echo 'all desk cases with ghid = 4: <Br /><Br />';
-  //print_r($results);
-  if ($results->total_entries) {
-    foreach($results->_embedded->entries as $entry) {
-      print_r($entry);
-//       echo $entry->_links->self->href . "\n\n";
-//       print_r($entry->custom_fields);
-    }
-  }
-  
-  $gh = github_get_client();
-  $conf = conf();
-  $user = $conf['github_repo_owner'];
-  $repo = $conf['github_repo_repository'];
-  
-  $hooks = $gh->api('repo')->hooks()->all($user, $repo);
-  print_r($hooks);
+  $results = $desk->api('integration_urls')->call('list');
+
+  print_r($results);
 }
 
+
+function _url() {
+  return 'http://' . $_SERVER['SERVER_NAME'];
+}
 
 ?>

@@ -21,28 +21,29 @@
       "update":{
         "url":"https://{subdomain}.desk.com/api/v2/cases/{id}",
         "method":"patch",
-        "post_parameters":["custom_fields"]
+        "data":["custom_fields"]
       }
     },
     "integration_urls":{
       "list":{
-        "url":"https://{subdomain.desk.com/api/v2/integration_urls",
+        "url":"https://{subdomain}.desk.com/api/v2/integration_urls",
         "method":"get"
       },
       "show":{
-        "url":"https://{subdomain.desk.com/api/v2/integration_urls/{id}",
+        "url":"https://{subdomain}.desk.com/api/v2/integration_urls/{id}",
         "method":"get"
       },
       "create":{
-        "url":"https://{subdomain.desk.com/api/v2/integration_urls",
-        "method":"post"
+        "url":"https://{subdomain}.desk.com/api/v2/integration_urls",
+        "method":"post",
+        "data":["name","description","enabled","markup"]
       },
       "update":{
-        "url":"https://{subdomain.desk.com/api/v2/integration_urls/{id}",
+        "url":"https://{subdomain}.desk.com/api/v2/integration_urls/{id}",
         "method":"patch"
       },
       "delete":{
-        "url":"https://{subdomain.desk.com/api/v2/integration_urls/{id}",
+        "url":"https://{subdomain}.desk.com/api/v2/integration_urls/{id}",
         "method":"delete"
       }
     }

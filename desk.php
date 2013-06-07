@@ -108,7 +108,7 @@ function desk_create_github_issue() {
   $issue_ret = github_create_issue($issue);
   
   //send response back to desk
-  $desk_ret = desk_update_case($data->case_id, $issue_ret['number'], $issue_ret['milestone'], $state); 
+  $desk_ret = desk_update_case($data->case_id, $issue_ret['number'], $issue_ret['milestone'], $issue_ret['state']); 
 //   //take $i and send id or number back to desk.com
 //   $update = array('id' => $data->case_id, 'custom_fields' => $gh_properties);
 //   $desk = desk_get_client();
@@ -119,7 +119,9 @@ function desk_create_github_issue() {
   error_log('Desk Response: ' . var_export($desk_ret, TRUE));
 }
 
-
+function desk_preview_github() {
+  
+}
 
 
 /*
