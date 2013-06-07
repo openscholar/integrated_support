@@ -30,16 +30,18 @@ function github_get_client($auth = TRUE) {
  */
 function github_hook_issue() {
   //get info from github payload
-  $body = file_get_contents(STDIN);
+  $body = file_get_contents('php://input');
   $json = json_decode($body);
+  //error_log(var_export($json, TRUE));
+  
 
   if ($json->action != 'created') {
     return;
   }
 
-  $id = $json->issue['number'];
-  $milestone = $json->issue['milestone']['title'];
-  $state = $json->issue['state'];
+  $id = $json->issue->number;
+  $milestone = $json->issue->milestone->title;
+  $state = $json->issue->state;
 
   //get related desk issues
   $desk = desk_get_client();
@@ -50,7 +52,7 @@ function github_hook_issue() {
   if ($results->total_entries) {
     //this will need another loop if we ever go over 50 items.  desk makes it easy with the next link, but I'm not sure other apis will do that
     foreach($results->_embedded->entries as $entry) {
-      if (($milestone != $entry->custom_fields['github_milestone']) || ($state != $entry->custom_fields['github_status'])) {
+      if (($milestone != $entry->custom_fields->github_milestone) || ($state != $entry->custom_fields->github_status)) {
         $case_id = end(explode('/', $entry->_links->self->href));      
         $desk_log[] = desk_update_case($case_id, $id, $milestone, $state);
       }
@@ -58,8 +60,8 @@ function github_hook_issue() {
   }
   
   error_log('recieved github comment or state change');
-  error_log(var_export($json, TRUE) . "\n\ndesk call results:\n");
-  error_log(var_export($desk_log), TRUE);
+  //error_log(var_export($json, TRUE) . "\n\ndesk call results:\n");
+  error_log(var_export($desk_log, TRUE));
 }
 
 /**

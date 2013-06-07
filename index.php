@@ -145,7 +145,7 @@ function app_config_github() {
       'content_type' => 'json',
       'secret' => 'some secret text', 
     ),
-    'events' => array('issues', 'issue_comment'),//, 'status'),
+    'events' => array('issues', 'issue_comment', 'status'),
   );
   $new = $gh->api('repo')->hooks()->create($user, $repo, $hook_conf);
 

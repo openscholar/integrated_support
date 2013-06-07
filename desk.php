@@ -17,6 +17,9 @@ function desk_update_test_issue() {
  */
 function desk_update_case($case_id, $github_issue_id, $github_milestone = NULL, $github_status = NULL) {
   $desk = desk_get_client();
+  $github_status = _desk_validate_github_status($github_status);
+  //$state = (isset($github_status) && in_array(ucfirst($github_status), array('Open', 'Closed'))) ? ucfirst($github_status) : '--'; //must be one of these three values.
+  
   $update = array('id' => $case_id);
   foreach (array('github_issue_id', 'github_milestone', 'github_status') as $var) {
     if ($$var) {
@@ -24,7 +27,14 @@ function desk_update_case($case_id, $github_issue_id, $github_milestone = NULL, 
     }
   }
   
+    
+
+  
+  
   $ret = $desk->api('case')->call('update', $update);
+  if (isset($ret->errors) && $ret->errors) {
+    error_log($ret->mesage . var_export($ret->errors, TRUE) . var_export($update, TRUE));
+  }
   return $ret;
 }
 
@@ -96,7 +106,6 @@ function desk_create_github_issue() {
   );
 
   $issue_ret = github_create_issue($issue);
-  $state = (in_array(ucfirst($state), array('Open', 'Closed'))) ? ucfirst($state) : '--'; //must be one of these three values.
   
   //send response back to desk
   $desk_ret = desk_update_case($data->case_id, $issue_ret['number'], $issue_ret['milestone'], $state); 
@@ -108,4 +117,22 @@ function desk_create_github_issue() {
 //   error_log('Payload: ' . json_encode($update));
   error_log('GH Response: ' . var_export($issue_ret, TRUE) . "\n\n");
   error_log('Desk Response: ' . var_export($desk_ret, TRUE));
+}
+
+
+
+
+/*
+ * @function _desk_validate_github_status($github_status);
+ * 
+ * Make sure github_status is one of the three valid options.
+ */
+function _desk_validate_github_status($github_status) {
+  if (strtolower($github_status) == 'open') {
+    return 'Open';
+  } elseif (strtolower($github_status) == 'closed') {
+    return 'Closed';
+  }
+  
+  return '--';
 }
