@@ -120,6 +120,39 @@ function desk_create_github_issue() {
 }
 
 function desk_preview_github() {
+  //should include gh id so we can avoid dupes
+  print_r($_REQUEST);
+  
+  if (!isset($_REQUEST['payload'])) {
+    return 'no payload';
+  }
+  
+  $json = json_decode($_REQUEST['payload']);
+  if (!isset($json->case_id) || isset($json->custom_github_issue_id)) {
+    return 'no can do';
+  }
+  
+  $conf = conf();
+  
+  $body = array(
+    'source' => 'Desk.com',
+    'link' => $conf['desk_url'] . '/agent/case/' . $json->case_id,
+    'text' => $json->case_body,
+    'os' => $json->os,
+    'os_version' => $json->os_version,
+    'browser' => $json->os_browser,
+    'browser_version' => $json->os_browser,
+  );
+  
+  $issue = array(
+    'title' => ($json->case_subject) ? $json->case_subject : 'Issue from desk.com',
+    'assignee' => (isset($conf['user_map'][$json->case_user])) ? $conf['user_map'][$json->case_user] : NULL,
+    'labels' => 'desk',
+    'body' => github_template_body($body), //implode("\n", $issue_body),
+  );
+  
+  print_r($issue);
+  
   
 }
 

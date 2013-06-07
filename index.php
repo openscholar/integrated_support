@@ -134,12 +134,12 @@ function app_config_desk_page() {
   }
   
   //create a service
-  $url = _url() . '?page=/desk/preview_github&payload=' . desk_liquid_template();
+  $url = _url() . '?page=desk/preview_github&payload=' . desk_liquid_template();
   $integration_url = array(
     'name' => $service_name,
     'description' => 'Send tickets to github',
     'enabled' => TRUE,    
-    'markup' => $url,
+    'markup' => $url,  //template can be straight up vars now.  no need for json
   );
   
   $results = $desk->api('integration_urls')->call('create', $integration_url);
