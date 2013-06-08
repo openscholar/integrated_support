@@ -121,17 +121,27 @@ function desk_create_github_issue() {
 
 function desk_preview_github() {
   //should include gh id so we can avoid dupes
-  print_r($_REQUEST);
   
   if (!isset($_REQUEST['payload'])) {
+    print_r($_REQUEST);
     return 'no payload';
   }
   
-  $json = json_decode($_REQUEST['payload']);
-  if (!isset($json->case_id) || isset($json->custom_github_issue_id)) {
-    return 'no can do';
+  if (($json = json_decode($_REQUEST['payload'])) == FALSE) {
+    print_r($_REQUEST['payload']);
+    return "\n\ncould not decode json: " . json_last_error();
   }
-  
+  if (empty($json->case_id)) {
+    print_r($_REQUEST); //might be invalid json
+    return 'Can\'t send to github until case is created and has id';
+  }
+
+  if ($json->case_custom_github_issue_id) {
+    return 'Case already has a github id.';
+  }
+
+
+
   $conf = conf();
   
   $body = array(
@@ -151,9 +161,16 @@ function desk_preview_github() {
     'body' => github_template_body($body), //implode("\n", $issue_body),
   );
   
-  print_r($issue);
+
   
+  $issue_ret = github_create_issue($issue);
   
+  //send response back to desk
+  $desk_ret = desk_update_case($data->case_id, $issue_ret['number'], $issue_ret['milestone'], $issue_ret['state']); 
+  
+  print_r($issue_ret);
+  print_r($desk_ret);
+
 }
 
 

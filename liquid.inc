@@ -13,6 +13,7 @@ function desk_liquid_template() {
     "case_subject" => "{{case.subject}}",
     "case_labels" => "{{case.labels}}",
     "case_user" => "{{case.user.name}}",
+    "case_custom_github_issue_id" => "{{case.custom_github_issue_id}}",
 
     "os" => "{{case.interactions | map: 'os' | first}}",
     "os_version" => "{{case.interactions | map: 'os_version' | first}}",
