@@ -134,7 +134,7 @@ function app_config_desk_page() {
   }
   
   //create a service
-  $url = _url() . '?page=desk/preview_github&payload=' . desk_liquid_template();
+  $url = _url() . '?page=desk/preview_github&' . desk_liquid_url_template();
   $integration_url = array(
     'name' => $service_name,
     'description' => 'Send tickets to github',

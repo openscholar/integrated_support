@@ -122,11 +122,22 @@ function desk_create_github_issue() {
 function desk_preview_github() {
   //should include gh id so we can avoid dupes
   
+
+  /*
   if (!isset($_REQUEST['payload'])) {
     print_r($_REQUEST);
     return 'no payload';
   }
+   */
+
+  $data = array();
+  require_once('liquid.inc');
+  foreach (array_keys(desk_liquid_vars()) as $var) {
+    $data[$var] = $_REQUEST[$var];
+  }
   
+  print_r($data);
+  /*
   if (($json = json_decode($_REQUEST['payload'])) == FALSE) {
     print_r($_REQUEST['payload']);
     return "\n\ncould not decode json: " . json_last_error();
@@ -135,9 +146,14 @@ function desk_preview_github() {
     print_r($_REQUEST); //might be invalid json
     return 'Can\'t send to github until case is created and has id';
   }
+   */
 
-  if ($json->case_custom_github_issue_id) {
+  if ($data['case_custom_github_issue_id']) {
     return 'Case already has a github id.';
+  }
+
+  if (empty($data['case_id'])) {
+    return 'Case has no id.  Send after its saved so GH can reference it.';
   }
 
 
@@ -146,17 +162,17 @@ function desk_preview_github() {
   
   $body = array(
     'source' => 'Desk.com',
-    'link' => $conf['desk_url'] . '/agent/case/' . $json->case_id,
-    'text' => $json->case_body,
-    'os' => $json->os,
-    'os_version' => $json->os_version,
-    'browser' => $json->os_browser,
-    'browser_version' => $json->os_browser,
+    'link' => $conf['desk_url'] . '/agent/case/' . $data['case_id'],
+    'text' => $data['case_body'],
+    'os' => $data['os'],
+    'os_version' => $data['os_version'],
+    'browser' => $data['os_browser'],
+    'browser_version' => $data['os_browser'],
   );
   
   $issue = array(
-    'title' => ($json->case_subject) ? $json->case_subject : 'Issue from desk.com',
-    'assignee' => (isset($conf['user_map'][$json->case_user])) ? $conf['user_map'][$json->case_user] : NULL,
+    'title' => ($data['case_subject']) ? $data['case_subject'] : 'Issue from desk.com',
+    'assignee' => (isset($conf['user_map'][$data['case_user_name']])) ? $conf['user_map'][$data['case_user_name']] : NULL,
     'labels' => 'desk',
     'body' => github_template_body($body), //implode("\n", $issue_body),
   );
@@ -164,11 +180,13 @@ function desk_preview_github() {
 
   
   $issue_ret = github_create_issue($issue);
+  print("\n\n\n");
+  print_r($issue_ret);
+  print("\n\n\n");
   
   //send response back to desk
-  $desk_ret = desk_update_case($data->case_id, $issue_ret['number'], $issue_ret['milestone'], $issue_ret['state']); 
+  $desk_ret = desk_update_case($data['case_id'], $issue_ret['number'], $issue_ret['milestone'], $issue_ret['state']); 
   
-  print_r($issue_ret);
   print_r($desk_ret);
 
 }

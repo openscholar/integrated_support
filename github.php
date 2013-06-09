@@ -120,7 +120,7 @@ function github_template_body($opts = array()) {
   
   //body - quote original
   if (is_string($opts['text'])) {
-    $body[] = '```' . $opts['text'] . '```';
+    $body[] = '> ' . $opts['text'] ;
   } elseif (is_array($opts['text'])) {
     $body[] = '> ' . implode("\n>> ", $opts['text']);
   }
