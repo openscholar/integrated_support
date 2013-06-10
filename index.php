@@ -197,4 +197,31 @@ function _url() {
   return 'http://' . $_SERVER['SERVER_NAME'];
 }
 
+/**
+ * @function html_redirect
+ * 
+ * Returns an html redirect so we can send users to newly created tickets
+ */
+function html_redirect($url) {
+  $html = <<<EOF
+<!DOCTYPE HTML>
+<html lang="en-US">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="refresh" content="1;url=%%">
+        <script type="text/javascript">
+            window.location.href = "%%"
+        </script>
+        <title>Page Redirection</title>
+    </head>
+    <body>
+        <!-- Note: don't tell people to `click` the link, just tell them that it is a link. -->
+        If you are not redirected automatically, follow the <a href='http://example.com'>link to example</a>
+    </body>
+</html>
+EOF;
+  
+  return str_replace('%%', $url, $html);
+}
+
 ?>

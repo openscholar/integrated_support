@@ -126,12 +126,12 @@ function github_template_body($opts = array()) {
   }
   
   //os
-  if (isset($opts['os'], $opts['os_version'])) {
+  if ($opts['os'] && $opts['os_version']) {
     $body[] = 'OS: ' . $opts['os'] . ' ' . $opts['os_version'];
   }
   
   //browser  
-  if (isset($opts['browser'], $opts['browser_version'])) {
+  if ($opts['browser'] && $opts['browser_version']) {
     $body[] = 'Browser: ' . $opts['browser'] . ' ' . $opts['browser_version'];
   }
   

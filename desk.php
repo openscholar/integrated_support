@@ -77,89 +77,25 @@ function desk_status() {
  * Callback function for creating a github issue from a desk.com api post
  */
 function desk_create_github_issue() {
-  if (!($data = json_post('data'))) {
-    error_log('No json data in post.  $_POST:' . var_export($_POST, TRUE));
-  }
-  
-  if (!isset($data->case_id)) {
-    return;
-  }
-
-  $conf = conf();
-
-  //create github issue
-  $body = array(
-    'source' => 'Desk.com',
-    'link' => $conf['desk_url'] . '/agent/case/' . $data->case_id, 
-    'text' => $data->case_body,
-    'os' => $data->os,
-    'os_version' => $data->os_version,
-    'browser' => $data->os_browser,
-    'browser_version' => $data->os_browser,
-  );
-  
-  $issue = array(
-    'title' => ($data->case_subject) ? $data->case_subject : 'Issue from desk.com',
-    'assignee' => (isset($conf['user_map'][$data->case_user])) ? $conf['user_map'][$data->case_user] : NULL,
-    'labels' => 'desk',
-    'body' => github_template_body($body), //implode("\n", $issue_body),
-  );
-
-  $issue_ret = github_create_issue($issue);
-  
-  //send response back to desk
-  $desk_ret = desk_update_case($data->case_id, $issue_ret['number'], $issue_ret['milestone'], $issue_ret['state']); 
-//   //take $i and send id or number back to desk.com
-//   $update = array('id' => $data->case_id, 'custom_fields' => $gh_properties);
-//   $desk = desk_get_client();
-//   $desk_out = $desk->api('case')->call('update', $update);
-   
-//   error_log('Payload: ' . json_encode($update));
-  error_log('GH Response: ' . var_export($issue_ret, TRUE) . "\n\n");
-  error_log('Desk Response: ' . var_export($desk_ret, TRUE));
-}
-
-function desk_preview_github() {
-  //should include gh id so we can avoid dupes
-  
-
-  /*
-  if (!isset($_REQUEST['payload'])) {
-    print_r($_REQUEST);
-    return 'no payload';
-  }
-   */
-
+  //get request data for each of the template vars
   $data = array();
   require_once('liquid.inc');
   foreach (array_keys(desk_liquid_vars()) as $var) {
     $data[$var] = $_REQUEST[$var];
   }
   
-  print_r($data);
-  /*
-  if (($json = json_decode($_REQUEST['payload'])) == FALSE) {
-    print_r($_REQUEST['payload']);
-    return "\n\ncould not decode json: " . json_last_error();
-  }
-  if (empty($json->case_id)) {
-    print_r($_REQUEST); //might be invalid json
-    return 'Can\'t send to github until case is created and has id';
-  }
-   */
-
-  if ($data['case_custom_github_issue_id']) {
-    return 'Case already has a github id.';
-  }
-
+  //Don't create a ticket from a case with no id.  There's no way to update the original case with the gh_id.  
   if (empty($data['case_id'])) {
     return 'Case has no id.  Send after its saved so GH can reference it.';
   }
-
-
-
-  $conf = conf();
   
+  //don't create tickets from cases that are already assigned to an id
+  if ($data['case_custom_github_issue_id']) {
+    return 'Case already has a github id.';
+  }
+  
+  //build a github ticket from the desk payload
+  $conf = conf();
   $body = array(
     'source' => 'Desk.com',
     'link' => $conf['desk_url'] . '/agent/case/' . $data['case_id'],
@@ -177,18 +113,33 @@ function desk_preview_github() {
     'body' => github_template_body($body), //implode("\n", $issue_body),
   );
   
-
-  
-  $issue_ret = github_create_issue($issue);
-  print("\n\n\n");
-  print_r($issue_ret);
-  print("\n\n\n");
+  //create the ticket
+  $github_ret = github_create_issue($issue);
+  if (!$github_ret['number']) {
+    return 'Github response:' . serialize($github_ret);
+  }
   
   //send response back to desk
-  $desk_ret = desk_update_case($data['case_id'], $issue_ret['number'], $issue_ret['milestone'], $issue_ret['state']); 
+  $desk_ret = desk_update_case($data['case_id'], $github_ret['number'], $github_ret['milestone'], $github_ret['state']); 
   
-  print_r($desk_ret);
-
+  
+  //redirect to github or show some errors.
+  if ($desk_ret && $desk_ret->custom_fields->github_issue_id) {
+    return html_redirect($github_ret['url']);
+  } else {
+    $out[] = 'Error updating desk case.';
+    $out[] = '';
+    $out[] = 'Original request:';
+    $out[] = serialize($_REQUEST);
+    $out[] = '';
+    $out[] = 'Github response:';
+    $out[] = serialize($github_ret);
+    $out[] = '';
+    $out[] = 'Desk update response:';
+    $out[] = serialize($desk_ret);
+    
+    return implode("\n", $out);
+  }
 }
 
 
