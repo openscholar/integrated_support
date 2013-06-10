@@ -125,7 +125,7 @@ function desk_create_github_issue() {
   
   //redirect to github or show some errors.
   if ($desk_ret && $desk_ret->custom_fields->github_issue_id) {
-    return html_redirect($github_ret['url']);
+    return html_redirect($github_ret['html_url']);
   } else {
     $out[] = 'Error updating desk case.';
     $out[] = '';
