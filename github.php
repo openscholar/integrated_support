@@ -35,13 +35,13 @@ function github_hook_issue() {
   //error_log(var_export($json, TRUE));
   
 
-  if ($json->action != 'created') {
-    return;
-  }
+//   if ($json->action != 'created') {
+//     return;
+//   }
 
   $id = $json->issue->number;
   $milestone = $json->issue->milestone->title;
-  $state = $json->issue->state;
+  $state = (in_array($json->action, array('closed', 'reopened'))) ? $json->action : $json->issue->state;
 
   //get related desk issues
   $desk = desk_get_client();

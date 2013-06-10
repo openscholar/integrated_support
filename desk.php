@@ -26,11 +26,7 @@ function desk_update_case($case_id, $github_issue_id, $github_milestone = NULL, 
       $update['custom_fields'][$var] = $$var;
     }
   }
-  
-    
 
-  
-  
   $ret = $desk->api('case')->call('update', $update);
   if (isset($ret->errors) && $ret->errors) {
     error_log($ret->mesage . var_export($ret->errors, TRUE) . var_export($update, TRUE));
@@ -149,7 +145,7 @@ function desk_create_github_issue() {
  * Make sure github_status is one of the three valid options.
  */
 function _desk_validate_github_status($github_status) {
-  if (strtolower($github_status) == 'open') {
+  if (strtolower($github_status) == 'open' || $github_status == 'reopened') {
     return 'Open';
   } elseif (strtolower($github_status) == 'closed') {
     return 'Closed';

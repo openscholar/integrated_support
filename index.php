@@ -152,7 +152,6 @@ function app_config_github() {
   $gh = github_get_client();
   $conf = conf();
   $name = 'web';
-//   $target_url = 'http://requestb.in/wmmxenwm';
   $target_url = _url() . '?page=github/hook_issue';
   $user = $conf['github_repo_owner'];
   $repo = $conf['github_repo_repository'];
@@ -172,11 +171,14 @@ function app_config_github() {
     'config' => array(
       'url' => $target_url,
       'content_type' => 'json',
-      'secret' => 'some secret text', 
+      'secret' => 'some secret text', //can I do anything with this?  does it ever get sent?
     ),
     'events' => array('issues', 'issue_comment', 'status'),
   );
   $new = $gh->api('repo')->hooks()->create($user, $repo, $hook_conf);
+  
+//   $hook_conf['config']['url'] = 'http://requestb.in/199amt71'; 
+//   $new = $gh->api('repo')->hooks()->create($user, $repo, $hook_conf);
 
   echo 'created hook:<br /><br />';
   print_r($new);
