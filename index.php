@@ -19,7 +19,6 @@ error_reporting(E_ALL ^ E_NOTICE);
 $pages = array(
   'desk/create_github_issue' => 'desk_create_github_issue',
   'desk/update_test_issue' => 'desk_update_test_issue',
-  'desk/preview_github' => 'desk_preview_github', 
   'github/hook_issue' => 'github_hook_issue',
   'app/config' => 'app_config_page',
   'app/config/desk' => 'app_config_desk_page',
@@ -134,7 +133,7 @@ function app_config_desk_page() {
   }
   
   //create a service
-  $url = _url() . '?page=desk/preview_github&' . desk_liquid_url_template();
+  $url = _url() . '?page=desk/create_github_issue&' . desk_liquid_url_template();
   $integration_url = array(
     'name' => $service_name,
     'description' => 'Send tickets to github',
