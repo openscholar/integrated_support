@@ -153,3 +153,76 @@ function _desk_validate_github_status($github_status) {
   
   return '--';
 }
+
+
+/**
+ * @function desk_mass_reply
+ * 
+ * Select and reply to a number of desk cases
+ */
+function desk_mass_reply() {
+  if (empty($_POST)) {
+    $html = array(
+      '<html>',
+      '  <body>',
+      '    <form id="mass_reply" name="mass_reply" action="?page=desk/mass_reply" method="post">',    
+    );
+    
+    //get milestones from github
+    $conf = conf();
+    $gh = github_get_client();
+    $get_milestones = array('state' => 'open', 'order' => 'asc');
+    $milestones = $gh->api('issue')->milestones()->all($conf['github_repo_owner'], $conf['github_repo_repository'], $get_milestones);
+    
+    //select a milestone
+    $html[] = '<select form="mass_reply" name="milestone">';
+    foreach ($milestones as $milestone) {
+      $select = (isset($select)) ? '' : 'checked ';
+      $html[] = "  <option $select value='$milestone[title]'>$milestone[title]</option>";
+    }
+    $html[] = '</select><br />';
+    
+    //open/closed
+    $html[] = '<input type="radio" name="state" id="closed" value="Closed" checked><label for="closed">Closed</label></input>';
+    $html[] = '<input type="radio" name="state" id="open"   value="Open"><label for="open">Open</label></input>';
+    
+    $html[] =  '<input type="submit" value="Submit">';   
+    $html += array(
+        '    </form>',
+        '  </body>',
+        '</html>',
+    ); 
+  } else {
+    $html = array(
+        '<html>',
+        '  <body>',
+        );
+    //print_r($_POST);
+    
+    $desk = desk_get_client();
+    $cases = $desk->api('case')->call('search', array('case_custom_github_status' => $_POST['state'], 'case_custom_github_milestone' => $_POST['milestone']));
+    $reply = 'This issue has been fixed in development.  It is scheduled to go live in the week of ' . $_POST['milestone'] . '.';
+        
+    $message = array();
+    if ($cases->total_entries) {
+      foreach ($cases->_embedded->entries as $entry) {
+        $id = @array_pop(explode("/", $entry->_links->self->href));
+        $sent = $desk->api('case')->call('create_reply', array('id' => $id, 'direction' => 'out', 'body' => $reply));
+        $message[(isset($sent->errors)) ? 'errors' : 'success'][] = (isset($sent->errors)) ? "#$id $sent->message" : $id;
+      }
+    }
+    
+    $html[] = count($message['success']) . ' replies sent</br >';
+    $html[] = count($message['errors']) . ' errors</br >';
+    if ($message['errors']) {
+      $html[] = implode("<br>\n", $message['errors']);
+    }
+    
+    $html += array(
+        '  </body>',
+        '</html>',
+    );
+  }
+  
+  return implode("\n", $html);
+}

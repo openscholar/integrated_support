@@ -19,6 +19,7 @@ error_reporting(E_ALL ^ E_NOTICE);
 $pages = array(
   'desk/create_github_issue' => 'desk_create_github_issue',
   'desk/update_test_issue' => 'desk_update_test_issue',
+  'desk/mass_reply' => 'desk_mass_reply',
   'github/hook_issue' => 'github_hook_issue',
   'app/config' => 'app_config_page',
   'app/config/desk' => 'app_config_desk_page',

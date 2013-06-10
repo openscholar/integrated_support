@@ -22,6 +22,11 @@
         "url":"https://{subdomain}.desk.com/api/v2/cases/{id}",
         "method":"patch",
         "data":["custom_fields"]
+      },
+      "create_reply":{
+        "method":"post",
+        "url":"https://{subdomain}.desk.com/api/v2/cases/{id}/replies",
+        "data":["body","direction"]
       }
     },
     "integration_urls":{
