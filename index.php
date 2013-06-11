@@ -68,6 +68,7 @@ function conf() {
       'github_auth_token',
       'github_repo_owner' ,
       'github_repo_repository',
+      'github_secret',
       'desk_token',
       'desk_token_secret',
       'desk_consumer_key',
@@ -172,7 +173,7 @@ function app_config_github() {
     'config' => array(
       'url' => $target_url,
       'content_type' => 'json',
-      'secret' => 'some secret text', //can I do anything with this?  does it ever get sent?
+      'secret' => $conf['github_secret'],
     ),
     'events' => array('issues', 'issue_comment', 'status'),
   );

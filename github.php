@@ -30,7 +30,15 @@ function github_get_client($auth = TRUE) {
  */
 function github_hook_issue() {
   //get info from github payload
+  $conf = conf();
   $body = file_get_contents('php://input');
+  $hash = hash_hmac('sha1', $body, $conf['github_secret']); 
+  if (!isset($_SERVER['HTTP_X_HUB_SIGNATURE']) || ($hash != $_SERVER['HTTP_X_HUB_SIGNATURE'])) {
+    error_log('Error authenticating origin of github/hook_issue request');
+    return;
+  }
+  
+  
   $json = json_decode($body);
   //error_log(var_export($json, TRUE));
   
