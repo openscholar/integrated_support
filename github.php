@@ -29,24 +29,16 @@ function github_get_client($auth = TRUE) {
  * Recieves github's webhook for comments being added to an issue
  */
 function github_hook_issue() {
-  //get info from github payload
+  //get info from github payload and make sure it's from github
   $conf = conf();
   $body = file_get_contents('php://input');
   $hash = hash_hmac('sha1', $body, $conf['github_secret']); 
-  if (!isset($_SERVER['HTTP_X_HUB_SIGNATURE']) || ($hash != $_SERVER['HTTP_X_HUB_SIGNATURE'])) {
+  if (!isset($_SERVER['HTTP_X_HUB_SIGNATURE']) || ('sha1='.$hash != $_SERVER['HTTP_X_HUB_SIGNATURE'])) {
     error_log('Error authenticating origin of github/hook_issue request');
     return;
   }
-  
-  
+    
   $json = json_decode($body);
-  //error_log(var_export($json, TRUE));
-  
-
-//   if ($json->action != 'created') {
-//     return;
-//   }
-
   $id = $json->issue->number;
   $milestone = $json->issue->milestone->title;
   $state = (in_array($json->action, array('closed', 'reopened'))) ? $json->action : $json->issue->state;
@@ -66,10 +58,6 @@ function github_hook_issue() {
       }
     }
   }
-  
-  error_log('recieved github comment or state change');
-  //error_log(var_export($json, TRUE) . "\n\ndesk call results:\n");
-  error_log(var_export($desk_log, TRUE));
 }
 
 /**
