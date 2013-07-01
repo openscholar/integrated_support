@@ -2,9 +2,15 @@
 
 function github_integration_admin() {
   //get all our labels
-  $client = github_integration_client(FALSE);
-  $response = $client->api('repo')->labels()->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'));
-  $labels = ($response) ? array_map(create_function('$a', 'return $a["name"];'), $response) : array();
+  $owner = variable_get('github_repo_owner');
+  $repo = variable_get('github_repo_repository');
+  $labels = array();
+  
+  if ($owner && $repo) {
+    $client = github_integration_client(FALSE);
+    $response = $client->api('repo')->labels()->all($owner, $repo);
+    $labels = ($response) ? array_map(create_function('$a', 'return $a["name"];'), $response) : array();
+  }
 
 	$form = array(
 		'github_auth_token' => array(
