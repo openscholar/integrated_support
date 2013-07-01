@@ -1,0 +1,6 @@
+name = GetSatisfaction Integration
+description = "Provides GetSatisfactionintegration"
+core = 7.x
+configure = admin/config/integrated_support/getsatisfaction
+package = Integrated Support
+dependencies[] = integrated_support

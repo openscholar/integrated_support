@@ -1,0 +1,402 @@
+<?php 
+
+function desk_integration_menu() {
+	$items = array(
+		'admin/config/integrated_support/desk' => array(
+			'title' => 'Desk',
+			'file' => '/desk_integration.admin.inc',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('desk_integration_admin'),
+			'access arguments' => array('administer site configuration'),
+			'type' => MENU_LOCAL_TASK,
+		),
+	  'desk' => array(
+	    'title' => 'Desk Mass Message',
+	    'file' => '/desk_integration.pages.inc',
+	    'page callback' => 'drupal_get_form',  
+      'page arguments' => array('desk_integration_mass_message_form'),
+      'access arguments' => array('administer site configuration'),
+    ),		
+	);
+	
+	return $items;
+}
+
+
+/*
+ * Implements hook_integrated_support_info
+ *
+ * Defines desk_to_github
+ */
+function desk_integration_integrated_support_info() {
+  return array(
+    'desk_to_github' => array(
+      'name' => t('Desk to Github'),
+      'description' => t('Lets desk send tickets to github.'),
+      'process function' => 'desk_integration_desk_to_github_process',
+      'complete function' => 'desk_integration_desk_to_github_complete',
+      'setup function' => 'desk_integration_desk_to_github_setup',
+    ),
+    'desk_to_getsatisfaction' => array(
+      'name' => t('Desk to GetSatisfaction'),
+      'description' => t('Lets desk move tickets to GetSatisfaction.'),
+      'process function' => 'desk_integration_desk_to_getsatisfaction_process',
+      'complete function' => 'desk_integration_desk_to_getsatisfaction_complete',
+      'setup function' => 'desk_integration_desk_to_getsatisfaction_setup',
+    )
+  );
+}
+
+/**
+ * Implements hook_libraries_info
+ * 
+ * Provides Desk api via tapir
+ */
+function desk_integration_libraries_info() {
+	return array(
+		'tapir' => array(
+			'name' => 'Tapir',
+			'version' => 'master',
+      'files' => array('php' => array('tapir.php')),
+      'dependencies' => array('pear'),
+    ),
+    //PEAR HTTP/Request2
+    'pear' => array(
+      'name' => 'PEAR',
+      'version' => '2.1.1',
+      'files' => array('php' => array('HTTP/Request2.php')),
+      'callbacks' => array('pre-load' => array('_desk_integration_pear_path')),
+    )
+  );
+}
+
+/**
+ * @function _desk_integration_pear_path
+ *
+ * PEAR includes reference each other, expecting them to be in PHP's path.  Adds their location
+ * whenever we load PEAR so they can do that.
+ */
+function _desk_integration_pear_path() {
+  set_include_path(libraries_get_path('pear'));
+}
+
+/**
+ * Implements hook_integrated_support_event
+ * 
+ * Responds to a desk_integration event by creating a github issue
+ */
+function desk_integration_integrated_support_event($event, $payload) {
+	$return = array();
+	switch ($event) {
+		case 'github_issue':
+		  if ($payload['event'] != 'issue') {
+		    //we only care about issues, so ignore code pushes.
+		    return;
+		  }
+		  
+			$desk = desk_integration_client();
+			$ids = array();
+			$cases = $desk->api('case')->call('search', array('case_custom_github_issue_id' => $payload['id']));
+			if (isset($cases->total_entries) && $cases->total_entries) {
+				foreach ($cases->_embedded->entries as $case) {
+					if (($payload['milestone'] != $case->custom_fields->github_milestone) || ($payload['state'] != $case->custom_fields->github_status)) {
+						$ids[] = end(explode('/', $case->_links->self->href));
+					}
+				}
+			}
+			
+			$return = desk_integration_update_cases($ids, $payload['id']);
+			
+			break;
+	}
+	
+	return $return;
+}
+
+/**
+ * @function desk_integration_status
+ * 
+ * Defines hook_integrated_support status
+ * Checks each of the service integration modules to see if they can connect
+ */
+function desk_integration_integrated_support_status() {
+  $desk = desk_integration_client();
+  try {
+    $search = $desk->api('case')->call('search', array('case_id' => 4));
+  } catch (Exception $e) {
+    drupal_set_message('Desk: ' . $e->getMessage(), 'error');
+  }
+  
+  if (!isset($search->total_entries)) {
+    return t('Error logging in to desk.');
+  }
+  
+  $custom_fields = (array) $search->_embedded->entries[0]->custom_fields;
+  $check = array('github_issue_id', 'github_milestone', 'github_status');
+  $missing = array_diff($check, array_keys($custom_fields));
+  if ($missing) {
+    return t('Logged into Desk.com, but the following custom fields were missing: @missing', array('@missing' => implode(', ', $missing)));
+  }
+  
+  return t('Logged into Desk.com');
+}
+
+/**
+ * @function desk_integration_desk_to_github_process
+ * 
+ * Prepares a case from desk to be created as an issue in github
+ */
+function desk_integration_desk_to_github_process($body) {
+  $data =_desk_integration_payload_data();
+
+  //Don't create a ticket from a case with no id.  There's no way to update the original case with the gh_id.
+  if (empty($data['case_id'])) {
+    return 'Case has no id.  Send after its saved so GH can reference it.';
+  }
+  
+  //don't create tickets from cases that are already assigned to an id
+  if ($data['case_custom_github_issue_id']) {
+    return 'Case already has a github id.';
+  }
+  
+  //build a generic ticket from the desk payload
+  $data += array(
+    'text' => $data['case_body'],
+    'assignee' => NULL, //(isset($conf['user_map'][$data['case_user_name']])) ? $conf['user_map'][$data['case_user_name']] : NULL,
+    'labels' => 'Desk',
+  );
+  
+  return $data;
+}
+
+
+
+/**
+ * @function desk_integration_desk_to_github_setup
+ * 
+ * Enables desk's desk_to_github integration url
+ */
+function desk_integration_desk_to_github_setup() {
+  $name = 'Create GitHub Issue';
+  global $base_url;
+	 
+  //create a service
+  $url = $base_url . '/integrated_support/desk_to_github?';
+  $url .= 'redirect_to_github=1&';
+  $config = array(
+    'name' => $name,
+    'description' => t('Send tickets to github'),
+    'enabled' => TRUE,
+    'markup' => $url,  //template can be straight up vars now.  no need for json
+  );
+  
+  desk_integration_setup_integration_url($name, $config);
+}
+
+/**
+ * @function desk_integration_setup_integration_url()
+ * 
+ * Wrapper for the generic parts of of integration url setup functions
+ */
+function desk_integration_setup_integration_url($name, $config) {
+	//liquid template vars
+  require_once(drupal_get_path('module', 'desk_integration') . '/desk_liquid.inc');
+  $desk = desk_integration_client();
+  $vars = desk_liquid_template();
+  $config['markup'] .= desk_liquid_url_template();
+  
+  //prune old services.
+  $results = $desk->api('integration_urls')->call('list');
+  if ($results->total_entries) {
+    foreach ($results->_embedded->entries as $entry) {
+      if ($entry->name == $name) {
+        $href = $entry->_links->self->href;
+        list(,,,,$id) = explode('/', $href);
+        $desk->api('integration_urls')->call('delete', array('id' => $id));
+      }
+    }
+  }
+  
+  $results = $desk->api('integration_urls')->call('create', $config);
+  if ($results) {
+    drupal_set_message('Enabled ' . $name . ' on Desk.com.  Don\'t forget to set it to use a new window.');
+  } else {
+    drupal_set_message('Could not enable ' . $name . '.', 'error');
+    watchdog('desk_integration', t('Error enabling desk integration url for @name.  Config of @config yielded: @results'),
+      array('@name' => '$name', '@config' => serialize($config), '@results' => serialize($results)));
+  }
+}
+
+/**
+ * @function desk_integration_desk_to_github_complete
+ * 
+ * Desk case has gone to github.  Update the original case with the new issue's id
+ */
+function desk_integration_desk_to_github_complete($payload, $responses = array()) {
+  $github = $responses['github_integration'];
+  if (!$github) {
+    return;
+  }
+
+  $updated = desk_integration_update_cases($payload['case_id'], $github['number'], $github['milestone'], $github['state']);
+  if (!$updated) {
+  	error_log('Could not send from desk to github.  Request: ' . serialize($_REQUEST) . ' github response: ' . serialize($github) . ' desk update: ' . serialize($updated));
+  }
+  
+  //redirect if the hook says so
+  if ($_REQUEST['redirect_to_github']) {
+    drupal_goto($github['html_url']);
+  }
+}
+/**
+ * @function desk_get_client
+ * 
+ * Returns client object for querying desk
+ **/
+function desk_integration_client() {
+  static $desk_client;
+  if (!empty($desk_client)) {
+    return $desk_client;
+  }
+
+  libraries_load('tapir');
+  $desk = new Tapir('desk');
+  $desk->setParameters(array('subdomain' => variable_get('desk_subdomain')));
+  $desk->useOAuth(
+    variable_get('desk_consumer_key'), 
+    variable_get('desk_consumer_secret'), 
+    variable_get('desk_auth_token'), 
+    variable_get('desk_auth_secret')
+  );
+
+  return $desk;
+}
+
+
+/**
+ * @function desk_integration_desk_to_getsatisfaction_process
+ * 
+ * Prepares a case from desk to be created as an issue in getsatisfaction
+ */
+function desk_integration_desk_to_getsatisfaction_process($body) {
+  $data =_desk_integration_payload_data();
+	return $data;
+}
+
+/**
+ * @function desk_integration_desk_to_getsatisfaction_setup
+ * 
+ * Enables desk's desk_to_getsatisfaction integration url
+ */
+function desk_integration_desk_to_getsatisfaction_setup() {
+  $name = 'Move Desk case to GetSatisfaction';
+  global $base_url;
+	 
+  //create a service
+  $url = $base_url . '/integrated_support/desk_to_getsatisfaction?redirect_to_getsatisfaction=1';
+  $config = array(
+    'name' => $name,
+    'description' => t('Move tickets to GetSatisfaction'),
+    'enabled' => TRUE,
+    'markup' => $url,  //template can be straight up vars now.  no need for json
+  );
+  
+  desk_integration_setup_integration_url($name, $config);
+}
+
+
+/**
+ * @function desk_integration_desk_to_getsatisfaction_complete
+ * 
+ * Finish up after desk ticket moves to getsatisfaction
+ */
+function desk_integration_desk_to_getsatisfaction_complete($payload, $responses = array()) {
+  $getsatisfaction = $responses['getsatisfaction_integration'];
+  if (!$getsatisfaction) {
+    return;
+  }
+
+  $desk = desk_integration_client();
+
+  //reply to case with link to getsatisfaction topic
+  $reply = array(
+  	'id' => $payload['case_id'],
+    'direction' => 'out',
+    'status' => 'sent',
+  );
+  $desk->api('case')->call('create_reply', $reply);
+  
+  //and close the ticket
+  $update = array(
+  	'id' => $payload['case_id'],
+  	'status' => 'closed'
+  );
+  $desk->api('case')->call('update', $reply);
+  
+  //redirect if the hook says so
+  if ($_REQUEST['redirect_to_getsatisfaction']) {
+    drupal_goto($getsatisfaction['at_sfn']);
+  }
+	
+}
+
+/**
+ * @function desk_integration_update_cases
+ * 
+ * Updates the desk issue specified with $case_id or array($ids) with the other properties.
+ */
+function desk_integration_update_cases($case_ids, $github_issue_id, $github_milestone = NULL, $github_status = NULL) {
+  $ret = array();
+	if (!is_array($case_ids)) {                   
+		$case_ids = array($case_ids);
+	}                              
+	                             
+  $desk = desk_integration_client();
+  $github_status = _desk_integration_validate_github_status($github_status);  
+  $custom = array_filter(array('github_issue_id' => $github_issue_id, 'github_milestone' => $github_milestone, 'github_status' => $github_status));
+	foreach ($case_ids as $id) {
+	  $ret[] = $desk->api('case')->call('update', array('id' => $id, 'custom_fields' => $custom));
+	}
+  
+//  if (isset($ret->errors) && $ret->errors) {
+//    error_log($ret->mesage . var_export($ret->errors, TRUE) . var_export($update, TRUE));
+//  }
+  return $ret;
+}
+
+/*
+ * @function _desk_validate_github_status($github_status);
+ * 
+ * Make sure github_status is one of the three valid options.
+ */
+function _desk_integration_validate_github_status($github_status) {
+	switch (strtolower($github_status)) {
+		case 'open':
+		case 'repoened':
+			return 'Open';
+    case 'closed':
+    	return 'Closed';
+    default:
+		  return '--';
+	}
+}
+
+
+/**
+ * @function _desk_integration_payload_data()
+ *
+ * Retruns array of desk.com liquid template vars we're expecting to recieve.
+ */
+function _desk_integration_payload_data() {
+  $data = array();
+  require_once(drupal_get_path('module', 'desk_integration') . '/desk_liquid.inc');
+  foreach (array_keys(desk_liquid_vars()) as $var) {
+    $data[$var] = $_REQUEST[$var];
+  }
+  
+  $data += array(
+    'link' => 'http://'. variable_get('desk_subdomain') . '.desk.com/agent/case/' . $data['case_id'],
+  );
+
+  return $data;
+}

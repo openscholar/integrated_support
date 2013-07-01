@@ -1,0 +1,6 @@
+name = Desk Integration
+description = "Provides Desk.com integration"
+core = 7.x
+configure = admin/config/integrated_support/desk
+package = Integrated Support
+dependencies[] = integrated_support

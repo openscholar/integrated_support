@@ -1,0 +1,6 @@
+name = Github Integration
+description = "Github service for Integrated Support"
+core = 7.x
+configure = admin/config/integrated_support/github
+package = Integrated Support
+dependencies[] = integrated_support

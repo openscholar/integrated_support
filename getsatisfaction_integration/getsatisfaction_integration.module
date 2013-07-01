@@ -1,0 +1,174 @@
+<?php 
+
+/**
+ * Implements hook_menu
+ */
+function getsatisfaction_integration_menu() {
+	$items = array(
+		'admin/config/integrated_support/getsatisfaction' => array(
+			'title' => 'GetSatisfaction',
+			'file' => '/getsatisfaction_integration.admin.inc',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('getsatisfaction_integration_admin'),
+			'access arguments' => array('administer site configuration'),
+			'type' => MENU_LOCAL_TASK,
+		),
+    'admin/config/integrated_support/getsatisfaction/tickets' => array(
+      'title' => 'GetSatisfaction Ticket Mappings',
+      'file' => '/getsatisfaction_integration.admin.inc',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('getsatisfaction_integration_admin_tickets'),
+      'access arguments' => array('administer site configuration'),
+      'type' => MENU_LOCAL_TASK,
+    ),
+    'admin/config/integrated_support/getsatisfaction/tickets/delete' => array(
+      'title' => 'GetSatisfaction Ticket Mappings',
+      'file' => '/getsatisfaction_integration.admin.inc',
+      'page callback' => 'getsatisfaction_integration_admin_tickets_delete',
+      //'page arguments' => array(6,7,8,9),
+      'access arguments' => array('administer site configuration'),
+      'type' => MENU_CALLBACK
+    ),
+    'roadmap' => array(
+      'title' => 'roadmap',
+      'file' => '/getsatisfaction_integration.roadmap.inc',
+      'page callback' => 'getsatisfaction_integration_roadmap_page',
+      'access arguments' => array('access content'),
+    )
+	);
+	
+	return $items;
+}
+
+/**
+ * @function getsatisfaction_get_client
+ *
+ * Returns client object for querying getsatisfaction
+ **/
+function getsatisfaction_integration_client() {
+  static $getsatisfaction_client;
+  if (!empty($getsatisfaction_client)) {
+    //return $getsatisfaction_client;
+  }
+
+  libraries_load('tapir');
+  $getsatisfaction_client = new Tapir('getsatisfaction');
+  $getsatisfaction_client->useBasicAuth( variable_get('getsatisfaction_username'), variable_get('getsatisfaction_password'));
+  
+  return $getsatisfaction_client;
+}
+
+/**
+ * Implements hook_integrated_support_status
+ */
+function getsatisfaction_integration_integrated_support_status() {
+  $client = getsatisfaction_integration_client();
+  $topic = array(
+    'subject' => 'does my api topic work?'
+  );
+
+  $out = $client->api('topic')->call('all');
+
+//  $reply = $client->api('topic')->call('reply', array('id' => '5419883','reply' => array('content' => 'can haz reply?')));
+//  dpm($reply);
+  return ($out->total) ? t('Logged into getsatisfaction') : t('Error connecting to getsatisfaction');
+}
+
+/**
+ * @function getsatisfaction_create_topic
+ * 
+ * Creates a topic on getsatisfaction as the configured user.
+ */
+function getsatisfaction_create_topic($subject, $detail = '', $style = '', $keywords = array()) {
+  $client = getsatisfaction_integration_client();
+  
+  $topic = array_filter(array(
+    'subject' => $subject,
+    'additional_detail' => $detail,
+    'keywords' => $keywords,
+    'style' => (in_array($style, array('question', 'problem', 'praise', 'idea', 'update'))) ? $style : 'question',    
+  ));
+  
+  $out = $client->api('topic')->call('create', array('topic' => $topic, 'company' => variable_get('getsatisfaction_company')));
+  watchdog('getsatisfaction', 'created topic @out', array('@out' => serialize($out)), WATCHDOG_DEBUG);
+  
+  return $out;
+}	
+	
+/**
+ * Implements hook_integrated_support_event
+ * 
+ * Responds to a getsatisfaction_integration event by creating a github issue
+ */
+function getsatisfaction_integration_integrated_support_event($event, $payload) {
+	$return = array();
+	switch ($event) {
+
+	  case 'desk_to_getsatisfaction':
+	    $return[] = getsatisfaction_create_topic($payload['case_subject'], $payload['case_body']);
+	    break;
+
+    case 'github_issue':
+      //get affected getsatisfaction topics
+      $gh_id = $payload['id'];
+      $ids = db_select('getsatisfaction_service_map', 'gs')
+        ->condition('external_id', $gh_id)
+        ->condition('external_service', 'github_integration')
+        ->fields('gs', array('id'))
+        ->execute()
+        ->fetchCol();
+
+      //figure out a status.  (can this be configged in admin page?
+      $status = 'pending'; //all linked tickets are pending by default.
+      $active = array('status: in dev', 'status: needs qa', 'status: needs review');
+      if (array_intersect($active, $payload['labels'])) {
+        $status = 'active';
+      }
+      if ($payload['state'] == 'closed') {
+        $status = 'complete';
+      }
+
+      watchdog('getsatisfaction', 'applying @status status to topics: @ids', array('@status' => $status, '@ids' => implode(',', $ids)));
+
+      //apply status
+      $client = getsatisfaction_integration_client();
+      foreach ($ids as $id) {
+        //$return[] = getsatisfaction_integration_update_topic_status($id, $status);
+       $reply = $client->api('topic')->call('reply', array('id' => '5419883','reply' => array('content' => 'Current status: ' . $status)));
+      }
+      break;
+//    default:
+//        watchdog('No getsatisfaction events for "'.$event.'".', array(), WATCHDOG_DEBUG);
+	}
+
+  watchdog('getsatisfaction', '@event return: @ret', array('@event' => $event, '@ret' => serialize($return)), WATCHDOG_DEBUG);
+	return $return;
+}
+
+/**
+ * @function getsatisfaction_integration_update_topic_status
+ *
+ * Sets status on a GS topic
+ */
+function getsatisfaction_integration_update_topic_status($topic_id, $status) {
+  if (!in_array($status, array('null', 'pending', 'active', 'complete', 'rejected'))) {
+    return FALSE;
+  }
+
+  $client = getsatisfaction_integration_client();
+  $update = array(
+    'id' => $topic_id,
+    'topic' => array(
+      //'keywords' => 'api-test,broken',
+      'status' => 'pending',
+//      'user_defined_code' => 'can haz udc?', //NO!  makes server errors
+      //'id' => $topic_id,
+      //'subject' => 'asdfasdf',
+    ),
+    //'company' => variable_get('getsatisfaction_company'),
+    //'id' => $topic_id,
+  );
+  $response = $client->api('topic')->call('update', $update);
+  //dpm($response);
+  return $response;
+}

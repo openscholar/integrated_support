@@ -1,0 +1,95 @@
+<?php 
+
+function integrated_support_menu() {
+	$items = array(
+		'integrated_support/%' => array(
+			'title' => 'Integrated Support',
+			'page callback' => 'integrated_support_event',
+			'page arguments' => array(1),
+			'access callback' => TRUE,
+	  ),
+		'admin/config/integrated_support' => array(
+			'title' => 'Integrated Support',
+			'file' => '/integrated_support.admin.inc',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('integrated_support_admin_form'),
+			'access arguments' => array('administer site configuration')
+		),		
+	);
+	$items['admin/config/integrated_support/integrated_support'] = $items['admin/config/integrated_support'];
+	$items['admin/config/integrated_support/integrated_support']['type'] = MENU_DEFAULT_LOCAL_TASK;
+	
+	//$items['integrated_support/%/%'] = $items['integrated_support/%'];
+	
+	return $items;
+}
+
+/**
+ * @function integrated_support_status
+ * 
+ * Defines hook_integrated_support status
+ * Checks each of the service integration modules to see if they can connect
+ */
+function integrated_support_status() {
+	$statuses = module_invoke_all('integrated_support_status');
+	
+	return theme('item_list', (array(
+		'items' => $statuses,
+		'type' => 'ul',
+	)));
+}
+
+/**
+ * @function integrated_support_webhook
+ * 
+ * Recieves data from external services' webhooks.  
+ * Send it to hook_integrated_support_event
+ * Process the responses
+ */
+function integrated_support_event($name) {
+  watchdog('integrated_support', 'received: @name', array('@name' => $name), WATCHDOG_DEBUG);
+	$events = module_invoke_all('integrated_support_info');
+	if ($event = $events[$name]) {
+		$body = file_get_contents('php://input');
+		$payload = $event['process function']($body);
+		
+		foreach (module_implements(__FUNCTION__) as $module) {
+			$responses[$module] = module_invoke($module, __FUNCTION__, $name, $payload);
+		}
+		
+		$responses = array_filter($responses);
+		if ($responses) {
+  		watchdog(
+  			'integrated_support', 
+  			'@event event triggered reactions in @modules',
+  			array('@event' => $name, '@modules' => implode(', ', array_keys($responses))),
+  			WATCHDOG_INFO  
+  		);
+		} else {
+		  watchdog('integrated_support', 'No events completed for @event', array('@event' => $name), WATCHDOG_INFO);
+		}
+		
+		if (isset($event['complete function']) && function_exists($event['complete function'])) {
+			$event['complete function']($payload, $responses);
+		}
+	} else {
+		watchdog('integrated_support', 'No webhook named: @name', array('@name' => $name), WATCHDOG_WARNING);
+		return 'Event does not exist: ' . $name;
+	}
+}
+
+/**
+ * @function integrated_support_map_username
+ *
+ * Given a username for a service $have, get the username for the service $want
+ * Usernames must be mapped in variable.
+ */
+function integrated_support_map_username($username, $from_service, $to_service) {
+  $namesets = variable_get('integrated_support_usernames', array());
+  foreach ($namesets as $nameset) {
+    if (isset($nameset[$from_service]) && $nameset[$from_service] == $username) {
+      return (isset($nameset[$to_service])) ? $nameset[$to_service] : NULL;
+    }
+  }
+  return NULL;
+}

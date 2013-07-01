@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * Implements hook_schema
+ *
+ * GetSatisfaction provides no custom fields for mapping IDs.  Store them here instead.
+ */
+function getsatisfaction_integration_schema() {
+  $schema['getsatisfaction_service_map'] = array(
+    'description' => 'Maps ids of GetSatisfaction topics to ids of issues in other services.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'GetSatisfaction topic id',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => 'GetSatisfaction topic title',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'external_service' => array(
+        'description' => 'Name of the external service',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'external_id' => array(
+        'description' => 'External service\'s unique ticket id',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'external_title' => array(
+        'description' => 'Title of ticket on external service',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+    ),
+  );
+
+  return $schema;
+}

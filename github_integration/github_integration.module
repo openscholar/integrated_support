@@ -1,0 +1,335 @@
+<?php 
+
+/**
+ * @function github_integration_menu()
+ * 
+ * Implements hook_menu
+ */
+function github_integration_menu() {
+	$items = array(
+		'admin/config/integrated_support/github' => array(
+			'title' => 'Github',
+			'file' => '/github_integration.admin.inc',
+			'page callback' => 'drupal_get_form',
+			'page arguments' => array('github_integration_admin'),
+			'type' => MENU_LOCAL_TASK,
+			'access arguments' => array('administer site configuration')
+		),
+    'alert' => array(
+      'title' => 'alert',
+      'page callback' => 'github_integration_alert_page',
+      'access arguments' => array('access content'),
+    )
+	);
+	
+	return $items;
+}
+
+/**
+ * @function github_integration_integrated_support_info()
+ * 
+ * Implements hook_integrated_support_info
+ * 
+ * Defines github_issue event
+ */
+function github_integration_integrated_support_info() {
+	return array(
+		'github_issue' => array(
+			'name' => t('Github Issue'),
+			'description' => t('Scans github issues for items to add to the changelog'),
+			'process function' => 'github_integration_github_issue_process',
+			'setup function' => 'github_integration_github_issue_setup',
+		),
+	);
+}
+
+/**
+ * Implements hook_libraries_info
+ * 
+ * Provides php-github-api
+ */
+function github_integration_libraries_info() {
+	return array(
+    'composer' => array(
+      'name' => 'Composer Libs',
+      'files' => array('php' => array('vendor/autoload.php')),
+      'version' => 'master',
+    ),
+	);
+}
+
+/**
+ * @function github_integration_integrated_support_status() 
+ * 
+ * Implements hook_integrated_support_status
+ * 
+ * Connects to github and returns confirmation that a connection is possible.
+ */
+function github_integration_integrated_support_status() {
+	$gh = github_integration_client();
+
+	try {
+  	$me = $gh->api('current_user')->show();
+	} catch (Exception $e) {
+    drupal_set_message(t('Github error: @msg', array('@msg' => $e->getMessage())));
+		$me = NULL;
+	}
+  return ($me) ? 'Logged into github as: ' . $me['login'] : 'Could not auth github';	
+}
+
+/**
+ * @function github_client()
+ * 
+ * Returns object for poking github
+ */
+function github_integration_client($auth = TRUE) {
+  static $gh_client;
+  if (!empty($gh_client)) {
+    return $gh_client;
+  }
+
+  //libraries_load('php-github-api');
+  libraries_load('composer');
+  $cache_dir = variable_get('github_cache_dir', '/tmp/github-api-cache');
+  if (!is_dir($cache_dir)) {
+    mkdir($cache_dir);
+  }
+  //$cache = new Github\HttpClient\CachedHttpClient(array('cache_dir' => __DIR__ . '/.github-api-cache'));
+  $cache = new Github\HttpClient\CachedHttpClient(array('cache_dir' => $cache_dir));
+  $gh_client = new Github\Client($cache);
+	
+  if ($auth) {
+    try {
+      $gh_client->authenticate(variable_get('github_auth_token'), $gh_client::AUTH_HTTP_TOKEN);
+    } catch (Exception $e) {
+      $gh_client = NULL;
+    }   
+  }
+
+  return $gh_client;
+}
+
+/**
+ * @function github_integration_github_issue_process()
+ * 
+ * Extracts the id, milestone, and state after validating that the request came from github
+ */
+function github_integration_github_issue_process($body) {
+  $hash = hash_hmac('sha1', $body, variable_get('github_secret'));
+  if (!isset($_SERVER['HTTP_X_HUB_SIGNATURE']) || ('sha1='.$hash != $_SERVER['HTTP_X_HUB_SIGNATURE'])) {
+    error_log('Error authenticating origin of github/hook_issue request');
+    return;
+  }
+
+  $json = json_decode($body);
+  watchdog('github', '@json', array('@json' => $body), WATCHDOG_DEBUG);
+  
+  if (isset($json->issue)) {
+    //github issue evnet hook
+    $return = array(
+      'event' => 'issue',
+  	  'id' => $json->issue->number,
+      'milestone' => ($json->issue->milestone) ? $json->issue->milestone->title : NULL,
+      'state' => (in_array($json->action, array('closed', 'reopened'))) ? $json->action : $json->issue->state,
+      'title' => $json->issue->title,
+      'labels' => array_map(create_function('$a', 'return $a["name"];'), $json->issue->labels),
+    );
+    
+    switch($json->action) {
+      
+      //instead of adding to array, can't we toggle comment or issue and fetch from there?  where else could this data appear?
+      
+      //pushed by an issue_comment
+      case 'created':
+        if (isset($json->comment)) {
+          $return += array(
+            'type' => 'comment',
+          	'url' => $json->comment->html_url,
+          	'user' => $json->comment->user->login, //user necessary?
+          	'body' => $json->comment->body,
+          );
+        }
+      break;
+  
+      //opened a new issue
+      case 'opened': 
+        $return += array(
+          'type' => 'issue',
+          'url' => $json->issue->html_url,
+          'user' => $json->issue->user->login,
+          'body' => $json->issue->body,
+        );
+      break;
+    }
+  
+    
+  } elseif (isset($json->commits)) {
+    //github push event
+    $return = array(
+      'event' => 'push',
+      'type' => 'push',
+      'url' => $json->commits[0]->url,
+      'id' => substr($json->commits[0]->id, 0, 8),
+      'user' => $json->commits[0]->author->name, //committer or author?
+      'body' => $json->commits[0]->message,
+    );
+  } else {
+    $return = array(
+      'event' => 'unknown github event',
+      'payload' => $body,  
+    );
+  }
+  
+  $prefix = ($return['type'] == 'issue') ? '#' : '';
+  $return['link'] = (isset($return['url'])) ? "<a href='$return[url]'>${prefix}$return[id]</a>" : NULL; 
+  return $return;
+}
+
+/**
+ * @function github_integration_integrated_support_event
+ * 
+ * Implements hook_integrated_support_event
+ * 
+ * Responds to a desk_integration event by creating a github issue
+ */
+function github_integration_integrated_support_event($event, $payload) {
+	$return = array();
+	switch ($event) {
+		case 'desk_to_github':
+			$return = github_create_issue(array(
+				'title' => $payload['case_subject'],
+		    'assignee' => integrated_support_map_username($payload['case_user_name'], 'desk_integration', 'github_integration'), //(isset($conf['user_map'][$data['case_user_name']])) ? $conf['user_map'][$data['case_user_name']] : NULL,
+		    'labels' => 'desk',
+		    'body' => $payload['case_body'],//theme('github_issue_body', $payload), //or should this map a payload?
+			));
+			
+			break;
+	}
+	
+	return $return;
+}
+
+/**
+ * @function github_integration_github_issue_setup()
+ * 
+ * Sets up github repository to send github_issue events here.
+ */
+function github_integration_github_issue_setup() {
+  global $base_url; 
+
+  //creates new one
+  $hook_conf = array(
+    'name' => 'web',
+    'config' => array(
+      'url' => $base_url . '/integrated_support/github_issue', //should this be abstracted elsewhere?
+      'content_type' => 'json',
+      'secret' => variable_get('github_secret'),
+    ),
+    'events' => array('issues', 'issue_comment', 'status', 'push'), //can we add push?  will be needed if we do @changelog (or should that be any hash tag?)
+  );
+  
+  _github_integration_github_api_setup($hook_conf);
+}
+
+/**
+ * @function github_integration_github_push_process()
+ *
+ * Extracts the id, milestone, and state after validating that the request came from github
+ */
+function github_integration_github_push_process($body) {
+  $hash = hash_hmac('sha1', $body, variable_get('github_secret'));
+  if (!isset($_SERVER['HTTP_X_HUB_SIGNATURE']) || ('sha1='.$hash != $_SERVER['HTTP_X_HUB_SIGNATURE'])) {
+    watchdog('github', 'Error authenticating origin of github/hook_issue request', array(), WATCHDOG_ERROR);
+    return;
+  }
+
+  $json = json_decode($body);
+  watchdog('github', '@json', array('@json' => $body), WATCHDOG_DEBUG);
+  $return = array(
+    'body' => $json->commits->message,
+    'link' => "<a href='$json->commits->url'>$json->commits->id</a>",  
+    'user' => $json->commits->name,
+  );
+  
+  return $return;
+}
+
+
+/**
+ * @function _github_integration_github_api_setup
+ * 
+ * Given a github service hook, deletes old instances of hook and adds this one.
+ */
+function _github_integration_github_api_setup($github_hook) {
+  $gh = github_integration_client();
+  $user = variable_get('github_repo_owner');
+  $repo = variable_get('github_repo_repository');
+  
+  $new = $gh->api('repo')->hooks()->create($user, $repo, $github_hook);
+  $hooks = $gh->api('repo')->hooks()->all($user, $repo);
+  
+  //delete old instance of hook.
+  foreach ($hooks as $hook) {
+    if (isset($hook['name']) && ($hook['name'] == $github_hook['name']) && ($hook['config']['url'] == $github_hook['config']['url'])) {
+      $gh->api('repo')->hooks()->remove($user, $repo, $hook['id']);
+    }
+  }
+  drupal_set_message('Updated Github service hook. ' . serialize($new));
+}
+
+/**
+ * @function github_create_issue
+ * 
+ * Takes an assoc array and sends it to github.  Input field names here:
+ * http://developer.github.com/v3/issues/#create-an-issue
+ */
+function github_create_issue($issue) {
+  if (!isset($issue['title'])) {
+    error_log('Can\'t create a github issue with no title.');
+    return False;
+  }
+  
+  $gh = github_integration_client();
+  return $gh->api('issue')->create(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $issue);
+}
+
+function github_template_body($opts = array()) {
+}
+
+/**
+ * @function github_integration_alert_page
+ *
+ * Shows high alert issues from GH.
+ */
+function github_integration_alert_page() {
+  $items = array();
+  $client = github_integration_client(FALSE);
+  $labels = array_filter(variable_get('github_alert_labels', array()));
+  if (!$labels) {
+    return 'Alerts disabled';
+  }
+
+  $issues = $client->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), array(
+    'labels' => implode(',', $labels),
+  ));
+
+  foreach ($issues as $issue) {
+    $label_text = '';
+    foreach ($issue['labels'] as $label) {
+      $color = $label['color'];
+      $lightness = 0;
+      foreach (array($color[0], $color[2], $color[4]) as $c) {
+        if (!(is_numeric($c) && $c<8)) {
+          $lightness++;
+        }
+      }
+      $textcolor = ($lightness > 1) ? 'black' : 'white';
+      //color's 1 3rd 5th char.  if below 7, color is dark.  average them.
+      $label_text .= ' <span style="border-radius: 2px; border: 1px black solid; font-size: 80%; padding: 2px; color: '.$textcolor.'; background-color:#'.$label['color'].'">' . $label['name'] . '</span>';
+    }
+    $items[] = l($issue['title'], $issue['html_url']) . "<p>$label_text</p>";
+
+  }
+
+  return theme('item_list', array('items' => $items, 'type' => 'ul'));
+}
