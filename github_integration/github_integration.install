@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * Implements hook_requirements
+ *
+ * Checks for php-github-api lib
+ */
+function github_integration_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'runtime') {
+    $lib = libraries_load('composer');
+    if ($lib && array_filter($lib)) {
+      if (!class_exists('Github\Client')) {
+        $requirements['github_integration'] = array(
+          'severity' => REQUIREMENT_ERROR,
+          'description' => 'Composer loaded, but Github\Client class does not exist.',
+          'title' => 'Composer Library',
+          'value' => 'Class missing',
+        );
+      }
+    } else {
+      $requirements['github_integration']= array(
+        'severity' => REQUIREMENT_ERROR,
+        'description' => 'Cannot load composer library.',
+        'title' => 'Composer Library',
+        'value' => 'Could not load library',
+      );
+    }
+  }
+
+  return $requirements;
+}

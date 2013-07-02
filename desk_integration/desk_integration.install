@@ -1,0 +1,52 @@
+<?php
+
+/**
+ * Implements hook_requirements
+ *
+ * Checks for Tapir and pear libs
+ */
+function desk_integration_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'runtime') {
+    $lib = libraries_load('tapir');
+    if ($lib && array_filter($lib)) {
+      if (!class_exists('Tapir')) {
+        $requirements['desk_integration'] = array(
+          'severity' => REQUIREMENT_ERROR,
+          'description' => 'Tapir loaded, but class does not exist.',
+          'title' => 'Tapir Library',
+          'value' => 'Class missing',
+        );
+      }
+    } else {
+      $requirements['desk_integration']= array(
+        'severity' => REQUIREMENT_ERROR,
+        'description' => 'Cannot load tapir library.',
+        'title' => 'Tapir Library',
+        'value' => 'Could not load library',
+      );
+    }
+
+    $lib = libraries_load('pear');
+    if ($lib && array_filter($lib)) {
+      if (!class_exists('HTTP_Request2')) {
+        $requirements['desk_integration'] = array(
+          'severity' => REQUIREMENT_ERROR,
+          'description' => 'Pear loaded, but HTTP_Request2 class does not exist.',
+          'title' => 'Pear Library',
+          'value' => 'Class missing',
+        );
+      }
+    } else {
+      $requirements['desk_integration']= array(
+        'severity' => REQUIREMENT_ERROR,
+        'description' => 'Cannot load pear library.',
+        'title' => 'Pear Library',
+        'value' => 'Could not Pear http_request2 library',
+      );
+    }
+  }
+
+  return $requirements;
+}
