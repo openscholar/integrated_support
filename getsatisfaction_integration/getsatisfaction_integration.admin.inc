@@ -37,7 +37,7 @@ function getsatisfaction_integration_admin() {
       '#theme' => 'link',
       '#text' => 'Sync GetSatisfaction cases with other services',
       '#path' => 'admin/config/integrated_support/getsatisfaction/tickets/',
-      '#options' => array('attributes' => array()),
+      '#options' => array('attributes' => array(), 'html' => NULL),
     )
   );
 
