@@ -133,8 +133,8 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
       //apply status
       $client = getsatisfaction_integration_client();
       foreach ($ids as $id) {
-        //$return[] = getsatisfaction_integration_update_topic_status($id, $status);
-       $reply = $client->api('topic')->call('reply', array('id' => '5419883','reply' => array('content' => 'Current status: ' . $status)));
+        $return[] = getsatisfaction_integration_update_topic_status($id, $status);
+       //$return[] = $client->api('topic')->call('reply', array('id' => '5419883','reply' => array('content' => 'Current status: ' . $status)));
       }
       break;
 //    default:
@@ -160,7 +160,7 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status) {
     'id' => $topic_id,
     'topic' => array(
       //'keywords' => 'api-test,broken',
-      'status' => 'pending',
+      'status' => $status,
 //      'user_defined_code' => 'can haz udc?', //NO!  makes server errors
       //'id' => $topic_id,
       //'subject' => 'asdfasdf',
@@ -171,4 +171,25 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status) {
   $response = $client->api('topic')->call('update', $update);
   //dpm($response);
   return $response;
+}
+
+
+/**
+ * @function getsatisfaction_integration_topic(
+ *
+ * Fetch a GS topic by id.
+ */
+function getsatisfaction_integration_topic($id) {
+  $cache_key = 'getsatisfaction:topic:'.$id;
+  $cache = cache_get($cache_key);
+
+  if ($cache && time() < $cache->expire) {
+    return $cache->data;
+  }
+
+  $client = getsatisfaction_integration_client();
+  $topic = $client->api('topic')->call('topic', array('id' => $id));
+
+  cache_set($cache_key, $topic, 'cache', time() + 604800);
+  return $topic;
 }

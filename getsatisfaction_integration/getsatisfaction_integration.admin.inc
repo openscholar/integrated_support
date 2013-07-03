@@ -128,25 +128,25 @@ function getsatisfaction_integration_admin_tickets_validate(&$form, &$state) {
     $slug = @current(explode('?', $slug));
     $gs_client = getsatisfaction_integration_client();
     $me = $gs_client->api('people')->call('search', array('email' => variable_get('getsatisfaction_username')));
-    $response = $gs_client->api('topic')->call('topic', array('id' => $slug));
+    //$response = $gs_client->api('topic')->call('topic', array('id' => $slug));
+    $topic = getsatisfaction_integration_topic($slug);
 
-
-    if (!$response) {
+    if (!$topic) {
       //Could not connect
       form_set_error('getsatisfaction_url', t('Can\'t retrieve topic.  Is this URL correct?'));
-    } elseif ($response->author->id != $me->id) {
+    } elseif ($topic->author->id != $me->id) {
       //Post isn't owned by this account.  Can only modify accounts we own.
       form_set_error('getsatisfaction_url', t('Cannot modify topic.  Please create a topic as "@user" and merge this one into it, then try again with new URL.', array('@user' => $me->canonical_name)));
     } else {
       //It's good!  Collect data.
-      $state['values']['id'] = $response->id;
-      $state['values']['title'] = $response->subject;
+      $state['values']['id'] = $topic->id;
+      $state['values']['title'] = $topic->subject;
     }
   }
 
   //Other Service
-  if ($ext_title = _getsatisfaction_integration_id_title($state['values']['external_service'], $state['values']['external_id'])) {
-    $state['values']['external_title'] = $ext_title;
+  if ($item = _getsatisfaction_integration_item_by_id($state['values']['external_service'], $state['values']['external_id'])) {
+    $state['values']['external_item'] = $item;
   } else {
     form_set_error('add_map', t('Could not find specified ticket in service.'));
   }
@@ -162,13 +162,16 @@ function getsatisfaction_integration_admin_tickets_submit(&$form, &$state) {
     'id' => $state['values']['id'],
     'title' => $state['values']['title'],
     'external_service' => $state['values']['external_service'],
-    'external_id' => $state['values']['external_id'],
-    'external_title' => $state['values']['external_title'],
+    'external_id' => $state['values']['external_item']['id'],
+    'external_title' => $state['values']['external_item']['title'],
   );
 
   drupal_write_record('getsatisfaction_service_map', $record);
 
-  //now would also be a good time to update the GS case.  stash the GH ticket's info earlier?
+  //trigger an update now.  no sense in waiting.
+  if ($record['external_service'] == 'github_integration') {
+    getsatisfaction_integration_integrated_support_event('github_issue', $state['values']['external_item']);
+  }
 }
 
 /**
@@ -197,13 +200,12 @@ function getsatisfaction_integration_admin_tickets_delete($ajax, $gs_id, $servic
  *
  * Returns the title of an item on one of our services.
  */
-function _getsatisfaction_integration_id_title($service, $id) {
+function _getsatisfaction_integration_item_by_id($service, $id) {
   try {
     switch ($service) {
       case 'github_integration':
-        $gh = github_integration_client();
-        $issue = $gh->api('issue')->show(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $id);
-        return ($issue && isset($issue['title'])) ? $issue['title'] : FALSE;
+        return github_integration_issue($id);
+
       default:
         return 'N/A';
     }

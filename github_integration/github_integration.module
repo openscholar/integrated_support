@@ -333,3 +333,22 @@ function github_integration_alert_page() {
 
   return theme('item_list', array('items' => $items, 'type' => 'ul'));
 }
+
+/**
+ * @function _github_integration_github_issue
+ *
+ * Fetch a github issue by id.
+ */
+function github_integration_issue($id) {
+  //why no cache?  github lib does it for us.
+  $gh = github_integration_client(); //authed req is better.  100x the rate limit.  when it works again, remove this false
+  $issue = $gh->api('issue')->show(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $id);
+
+  return (!$issue) ? FALSE : array(
+    'labels' =>     array_map(create_function('$a', 'return $a["name"];'),$issue['labels']),
+    'state' =>      $issue['state'],
+    'milestone' =>  $issue['milestone']['title'],
+    'title' =>      $issue['title'],
+    'id' =>         $issue['number'],
+  );
+}
