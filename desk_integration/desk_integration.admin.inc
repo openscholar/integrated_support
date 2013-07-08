@@ -42,7 +42,27 @@ function desk_integration_admin() {
         '#default_value' => variable_get('desk_auth_secret'),
       ),
     ),
+
+    'desk_notifications' => array(
+      '#type' => 'fieldset',
+      '#title' => t('Notifications'),
+
+      'desk_notify_milestone' => array(
+        '#type' => 'Checkbox',
+        '#title' => t('Milestone'),
+        '#description' => t('Notify users when their cases\' milestone changes.'),
+        '#default_value' => variable_get('desk_notify_milestone', TRUE),
+      ),
+
+      'desk_notify_closed' => array(
+        '#type' => 'Checkbox',
+        '#title' => t('Case Closed'),
+        '#description' => t('Notify users when their cases are closed.'),
+        '#default_value' => variable_get('desk_notify_closed', TRUE),
+      ),
+    )
   );
+
 
   return system_settings_form($form);
 }
