@@ -48,14 +48,14 @@ function desk_integration_admin() {
       '#title' => t('Notifications'),
 
       'desk_notify_milestone' => array(
-        '#type' => 'Checkbox',
+        '#type' => 'checkbox',
         '#title' => t('Milestone'),
         '#description' => t('Notify users when their cases\' milestone changes.'),
         '#default_value' => variable_get('desk_notify_milestone', TRUE),
       ),
 
       'desk_notify_closed' => array(
-        '#type' => 'Checkbox',
+        '#type' => 'checkbox',
         '#title' => t('Case Closed'),
         '#description' => t('Notify users when their cases are closed.'),
         '#default_value' => variable_get('desk_notify_closed', TRUE),
