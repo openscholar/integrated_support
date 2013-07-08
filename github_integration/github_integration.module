@@ -36,7 +36,7 @@ function github_integration_integrated_support_info() {
 	return array(
 		'github_issue' => array(
 			'name' => t('Github Issue'),
-			'description' => t('Scans github issues for items to add to the changelog'),
+			'description' => t('Github notifies Integrated Support when tickets are opened, closed, commented on, or pushed to.'),
 			'process function' => 'github_integration_github_issue_process',
 			'setup function' => 'github_integration_github_issue_setup',
 		),
@@ -225,7 +225,7 @@ function github_integration_github_issue_setup() {
       'content_type' => 'json',
       'secret' => variable_get('github_secret'),
     ),
-    'events' => array('issues', 'issue_comment', 'status', 'push'), //can we add push?  will be needed if we do @changelog (or should that be any hash tag?)
+    'events' => array('issues', 'issue_comment', 'status'), //can we add push?  will be needed if we do @changelog (or should that be any hash tag?)
   );
   
   _github_integration_github_api_setup($hook_conf);
@@ -265,15 +265,20 @@ function _github_integration_github_api_setup($github_hook) {
   $user = variable_get('github_repo_owner');
   $repo = variable_get('github_repo_repository');
   
-  $new = $gh->api('repo')->hooks()->create($user, $repo, $github_hook);
   $hooks = $gh->api('repo')->hooks()->all($user, $repo);
   
-  //delete old instance of hook.
+  //delete old instance of this hook.
+  if (isset($hooks['id'])) {
+    $hooks = array($hooks);
+  }
+
   foreach ($hooks as $hook) {
     if (isset($hook['name']) && ($hook['name'] == $github_hook['name']) && ($hook['config']['url'] == $github_hook['config']['url'])) {
       $gh->api('repo')->hooks()->remove($user, $repo, $hook['id']);
     }
   }
+
+  $new = $gh->api('repo')->hooks()->create($user, $repo, $github_hook);
   drupal_set_message('Updated Github service hook. ' . serialize($new));
 }
 
