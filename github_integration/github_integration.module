@@ -16,7 +16,7 @@ function github_integration_menu() {
 			'access arguments' => array('administer site configuration')
 		),
     'alert' => array(
-      'title' => 'alert',
+      'title' => 'Service Alerts',
       'page callback' => 'github_integration_alert_page',
       'access arguments' => array('access content'),
     )
@@ -336,10 +336,15 @@ function github_integration_alert_page() {
       $label_text .= ' <span class="github-label" style="color: '.$textcolor.'; background-color:#'.$color.'">' . $label['name'] . '</span>';
     }
 
-    $items[] = l($issue['title'], $issue['html_url']) . "<p>$label_text</p>";
+    $ago = format_interval(time() - strtotime($issue['created_at']), 1);
+    $items[] = l($issue['title'], $issue['html_url']) . "<p>Reported $ago ago. $label_text</p>";
   }
 
-  return theme('item_list', array('items' => $items, 'type' => 'ul'));
+  if ($items) {
+    return theme('item_list', array('items' => $items, 'type' => 'ul', 'attributes' => array('class' => array('alert-issues'))));
+  } else {
+    return t('No reported service alerts.');
+  }
 }
 
 

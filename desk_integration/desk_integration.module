@@ -137,8 +137,7 @@ function desk_integration_integrated_support_status() {
   if (!isset($search->total_entries)) {
     return t('Error logging in to desk.');
   }
-  dpm($search);
-  
+
   $custom_fields = (array) $search->_embedded->entries[0]->custom_fields;
   $check = array('github_issue_id', 'github_milestone', 'github_status');
   $missing = array_diff($check, array_keys($custom_fields));
