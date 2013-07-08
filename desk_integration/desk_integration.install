@@ -50,3 +50,34 @@ function desk_integration_requirements($phase) {
 
   return $requirements;
 }
+
+/**
+ * Implements hook_schema
+ *
+ * GetSatisfaction provides no custom fields for mapping IDs.  Store them here instead.
+ */
+function desk_integration_schema() {
+  $schema['desk_service_reviews'] = array(
+    'description' => 'Maps ids of GetSatisfaction topics to ids of issues in other services.',
+    'fields' => array(
+      'id' => array(
+        'description' => 'Desk case id',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'rating' => array(
+        'description' => 'Rating',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'comments' => array(
+        'description' => 'Optional comments',
+        'type' => 'text',
+      ),
+    ),
+  );
+
+  return $schema;
+}

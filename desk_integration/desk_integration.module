@@ -16,7 +16,14 @@ function desk_integration_menu() {
 	    'page callback' => 'drupal_get_form',  
       'page arguments' => array('desk_integration_mass_message_form'),
       'access arguments' => array('administer site configuration'),
-    ),		
+    ),
+    'desk/service_rating' => array(
+      'title' => 'Rate our service',
+      'file' => '/desk_integration.pages.inc',
+	    'page callback' => 'drupal_get_form',
+      'page arguments' => array('desk_integration_service_rating'),
+      'access arguments' => array('administer site configuration'),
+    )
 	);
 	
 	return $items;
@@ -130,6 +137,7 @@ function desk_integration_integrated_support_status() {
   if (!isset($search->total_entries)) {
     return t('Error logging in to desk.');
   }
+  dpm($search);
   
   $custom_fields = (array) $search->_embedded->entries[0]->custom_fields;
   $check = array('github_issue_id', 'github_milestone', 'github_status');
