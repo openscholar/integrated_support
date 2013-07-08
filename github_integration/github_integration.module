@@ -313,9 +313,13 @@ function github_integration_alert_page() {
     'labels' => implode(',', $labels),
   ));
 
+
+  $show_labels = array('status: needs qa');
+  drupal_add_css(drupal_get_path('module', 'github_integration') . '/github_integration_labels.css');
   foreach ($issues as $issue) {
     $label_text = '';
     foreach ($issue['labels'] as $label) {
+      //determine brightness so we can use black or white text.
       $color = $label['color'];
       $lightness = 0;
       foreach (array($color[0], $color[2], $color[4]) as $c) {
@@ -324,15 +328,16 @@ function github_integration_alert_page() {
         }
       }
       $textcolor = ($lightness > 1) ? 'black' : 'white';
-      //color's 1 3rd 5th char.  if below 7, color is dark.  average them.
-      $label_text .= ' <span style="border-radius: 2px; border: 1px black solid; font-size: 80%; padding: 2px; color: '.$textcolor.'; background-color:#'.$label['color'].'">' . $label['name'] . '</span>';
+      $label_text .= ' <span class="github-label" style="color: '.$textcolor.'; background-color:#'.$color.'">' . $label['name'] . '</span>';
     }
-    $items[] = l($issue['title'], $issue['html_url']) . "<p>$label_text</p>";
 
+    $items[] = l($issue['title'], $issue['html_url']) . "<p>$label_text</p>";
   }
 
   return theme('item_list', array('items' => $items, 'type' => 'ul'));
 }
+
+
 
 /**
  * @function _github_integration_github_issue
