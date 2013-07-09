@@ -14,7 +14,13 @@ function integrated_support_admin_form($form, &$state) {
       '#type' => 'checkboxes',
       '#title' => t('(Re) Deploy remote webhooks'),
 	    '#description' => t('These webbhooks can be configured remotely.  Check those that you wish to enable.')   
-	   ) 
+	   ) ,
+	  'integrated_support_force_cache' => array(
+	    '#type' => 'textfield',
+	    '#title' => t('Force API caching'),
+	    '#description' => t('Integrated Support makes frequent API calls.  This setting will force those results to be cached for a number of seconds, regardless of what the API service\'s cache control headers say.'),
+	    '#default_value' => variable_get('integrated_support_force_cache', FALSE),
+    )
 	);
 	
 	$info = module_invoke_all('integrated_support_info');
@@ -65,6 +71,10 @@ function integrated_support_admin_form_submit($form, &$state) {
     if ($func = $info[$event]['setup function']) {
       $func();
     }
+  }
+  
+  if (isset($state['values']['integrated_support_force_cache'])) {
+    variable_set('integrated_support_force_cache', $state['values']['integrated_support_force_cache']);
   }
 }
 

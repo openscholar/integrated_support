@@ -93,3 +93,59 @@ function integrated_support_map_username($username, $from_service, $to_service) 
   }
   return NULL;
 }
+
+function _integrated_support_cache_set($url, $parameters, $data, $headers = NULL) {
+  $expire = time() + 3600; //default to one hour
+  $force_cache = variable_get('integrated_support_force_cache', FALSE);
+  
+  //Determine cache policy.  Are there any no-cache directives we need?
+  if ($headers) {
+    $headers = _integrated_support_http_parse_headers($headers);
+  
+    if (isset($headers['Expires'])) {
+      $expire = strtotime($headers['Expires']);    
+    } elseif (isset($headers['Cache-Control'])) {
+      $cache_control = explode(', ',$headers['Cache-Control']);
+      foreach ($cache_control as $directive) {
+        @list ($key, $val) = explode('=', $directive);
+        if ($key == 'max-age') {
+          $expire = time() + $val;
+          break;
+        }
+      }
+    }    
+  }
+
+  if ($force_cache) {
+    $expire = time() + $force_cache;
+  }
+  
+  asort($parameters);
+  $key = $url . '?' . http_build_query($parameters);
+  cache_set('integrated_support:'.$key, $data, 'cache', $expire);
+}
+
+function _integrated_support_cache_get($url, $parameters) {
+  $key = 'integrated_support:' . $url . '?' . http_build_query($parameters);
+  $cached = cache_get($key);
+  if ($cached && $cached->expire > time()) {
+    return $cached->data;
+  }
+  
+  cache_clear_all($key, 'cache');
+  return NULL;
+}
+
+/**
+ * @function  _integrated_support_http_parse_headers($headers);
+ * 
+ * As PECL's  http_parse_headers
+ */
+function  _integrated_support_http_parse_headers($headers) {
+  $return = array();
+  foreach (explode("\r\n", $headers) as $header) {
+    @list($key, $value) = explode(': ', $header);
+    $return[trim($key)] = trim($value);
+  }
+  return $return;
+}

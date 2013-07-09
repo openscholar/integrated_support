@@ -48,11 +48,12 @@ function getsatisfaction_integration_menu() {
 function getsatisfaction_integration_client() {
   static $getsatisfaction_client;
   if (!empty($getsatisfaction_client)) {
-    //return $getsatisfaction_client;
+    return $getsatisfaction_client;
   }
 
   libraries_load('tapir');
-  $getsatisfaction_client = new Tapir('getsatisfaction');
+  $settings = array('cache_get_method' => '_integrated_support_cache_get', 'cache_set_method' => '_integrated_support_cache_set');
+  $getsatisfaction_client = new Tapir('getsatisfaction', $settings);
   $getsatisfaction_client->useBasicAuth( variable_get('getsatisfaction_username'), variable_get('getsatisfaction_password'));
   
   return $getsatisfaction_client;
