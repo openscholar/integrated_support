@@ -15,6 +15,13 @@ function getsatisfaction_integration_admin() {
       '#default_value' => variable_get('getsatisfaction_company'),
     ),
 
+    'getsatisfaction_tickets' => array(
+      '#theme' => 'link',
+      '#text' => 'Sync GetSatisfaction cases with other services',
+      '#path' => 'admin/config/integrated_support/getsatisfaction/tickets/',
+      '#options' => array('attributes' => array(), 'html' => NULL),
+    ),
+
     'getsatisfaction_auth' => array(
       '#type' => 'fieldset',
       '#title' => t('getsatisfaction Authorization'),
@@ -32,14 +39,18 @@ function getsatisfaction_integration_admin() {
         '#default_value' => variable_get('getsatisfaction_password'),
       ),
     ),
-
-    'getsatisfaction_tickets' => array(
-      '#theme' => 'link',
-      '#text' => 'Sync GetSatisfaction cases with other services',
-      '#path' => 'admin/config/integrated_support/getsatisfaction/tickets/',
-      '#options' => array('attributes' => array(), 'html' => NULL),
-    )
   );
+
+  if (module_exists('github_integration')) {
+    $form += array(
+      'getsatisfaction_integration_cron' => array(
+        '#type' => 'checkbox',
+        '#title' => 'Create github issues from pending topics',
+        '#default_value' => variable_get('getsatisfaction_integration_cron', FALSE),
+        '#description' => t('When a topic is marked pending, if it isn\'t linked to a github issue, this cron job will create an issue and link it automatically.'),
+      ),
+    );
+  }
 
   return system_settings_form($form);
 }

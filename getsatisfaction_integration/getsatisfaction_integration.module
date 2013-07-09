@@ -115,6 +115,7 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
         ->condition('external_id', $gh_id)
         ->condition('external_service', 'github_integration')
         ->fields('gs', array('id'))
+        ->distinct()
         ->execute()
         ->fetchCol();
 
@@ -192,4 +193,55 @@ function getsatisfaction_integration_topic($id) {
 
   cache_set($cache_key, $topic, 'cache', time() + 604800);
   return $topic;
+}
+
+/**
+ * @function getsatisfaction_integration_topics_to_github
+ *
+ * Checks getsatisfaction for pending tickets that don't have an issue.  Makes a GH issue from them.
+ */
+function getsatisfaction_integration_topics_to_github() {
+  $client = getsatisfaction_integration_client();
+  $topics = $client->api('topic')->call('company_topic', array('status' => 'pending', 'company' => variable_get('getsatisfaction_company')));
+  $mapped = db_select('getsatisfaction_service_map', 'gs')
+    ->fields('gs', array('id'))
+    ->condition('external_service', 'github_integration')
+    ->execute()
+    ->fetchCol();
+
+  foreach ($topics->data as $topic) {
+    //check if topic is mapped
+    if (in_array($topic->at_sfn, $mapped) || in_array($topic->url, $mapped)) {
+      continue;
+    }
+
+    //send it to github
+    $gh = github_create_issue(array(
+      'title' => 'Feature: ' . $topic->subject,
+      'body' => $topic->at_sfn . "\n>" . $topic->content,
+    ));
+
+    //create map
+    if ($gh && isset($gh['number'])) {
+      $state = array('values' => array(
+        'external_service' => 'github_integration',
+        'external_id' => $gh['number'],
+        'getsatisfaction_url' => $topic->at_sfn,
+      ));
+
+      require_once(drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration.admin.inc');
+      drupal_form_submit('getsatisfaction_integration_admin_tickets', $state);
+    }
+  }
+}
+
+/**
+ * Implements hook_cron
+ *
+ * When var is enabled, GS topics that are pending and unmapped are sent to github and mapped to the new issue.
+ */
+function getsatisfaction_integration_cron() {
+  if (variable_get('getsatisfaction_integration_cron', FALSE)) {
+    getsatisfaction_integration_topics_to_github();
+  }
 }
