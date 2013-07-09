@@ -117,7 +117,7 @@ function github_integration_client($auth = TRUE) {
 function github_integration_github_issue_process($body) {
   $hash = hash_hmac('sha1', $body, variable_get('github_secret'));
   if (!isset($_SERVER['HTTP_X_HUB_SIGNATURE']) || ('sha1='.$hash != $_SERVER['HTTP_X_HUB_SIGNATURE'])) {
-    error_log('Error authenticating origin of github/hook_issue request');
+    watchdog('github', 'Error authenticating origin of github/hook_issue request', array(), WATCHDOG_ERROR);
     return;
   }
 
@@ -290,7 +290,7 @@ function _github_integration_github_api_setup($github_hook) {
  */
 function github_create_issue($issue) {
   if (!isset($issue['title'])) {
-    error_log('Can\'t create a github issue with no title.');
+    watchdog('github','Can\'t create a github issue with no title.');
     return False;
   }
   

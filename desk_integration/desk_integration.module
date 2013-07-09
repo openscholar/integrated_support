@@ -247,7 +247,7 @@ function desk_integration_desk_to_github_complete($payload, $responses = array()
 
   $updated = desk_integration_update_cases($payload['case_id'], $github['number'], $github['milestone'], $github['state']);
   if (!$updated) {
-  	error_log('Could not send from desk to github.  Request: ' . serialize($_REQUEST) . ' github response: ' . serialize($github) . ' desk update: ' . serialize($updated));
+  	watchdog('desk', 'Could not send from desk to github.  Request: ' . serialize($_REQUEST) . ' github response: ' . serialize($github) . ' desk update: ' . serialize($updated));
   }
   
   //redirect if the hook says so
@@ -384,9 +384,6 @@ function desk_integration_update_cases($case_ids, $github_issue_id, $github_mile
 	  $ret[] = $desk->api('case')->call('update', array('id' => $id, 'custom_fields' => $custom));
 	}
   
-//  if (isset($ret->errors) && $ret->errors) {
-//    error_log($ret->mesage . var_export($ret->errors, TRUE) . var_export($update, TRUE));
-//  }
   return $ret;
 }
 

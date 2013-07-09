@@ -57,7 +57,7 @@ function integrated_support_event($name) {
 			$responses[$module] = module_invoke($module, __FUNCTION__, $name, $payload);
 		}
 		
-		$responses = array_filter($responses);
+		//$responses = array_filter($responses);
 		if ($responses) {
   		watchdog(
   			'integrated_support', 
