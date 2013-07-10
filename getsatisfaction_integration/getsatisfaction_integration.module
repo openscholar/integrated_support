@@ -70,6 +70,9 @@ function getsatisfaction_integration_integrated_support_status() {
 
   $out = $client->api('topic')->call('all');
 
+
+//   $paged = $client->api('topic')->page('all', array('status' => 'pending'), 0, 2);
+//   dpm($paged);
 //  $reply = $client->api('topic')->call('reply', array('id' => '5419883','reply' => array('content' => 'can haz reply?')));
 //  dpm($reply);
   return ($out->total) ? t('Logged into getsatisfaction') : t('Error connecting to getsatisfaction');
@@ -157,8 +160,11 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
  * Sets status on a GS topic
  */
 function getsatisfaction_integration_update_topic_status($topic_id, $status) {
+  $status = 'pending';
   if (!in_array($status, array('null', 'pending', 'active', 'complete', 'rejected'))) {
-    return FALSE;
+    dpm($status);
+    $status = null;
+//    return FALSE;
   }
 
   $client = getsatisfaction_integration_client();
@@ -174,6 +180,7 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status) {
     //'company' => variable_get('getsatisfaction_company'),
     //'id' => $topic_id,
   );
+  //dpm($update);
   $response = $client->api('topic')->call('update', $update);
   //dpm($response);
   return $response;

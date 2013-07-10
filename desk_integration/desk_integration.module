@@ -373,12 +373,12 @@ function desk_integration_update_cases($case_ids, $github_issue_id, $github_mile
     if ($notify_closed || $notify_milestone) {
       $case = $desk->api('case')->call('show', array('id' => $id));
 
-      if ($notify_milestone && $case && $case->custom_fields['github_milestone'] != $github_milestone) {
+      if ($notify_milestone && $case && $case->custom_fields->github_milestone != $github_milestone) {
         $msg = 'Your request has been scheduled to be fixed as part of the ' . $github_milestone . ' release.';
         $ret[] = $desk->api('case')->call('create_reply', array('id' => $id, 'body' => $msg, 'direction' => 'out'));
       }
 
-      if ($notify_closed && $case && $case->custom_fields['github_status'] != $github_status) {
+      if ($notify_closed && $case && $case->custom_fields->github_status != $github_status) {
         $msg = 'Your request has been fixed in development.  The update is scheduled to go live as part of our ' . $github_milestone . ' release.';
         $ret[] = $desk->api('case')->call('create_reply', array('id' => $id, 'body' => $msg, 'direction' => 'out'));
       }

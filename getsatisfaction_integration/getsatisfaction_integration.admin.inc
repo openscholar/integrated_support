@@ -145,7 +145,7 @@ function getsatisfaction_integration_admin_tickets_validate(&$form, &$state) {
     if (!$topic) {
       //Could not connect
       form_set_error('getsatisfaction_url', t('Can\'t retrieve topic.  Is this URL correct?'));
-    } elseif ($topic->author->id != $me->id) {
+    } elseif (FALSE && $topic->author->id != $me->id) {
       //Post isn't owned by this account.  Can only modify accounts we own.
       form_set_error('getsatisfaction_url', t('Cannot modify topic.  Please create a topic as "@user" and merge this one into it, then try again with new URL.', array('@user' => $me->canonical_name)));
     } else {
