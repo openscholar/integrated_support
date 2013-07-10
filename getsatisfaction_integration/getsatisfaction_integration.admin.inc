@@ -39,6 +39,13 @@ function getsatisfaction_integration_admin() {
         '#default_value' => variable_get('getsatisfaction_password'),
       ),
     ),
+      
+    'getsatisfaction_assert_authorship' => array(
+      '#type' => 'checkbox',
+      '#title' => 'Assert Topic Authorship',
+      '#default_value' => variable_get('getsatisfaction_assert_authorship', TRUE),
+      '#description' => t('GetSatisfaction\'s API doesn\'t always let admins update topics they do not own, despite what the docs say.  This option makes sure that any service map in GetSatisfaction will check the author of a topic before making the link to an external service.'),
+    ),
   );
 
   if (module_exists('github_integration')) {
@@ -138,14 +145,17 @@ function getsatisfaction_integration_admin_tickets_validate(&$form, &$state) {
     $slug = @end(explode('/', $state['values']['getsatisfaction_url']));
     $slug = @current(explode('?', $slug));
     $gs_client = getsatisfaction_integration_client();
-    $me = $gs_client->api('people')->call('search', array('email' => variable_get('getsatisfaction_username')));
-    //$response = $gs_client->api('topic')->call('topic', array('id' => $slug));
-    $topic = getsatisfaction_integration_topic($slug);
+    
+    $assert_authorship = variable_get('getsatisfaction_assert_authorship', TRUE);
+    if ($assert_authorship) {
+      $me = $gs_client->api('people')->call('search', array('email' => variable_get('getsatisfaction_username')));
+    }
 
+    $topic = getsatisfaction_integration_topic($slug);
     if (!$topic) {
       //Could not connect
       form_set_error('getsatisfaction_url', t('Can\'t retrieve topic.  Is this URL correct?'));
-    } elseif (FALSE && $topic->author->id != $me->id) {
+    } elseif ($assert_authorship && ($topic->author->id != $me->id)) {
       //Post isn't owned by this account.  Can only modify accounts we own.
       form_set_error('getsatisfaction_url', t('Cannot modify topic.  Please create a topic as "@user" and merge this one into it, then try again with new URL.', array('@user' => $me->canonical_name)));
     } else {
@@ -181,6 +191,7 @@ function getsatisfaction_integration_admin_tickets_submit(&$form, &$state) {
 
   //trigger an update now.  no sense in waiting.
   if ($record['external_service'] == 'github_integration') {
+    $state['values']['external_item']['type'] = 'issue';
     getsatisfaction_integration_integrated_support_event('github_issue', $state['values']['external_item']);
   }
 }

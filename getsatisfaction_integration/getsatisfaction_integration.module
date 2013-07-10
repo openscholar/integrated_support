@@ -160,29 +160,19 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
  * Sets status on a GS topic
  */
 function getsatisfaction_integration_update_topic_status($topic_id, $status) {
-  $status = 'pending';
   if (!in_array($status, array('null', 'pending', 'active', 'complete', 'rejected'))) {
-    dpm($status);
-    $status = null;
-//    return FALSE;
+    return FALSE; //these are the only valid statuses.
   }
 
   $client = getsatisfaction_integration_client();
   $update = array(
     'id' => $topic_id,
     'topic' => array(
-      //'keywords' => 'api-test,broken',
       'status' => $status,
-//      'user_defined_code' => 'can haz udc?', //NO!  makes server errors
-      //'id' => $topic_id,
-      //'subject' => 'asdfasdf',
     ),
-    //'company' => variable_get('getsatisfaction_company'),
-    //'id' => $topic_id,
   );
-  //dpm($update);
+
   $response = $client->api('topic')->call('update', $update);
-  //dpm($response);
   return $response;
 }
 
@@ -214,7 +204,13 @@ function getsatisfaction_integration_topic($id) {
  */
 function getsatisfaction_integration_topics_to_github() {
   $client = getsatisfaction_integration_client();
-  $topics = $client->api('topic')->call('company_topic', array('status' => 'pending', 'company' => variable_get('getsatisfaction_company')));
+  $query = array('status' => 'pending', 'company' => variable_get('getsatisfaction_company'));
+  if (variable_get('getsatisfaction_assert_authorship', TRUE)) {
+    $me = $client->api('people')->call('search', array('email' => variable_get('getsatisfaction_username')));
+    $query['user'] = $me->id;
+  }  
+  
+  $topics = $client->api('topic')->call('company_topic', $query);
   $mapped = db_select('getsatisfaction_service_map', 'gs')
     ->fields('gs', array('id'))
     ->condition('external_service', 'github_integration')
@@ -223,7 +219,7 @@ function getsatisfaction_integration_topics_to_github() {
 
   foreach ($topics->data as $topic) {
     //check if topic is mapped
-    if (in_array($topic->at_sfn, $mapped) || in_array($topic->url, $mapped)) {
+    if (in_array($topic->id, $mapped)) {
       continue;
     }
 
