@@ -52,6 +52,7 @@ function integrated_support_event($name) {
 	if ($event = $events[$name]) {
 		$body = file_get_contents('php://input');
 		$payload = $event['process function']($body);
+		watchdog('integrated_support', '@name payload: @payload', array('@name' => $name, '@payload' => serialize($payload)), WATCHDOG_DEBUG);
 		
 		foreach (module_implements(__FUNCTION__) as $module) {
 			$responses[$module] = module_invoke($module, __FUNCTION__, $name, $payload);

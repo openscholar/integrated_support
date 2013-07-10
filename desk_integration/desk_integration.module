@@ -97,13 +97,15 @@ function desk_integration_integrated_support_event($event, $payload) {
 	switch ($event) {
 		case 'github_issue':
 		  if ($payload['event'] != 'issue') {
-		    //we only care about issues, so ignore code pushes.
-		    return;
+		    watchdog('desk', 'Ignoring github issue.  Event is not set to "issue".');
+		    return;		    //we only care about issues, so ignore code pushes.
 		  }
 		  
 			$desk = desk_integration_client();
 			$ids = array();
 			$cases = $desk->api('case')->call('search', array('case_custom_github_issue_id' => $payload['id']));
+			watchdog('desk', 'Attemping to update cases: @cases.', array('@cases' => serialize($cases)));
+			
 			if (isset($cases->total_entries) && $cases->total_entries) {
 				foreach ($cases->_embedded->entries as $case) {
 					if (($payload['milestone'] != $case->custom_fields->github_milestone) || ($payload['state'] != $case->custom_fields->github_status)) {
@@ -112,11 +114,9 @@ function desk_integration_integrated_support_event($event, $payload) {
 				}
 			}
 			
-			$return = desk_integration_update_cases($ids, $payload['id']);
-			
+			$return = desk_integration_update_cases($ids, $payload['id']);			
 			break;
 	}
-	
 	return $return;
 }
 

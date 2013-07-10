@@ -116,10 +116,10 @@ function github_integration_client($auth = TRUE) {
  */
 function github_integration_github_issue_process($body) {
   $hash = hash_hmac('sha1', $body, variable_get('github_secret'));
-  if (!isset($_SERVER['HTTP_X_HUB_SIGNATURE']) || ('sha1='.$hash != $_SERVER['HTTP_X_HUB_SIGNATURE'])) {
-    watchdog('github', 'Error authenticating origin of github/hook_issue request', array(), WATCHDOG_ERROR);
-    return;
-  }
+//   if (!isset($_SERVER['HTTP_X_HUB_SIGNATURE']) || ('sha1='.$hash != $_SERVER['HTTP_X_HUB_SIGNATURE'])) {
+//     watchdog('github', 'Error authenticating origin of github/hook_issue request', array(), WATCHDOG_ERROR);
+//     return;
+//   }
 
   $json = json_decode($body);
   watchdog('github', '@json', array('@json' => $body), WATCHDOG_DEBUG);
@@ -129,10 +129,11 @@ function github_integration_github_issue_process($body) {
     $return = array(
       'event' => 'issue',
   	  'id' => $json->issue->number,
-      'milestone' => ($json->issue->milestone) ? $json->issue->milestone->title : NULL,
+      'milestone' => (isset($json->issue->milestone)) ? $json->issue->milestone->title : NULL,
       'state' => (in_array($json->action, array('closed', 'reopened'))) ? $json->action : $json->issue->state,
       'title' => $json->issue->title,
       'labels' => array_map(create_function('$a', 'return $a["name"];'), $json->issue->labels),
+      'type' => 'issue',
     );
     
     switch($json->action) {
@@ -166,7 +167,7 @@ function github_integration_github_issue_process($body) {
   } elseif (isset($json->commits)) {
     //github push event
     $return = array(
-      'event' => 'push',
+      'event' => 'issue',
       'type' => 'push',
       'url' => $json->commits[0]->url,
       'id' => substr($json->commits[0]->id, 0, 8),
@@ -174,8 +175,10 @@ function github_integration_github_issue_process($body) {
       'body' => $json->commits[0]->message,
     );
   } else {
+    //probably a PR
     $return = array(
       'event' => 'unknown github event',
+      'type' => 'unknown',
       'payload' => $body,  
     );
   }
@@ -236,23 +239,23 @@ function github_integration_github_issue_setup() {
  *
  * Extracts the id, milestone, and state after validating that the request came from github
  */
-function github_integration_github_push_process($body) {
-  $hash = hash_hmac('sha1', $body, variable_get('github_secret'));
-  if (!isset($_SERVER['HTTP_X_HUB_SIGNATURE']) || ('sha1='.$hash != $_SERVER['HTTP_X_HUB_SIGNATURE'])) {
-    watchdog('github', 'Error authenticating origin of github/hook_issue request', array(), WATCHDOG_ERROR);
-    return;
-  }
+// function github_integration_github_push_process($body) {
+//   $hash = hash_hmac('sha1', $body, variable_get('github_secret'));
+//   if (!isset($_SERVER['HTTP_X_HUB_SIGNATURE']) || ('sha1='.$hash != $_SERVER['HTTP_X_HUB_SIGNATURE'])) {
+//     watchdog('github', 'Error authenticating origin of github/hook_issue request', array(), WATCHDOG_ERROR);
+//     return;
+//   }
 
-  $json = json_decode($body);
-  watchdog('github', '@json', array('@json' => $body), WATCHDOG_DEBUG);
-  $return = array(
-    'body' => $json->commits->message,
-    'link' => "<a href='$json->commits->url'>$json->commits->id</a>",  
-    'user' => $json->commits->name,
-  );
+//   $json = json_decode($body);
+//   watchdog('github', '@json', array('@json' => $body), WATCHDOG_DEBUG);
+//   $return = array(
+//     'body' => $json->commits->message,
+//     'link' => "<a href='$json->commits->url'>$json->commits->id</a>",  
+//     'user' => $json->commits->name,
+//   );
   
-  return $return;
-}
+//   return $return;
+// }
 
 
 /**
