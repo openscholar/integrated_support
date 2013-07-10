@@ -117,7 +117,7 @@ function desk_integration_integrated_support_event($event, $payload) {
 				}
 			}
 			
-			$updated = desk_integration_update_cases($ids, $payload['id']);
+			$updated = desk_integration_update_cases($ids, $payload['id'], $payload['milestone'], $payload['state']);
 			$return = array(
 		    'message' => t('Updated @count cases: @ids', array('@count' => count($ids), '@ids' => implode(', ', $ids))), 
 		    'responses' => serialize($updated)
@@ -409,7 +409,7 @@ function _desk_integration_validate_github_status($github_status) {
     case 'closed':
     	return 'Closed';
     default:
-		  return '--';
+		  return NULL;
 	}
 }
 
