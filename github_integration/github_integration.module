@@ -344,7 +344,18 @@ function github_integration_alert_page() {
   }
 
   if ($items) {
-    return theme('item_list', array('items' => $items, 'type' => 'ul', 'attributes' => array('class' => array('alert-issues'))));
+    return array(
+      'description' => array(
+        '#type' => 'markup',
+        '#markup' => '<p>Tickets marked with the Hotfix label will be released as soon as possible.  Other fixes will be available as part of our regularly scheduled updates.</p>',    
+      ),
+      'alerts' => array(
+        '#theme' => 'item_list',
+        '#items' => $items,
+        '#type' => 'ul',
+        '#attributes' => array('class' => array('alert-issues'))
+      ),
+    );
   } else {
     return t('No reported service alerts.');
   }
