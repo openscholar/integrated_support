@@ -132,7 +132,7 @@ function github_integration_github_issue_process($body) {
       'milestone' => (isset($json->issue->milestone)) ? $json->issue->milestone->title : NULL,
       'state' => (in_array($json->action, array('closed', 'reopened'))) ? $json->action : $json->issue->state,
       'title' => $json->issue->title,
-      'labels' => array_map(create_function('$a', 'return $a["name"];'), $json->issue->labels),
+      'labels' => array_map(create_function('$a', 'return $a->name;'), $json->issue->labels),
       'type' => 'issue',
     );
     
@@ -228,7 +228,7 @@ function github_integration_github_issue_setup() {
       'content_type' => 'json',
       'secret' => variable_get('github_secret'),
     ),
-    'events' => array('issues', 'issue_comment', 'status'), //can we add push?  will be needed if we do @changelog (or should that be any hash tag?)
+    'events' => array('issues', 'issue_comment',), //can we add push?  will be needed if we do @changelog (or should that be any hash tag?)
   );
   
   _github_integration_github_api_setup($hook_conf);

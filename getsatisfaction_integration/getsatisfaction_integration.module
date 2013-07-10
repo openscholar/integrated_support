@@ -110,33 +110,37 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
 	    break;
 
     case 'github_issue':
-      //get affected getsatisfaction topics
-      $gh_id = $payload['id'];
-      $ids = db_select('getsatisfaction_service_map', 'gs')
-        ->condition('external_id', $gh_id)
-        ->condition('external_service', 'github_integration')
-        ->fields('gs', array('id'))
-        ->distinct()
-        ->execute()
-        ->fetchCol();
-
-      //figure out a status.  (can this be configged in admin page?
-      $status = 'pending'; //all linked tickets are pending by default.
-      $active = array('status: in dev', 'status: needs qa', 'status: needs review');
-      if (array_intersect($active, $payload['labels'])) {
-        $status = 'active';
-      }
-      if ($payload['state'] == 'closed') {
-        $status = 'complete';
-      }
-
-      watchdog('getsatisfaction', 'applying @status status to topics: @ids', array('@status' => $status, '@ids' => implode(',', $ids)));
-
-      //apply status
-      $client = getsatisfaction_integration_client();
-      foreach ($ids as $id) {
-        $return[] = getsatisfaction_integration_update_topic_status($id, $status);
-       //$return[] = $client->api('topic')->call('reply', array('id' => '5419883','reply' => array('content' => 'Current status: ' . $status)));
+      if (isset($payload['type']) && in_array($payload['type'], array('issue', 'comment'))) {
+        //get affected getsatisfaction topics
+        $gh_id = $payload['id'];
+        $ids = db_select('getsatisfaction_service_map', 'gs')
+          ->condition('external_id', $gh_id)
+          ->condition('external_service', 'github_integration')
+          ->fields('gs', array('id'))
+          ->distinct()
+          ->execute()
+          ->fetchCol();
+  
+        //figure out a status.  (can this be configged in admin page?
+        $status = 'pending'; //all linked tickets are pending by default.
+        $active = array('status: in dev', 'status: needs qa', 'status: needs review');
+        if (array_intersect($active, $payload['labels'])) {
+          $status = 'active';
+        }
+        if ($payload['state'] == 'closed') {
+          $status = 'complete';
+        }
+  
+        watchdog('getsatisfaction', 'applying @status status to topics: @ids', array('@status' => $status, '@ids' => implode(',', $ids)));
+  
+        //apply status
+        $client = getsatisfaction_integration_client();
+        foreach ($ids as $id) {
+          $return[] = getsatisfaction_integration_update_topic_status($id, $status);
+         //$return[] = $client->api('topic')->call('reply', array('id' => '5419883','reply' => array('content' => 'Current status: ' . $status)));
+        }
+      } else {
+        watchdog('No getsatisfaction action for github event: for @payload', array('@payload' => serialize($payload)), WATCHDOG_DEBUG);
       }
       break;
 //    default:
