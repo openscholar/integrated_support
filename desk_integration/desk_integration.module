@@ -97,13 +97,16 @@ function desk_integration_integrated_support_event($event, $payload) {
 	switch ($event) {
 		case 'github_issue':
 		  if ($payload['event'] != 'issue') {
-		    watchdog('desk', 'Ignoring github issue.  Event is not set to "issue".');
+		    //watchdog('desk', 'Ignoring github issue.  Event is not set to "issue".');
 		    return;		    //we only care about issues, so ignore code pushes.
 		  }
 		  
 			$desk = desk_integration_client();
 			$ids = array();
-			$cases = $desk->api('case')->call('search', array('case_custom_github_issue_id' => $payload['id']));
+			$cases = $desk->api('case')->call('search', array(
+		    'case_custom_github_issue_id' => $payload['id'],
+			  'status' => 'open,pending,resolved',
+	    ));
 			watchdog('desk', 'Attemping to update cases: @cases.', array('@cases' => serialize($cases)));
 			
 			if (isset($cases->total_entries) && $cases->total_entries) {
@@ -364,10 +367,12 @@ function desk_integration_update_cases($case_ids, $github_issue_id, $github_mile
 	                             
   $desk = desk_integration_client();
   $github_status = _desk_integration_validate_github_status($github_status);
-  $notify_milestone = variable_get('desk_notify_milestone', TRUE);
-  $notify_closed = variable_get('desk_notify_closed', TRUE);
+  $notify_milestone = (variable_get('desk_notify_milestone', TRUE) && $github_milestone); //don't notify if no milestone is given
+  $notify_closed = (variable_get('desk_notify_closed', TRUE) && $github_status); //don't notify if no status given
 
   $custom = array_filter(array('github_issue_id' => $github_issue_id, 'github_milestone' => $github_milestone, 'github_status' => $github_status));
+  watchdog('desk', 'Updating cases @cases with @custom', array('@cases' => implode(', ', $case_ids), '@custom' => serialize($custom)));
+  
 	foreach ($case_ids as $id) {
     //optional notifications
     if ($notify_closed || $notify_milestone) {
