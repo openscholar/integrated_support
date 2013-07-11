@@ -68,13 +68,7 @@ function getsatisfaction_integration_integrated_support_status() {
     'subject' => 'does my api topic work?'
   );
 
-  $out = $client->api('topic')->call('all');
-
-
-//   $paged = $client->api('topic')->page('all', array('status' => 'pending'), 0, 2);
-//   dpm($paged);
-//  $reply = $client->api('topic')->call('reply', array('id' => '5419883','reply' => array('content' => 'can haz reply?')));
-//  dpm($reply);
+  $out = $client->api('topic')->call('all');  
   return ($out->total) ? t('Logged into getsatisfaction') : t('Error connecting to getsatisfaction');
 }
 
@@ -140,14 +134,11 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
         $client = getsatisfaction_integration_client();
         foreach ($ids as $id) {
           $return[] = getsatisfaction_integration_update_topic_status($id, $status);
-         //$return[] = $client->api('topic')->call('reply', array('id' => '5419883','reply' => array('content' => 'Current status: ' . $status)));
         }
       } else {
         watchdog('No getsatisfaction action for github event: for @payload', array('@payload' => serialize($payload)), WATCHDOG_DEBUG);
       }
       break;
-//    default:
-//        watchdog('No getsatisfaction events for "'.$event.'".', array(), WATCHDOG_DEBUG);
 	}
 
   watchdog('getsatisfaction', '@event return: @ret', array('@event' => $event, '@ret' => serialize($return)), WATCHDOG_DEBUG);
@@ -172,7 +163,7 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status) {
     ),
   );
 
-  $response = $client->api('topic')->call('update', $update);
+  $response = $client->api('topic')->call('status', $update);
   return $response;
 }
 
