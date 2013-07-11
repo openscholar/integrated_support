@@ -17,11 +17,11 @@ function desk_integration_menu() {
       'page arguments' => array('desk_integration_mass_message_form'),
       'access arguments' => array('administer site configuration'),
     ),
-    'desk/service_rating' => array(
+    'desk/service_rating/%/%/%' => array(
       'title' => 'Rate our service',
       'file' => '/desk_integration.pages.inc',
 	    'page callback' => 'drupal_get_form',
-      'page arguments' => array('desk_integration_service_rating'),
+      'page arguments' => array('desk_integration_service_rating', 2, 3, 4),
       'access arguments' => array('administer site configuration'),
     )
 	);

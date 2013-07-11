@@ -77,28 +77,18 @@ function desk_integration_mass_message_form_submit($form, &$state) {
  * Collects ratings from links sent out with desk cases.
  * Should verify that the included timestamp match's desk's timestamp.
  */
-function desk_integration_service_rating() {
-  if (!isset($_REQUEST['case_id'], $_REQUEST['timestamp'], $_REQUEST['rating'])) {
-    drupal_set_message(t('Invalid rating'), 'error');
-    return array();
-  }
-
-  $case_id = $_REQUEST['case_id'];
-  $timestamp = $_REQUEST['timestamp'];
-  $rating = $_REQUEST['rating'];
+function desk_integration_service_rating($form, &$state, $case_id, $hidden_token, $rating) {
+  //hidden token is custoemr id.
   $ratings = array('Excellent', 'Good', 'Fair', 'Poor'); //variable?
 
   //comment is provided, skip ahead and append to that to the db row we already have.
   if (isset($_REQUEST['comments'])) {
     _desk_integration_service_rating_submit($case_id, $rating, $_REQUEST['comments']);
-    drupal_get_messages();
-    drupal_set_message(t('Thank you for your comments.  You may close this page.'));
-    return array();
+    return array('message' => array('#type' => 'markup', '#markup' => t('Thank you for your comments, you may close this page.')));
   }
 
   if (!in_array($rating, $ratings)) {
-    drupal_set_message(t('Invalid rating'), 'error');
-    return array();
+    return array('error' => array('#type' => 'markup', '#markup' => t('Invalid rating.  Please use one of @ratings', array('@rating' => implode(', ', $ratings)))));
   }
 
   //bail out if this has already been rated.
@@ -109,8 +99,8 @@ function desk_integration_service_rating() {
     ->execute();
 
   if ($rated->rowCount()) {
-    drupal_set_message(t('This case has already been rated.'), 'error');
-    return array();
+    //drupal_set_message(t('This case has already been rated.'), 'error');
+    return array('error' => array('#type' => 'markup', '#markup' => t('This case has already been rated.')));
   }
 
   //get desk's closed date.  compare that with what was sent.
@@ -118,13 +108,12 @@ function desk_integration_service_rating() {
   $case = $desk->api('case')->call('show', array('id' => $case_id));
 
   if (!$case || @$case->message == 'Resource Not Found') {
-    drupal_set_message(t('Case #@id does not exist.', array('@id' => $case_id)), 'error');
-    return array();
+    return array('error' => array('#type' => 'markup', '#markup' => t('This case does not exist.')));
   }
 
-  if (!isset($case->updated_at) || $timestamp != $case->updated_at) { //closed at doesn't really exist.  use updated_at.
-    drupal_set_message(t('Could not authenticate source of request.'), 'error');
-    return array();
+  list (,,,,$customer) = explode('/', $case->_links->customer->href);
+  if ($hidden_token != $customer) { //closed at doesn't really exist.  use updated_at.
+    return array('error' => array('#type' => 'markup', '#markup' => t('Could not authenticate source of request.')));
   }
 
   $record = array('id' => $case_id, 'rating' => $rating);
