@@ -196,10 +196,6 @@ function getsatisfaction_integration_topic($id) {
 function getsatisfaction_integration_topics_to_github() {
   $client = getsatisfaction_integration_client();
   $query = array('status' => 'pending', 'company' => variable_get('getsatisfaction_company'));
-  if (variable_get('getsatisfaction_assert_authorship', TRUE)) {
-    $me = $client->api('people')->call('search', array('email' => variable_get('getsatisfaction_username')));
-    $query['user'] = $me->id;
-  }  
   
   $topics = $client->api('topic')->call('company_topic', $query);
   $mapped = db_select('getsatisfaction_service_map', 'gs')

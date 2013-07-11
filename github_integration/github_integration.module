@@ -379,5 +379,18 @@ function github_integration_issue($id) {
     'milestone' =>  $issue['milestone']['title'],
     'title' =>      $issue['title'],
     'id' =>         $issue['number'],
+    'user' =>       (isset($issue['user'])) ? $issue['user']['login'] : NULL,
+    'updated_at' => $issue['updated_at'],
   );
 }
+
+/**
+ * @function github_integration_milestones
+ * 
+ * Returns a list of GH milestones and their ids.
+ */
+function github_integration_milestones($query = array()) {
+  $gh = github_integration_client();
+  return $gh->api('issue')->milestones()->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $query);
+}
+

@@ -1,0 +1,45 @@
+#roadmap {
+	width: 100%;
+	border-collapse: separate;
+}
+
+#roadmap tr.issue-meta>td {
+	border-top: 1px white solid;
+}
+
+td.issue-body {
+	display: none;
+}
+
+#roadmap a.status {
+	color: white;
+	background-color: red;
+  padding: 0 1em;
+  border-radius: 3px;
+}
+
+#roadmap a.status:hover {
+	opacity: 0.8;
+}
+
+#roadmap a.Planned {
+	background-color:white;
+  color: black;
+  border: 1px #ccc solid;
+}
+
+#roadmap a.Dev {
+  background-color: orange;
+}
+
+#roadmap a.QA {
+  background-color: green;
+}
+
+#roadmap a.Coded {
+  background-color: blue;
+}
+
+#roadmap a.Deployed {
+  background-color:black;
+}
