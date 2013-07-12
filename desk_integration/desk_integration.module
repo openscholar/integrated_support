@@ -22,7 +22,7 @@ function desk_integration_menu() {
       'file' => '/desk_integration.pages.inc',
 	    'page callback' => 'drupal_get_form',
       'page arguments' => array('desk_integration_service_rating', 2, 3, 4),
-      'access arguments' => array('administer site configuration'),
+      'access arguments' => array('access content'),
     )
 	);
 	
