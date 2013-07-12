@@ -46,6 +46,7 @@ function getsatisfaction_integration_roadmap_page() {
     }
   }
 
+  array_filter($data);
   $ret = array();
   foreach ($data as $milestone => $ms_data) {
     $ret[] = array(
