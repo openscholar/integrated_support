@@ -533,6 +533,13 @@ function github_integration_milestones($query = array()) {
  * Stores a github issue locally so views can see it.
  */
 function _github_intergation_update_issue_table($issue) {
+  if (is_object($issue)) {
+    $issue = (array) $issue;
+    foreach (array('assignee', 'user', 'milestone') as $item) {
+      $issue[$item] = (array) $issue[$item];
+    }
+  }
+  
   //add to local storage.
   $record = array(
     'id' =>         $issue['number'],
