@@ -411,6 +411,9 @@ function github_integration_milestones($query = array()) {
 function _github_intergation_update_issue_table($issue) {
   if (is_object($issue)) {
     $issue = (array) $issue;
+    foreach (array('assignee', 'user', 'milestone') as $item) {
+      $issue[$item] = (array) $issue[$item];
+    }
   }
   
   //add to local storage.
