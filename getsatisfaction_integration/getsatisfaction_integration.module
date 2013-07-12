@@ -64,10 +64,8 @@ function getsatisfaction_integration_client() {
  */
 function getsatisfaction_integration_integrated_support_status() {
   $client = getsatisfaction_integration_client();
-  $topic = array(
-    'subject' => 'does my api topic work?'
-  );
-
+  
+  getsatisfaction_integration_update_topic_status('this_topic_is_owned_by_a_non_admin_non_employee_can_i_poke_it', 'pending');
   $out = $client->api('topic')->call('all');  
   return ($out->total) ? t('Logged into getsatisfaction') : t('Error connecting to getsatisfaction');
 }
@@ -88,6 +86,7 @@ function getsatisfaction_create_topic($subject, $detail = '', $style = '', $keyw
   ));
   
   $out = $client->api('topic')->call('create', array('topic' => $topic, 'company' => variable_get('getsatisfaction_company')));
+  _getsatisfaction_integration_update_topic_table($out);
   watchdog('getsatisfaction', 'created topic @out', array('@out' => serialize($out)), WATCHDOG_DEBUG);
   
   return $out;
@@ -131,7 +130,6 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
         watchdog('getsatisfaction', 'applying @status status to topics: @ids', array('@status' => $status, '@ids' => implode(',', $ids)));
   
         //apply status and update milestone
-        $client = getsatisfaction_integration_client();
         foreach ($ids as $id) {
           $return[] = getsatisfaction_integration_update_topic_status($id, $status);
           _getsatisfaction_integration_update_topic_milestone($id, $payload['milestone']);
@@ -166,8 +164,9 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status) {
     ),
   );
 
-  $response = $client->api('topic')->call('status', $update);
-  return $response;
+  $topic = $client->api('topic')->call('status', $update); //do you return the topic?
+  _getsatisfaction_integration_update_topic_table($topic);
+  return $topic;
 }
 
 
@@ -186,6 +185,7 @@ function getsatisfaction_integration_topic($id) {
 
   $client = getsatisfaction_integration_client();
   $topic = $client->api('topic')->call('topic', array('id' => $id));
+  _getsatisfaction_integration_update_topic_table($topic);
 
   cache_set($cache_key, $topic, 'cache', time() + 604800);
   return $topic;
@@ -208,6 +208,7 @@ function getsatisfaction_integration_topics_to_github() {
     ->fetchCol();
 
   foreach ($topics->data as $topic) {
+    _getsatisfaction_integration_update_topic_table($topic);
     //check if topic is mapped
     if (in_array($topic->id, $mapped)) {
       continue;
@@ -276,3 +277,37 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone) {
 function _getsatisfaction_integration_milestone_message($milestone) {
   return 'This request has been scheduled to be part of our ' . $milestone . ' release.';
 }
+
+
+function _getsatisfaction_integration_update_topic_table($topic) {
+  $record = array(
+    'id' => $topic->id,
+    'title' => $topic->subject,
+    'status' => $topic->status,
+    'author' => $topic->author->name,
+    'style' => $topic->style,
+    'me_too_count' => $topic->me_too_count,
+    'body' => $topic->content,
+    'created_at' => strtotime($topic->created_at),
+    'last_active_at' => strtotime($topic->last_active_at),
+    'link' => $topic->at_sfn,
+  );
+
+  $stored = db_select('getsatisfaction_topics', 'gs')
+    ->condition('id', $topic->id)
+    ->fields('gs')
+    ->range(0, 1)
+    ->execute()
+    ->fetchAssoc();
+  
+  if (!$stored ) {
+    //new record
+    drupal_write_record('getsatisfaction_topics', $record);
+  } elseif ($record['last_active_at'] != $stored['last_active_at']) {
+    db_update('getsatisfaction_topics')
+      ->fields($record)
+      ->condition('id', $topic->id)
+      ->execute();
+  }
+}
+

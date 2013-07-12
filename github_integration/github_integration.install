@@ -31,3 +31,99 @@ function github_integration_requirements($phase) {
 
   return $requirements;
 }
+
+/**
+ * Implements hook_schema
+ *
+ * Stores local copy of github issues so we can show them in a view
+ */
+function github_integration_schema() {
+  $schema['github_issues'] = array(
+    'description' => 'Stores github issues for the benefit of Views.',
+    'primary key' => array('id'),
+    'unique keys' => array('id' => array('id')),
+    'fields' => array(
+      'id' => array(
+        'description' => 'Github issue id',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => 'Github issue title',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'labels' => array(
+        'description' => 'Serialized list of labels applied to this ticket',
+        'type' => 'text',
+      ),
+      'comments' => array(
+        'description' => 'Number of comments on issue',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'state' => array(
+        'description' => 'open or closed',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'body' => array(
+        'description' => 'Serialized list of labels applied to this ticket',
+        'type' => 'text',
+      ),
+      'closed' => array(
+        'description' => 'Issue closed date',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => NULL,        
+      ),
+      'created' => array(
+        'description' => 'Creation date',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'updated' => array(
+        'description' => 'Last time this ticket was updated',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'assignee' => array(
+        'description' => 'Who is responsible for this ticket',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => NULL,
+      ),
+      'owner' =>  array(
+        'description' => 'Creator of this ticket',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => NULL,
+      ),
+      'link' =>  array(
+        'description' => 'Link to github',
+        'type' => 'varchar',
+        'length' => 512,
+        'not null' => TRUE,
+      ),
+      'milestone' => array(
+        'description' => 'Milestone in which ticket will be released',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'default' => NULL,
+      ),
+    ),
+  );
+
+  return $schema;
+}

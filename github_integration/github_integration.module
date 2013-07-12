@@ -67,7 +67,7 @@ function github_integration_libraries_info() {
  */
 function github_integration_integrated_support_status() {
 	$gh = github_integration_client();
-
+github_integration_issue(5);
 	try {
   	$me = $gh->api('current_user')->show();
 	} catch (Exception $e) {
@@ -125,6 +125,9 @@ function github_integration_github_issue_process($body) {
   watchdog('github', '@json', array('@json' => $body), WATCHDOG_DEBUG);
   
   if (isset($json->issue)) {
+    //stash a local copy of this issue
+    _github_intergation_update_issue_table($json->issue);
+    
     //github issue evnet hook
     $return = array(
       'event' => 'issue',
@@ -298,7 +301,9 @@ function github_create_issue($issue) {
   }
   
   $gh = github_integration_client();
-  return $gh->api('issue')->create(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $issue);
+  $issue = $gh->api('issue')->create(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $issue);
+  _github_intergation_update_issue_table($issue);
+  return $issue;
 }
 
 function github_template_body($opts = array()) {
@@ -369,10 +374,13 @@ function github_integration_alert_page() {
  * Fetch a github issue by id.
  */
 function github_integration_issue($id) {
-  //why no cache?  github lib does it for us.
   $gh = github_integration_client(); //authed req is better.  100x the rate limit.  when it works again, remove this false
   $issue = $gh->api('issue')->show(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $id);
-
+  
+  //stash a copy of this issue
+  _github_intergation_update_issue_table($issue);
+ 
+  //and back to the user
   return (!$issue) ? FALSE : array(
     'labels' =>     array_map(create_function('$a', 'return $a["name"];'),$issue['labels']),
     'state' =>      $issue['state'],
@@ -393,5 +401,46 @@ function github_integration_issue($id) {
 function github_integration_milestones($query = array()) {
   $gh = github_integration_client();
   return $gh->api('issue')->milestones()->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $query);
+}
+
+/**
+ * @function _github_intergation_update_issue_table
+ * 
+ * Stores a github issue locally so views can see it.
+ */
+function _github_intergation_update_issue_table($issue) {
+  //add to local storage.
+  $record = array(
+    'id' =>         $issue['number'],
+    'title' =>      $issue['title'],
+    'labels' =>     serialize($issue['labels']),
+    'comments' =>   $issue['comments'],
+    'state' =>      $issue['state'],
+    'body' =>       $issue['body'],
+    'closed' =>     ($issue['closed_at']) ? strtotime($issue['closed_at']) : NULL,
+    'created' =>    ($issue['created_at']) ? strtotime($issue['created_at']) : NULL,
+    'updated' =>    ($issue['updated_at']) ? strtotime($issue['updated_at']) : NULL,
+    'assignee' =>   ($issue['assignee']) ? $issue['assignee']['login'] : NULL,
+    'owner' =>      ($issue['user']) ? $issue['user']['login'] : NULL,
+    'link' =>       $issue['html_url'],
+    'milestone' =>  ($issue['milestone']) ? $issue['milestone']['title'] : NULL,
+  );
+  
+  $stored = db_select('github_issues', 'gh')
+    ->condition('id', $issue['number'])
+    ->fields('gh')
+    ->range(0, 1)
+    ->execute()
+    ->fetchAssoc();
+  
+  //create or update record
+  if (!$stored) {
+    drupal_write_record('github_issues', $record);
+  } elseif ($stored['updated'] != $issue['updated_at']) {
+    db_update('github_issues')
+    ->fields($record)
+    ->condition('id', $issue['number'])
+    ->execute();
+  }
 }
 
