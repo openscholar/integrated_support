@@ -29,12 +29,12 @@ function getsatisfaction_integration_menu() {
       'access arguments' => array('administer site configuration'),
       'type' => MENU_CALLBACK
     ),
-//     'roadmap' => array(
-//       'title' => 'roadmap',
-//       'file' => '/getsatisfaction_integration.roadmap.inc',
-//       'page callback' => 'getsatisfaction_integration_roadmap_page',
-//       'access arguments' => array('access content'),
-//     )
+    'roadmap' => array(
+      'title' => 'Roadmap',
+      'file' => '/getsatisfaction_integration.roadmap.inc',
+      'page callback' => 'getsatisfaction_integration_roadmap_page',
+      'access arguments' => array('access content'),
+    )
 	);
 
 	return $items;
