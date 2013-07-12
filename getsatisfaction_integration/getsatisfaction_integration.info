@@ -1,5 +1,5 @@
 name = GetSatisfaction Integration
-description = "Provides GetSatisfactionintegration"
+description = "Provides GetSatisfaction Integration"
 core = 7.x
 configure = admin/config/integrated_support/getsatisfaction
 package = Integrated Support

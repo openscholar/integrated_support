@@ -104,6 +104,7 @@ function getsatisfaction_integration_admin_tickets() {
         '#title' => t('Other Service'),
         '#type' => 'select',
         '#options' => array_combine($modules, $modules),
+        '#default_value' => 'github_integration',
         '#required' => TRUE,
       ),
       'external_id' => array(

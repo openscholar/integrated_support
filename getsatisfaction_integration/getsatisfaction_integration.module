@@ -130,11 +130,14 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
   
         watchdog('getsatisfaction', 'applying @status status to topics: @ids', array('@status' => $status, '@ids' => implode(',', $ids)));
   
-        //apply status
+        //apply status and update milestone
         $client = getsatisfaction_integration_client();
         foreach ($ids as $id) {
           $return[] = getsatisfaction_integration_update_topic_status($id, $status);
+          _getsatisfaction_integration_update_topic_milestone($id, $payload['milestone']);
         }
+        
+        
       } else {
         watchdog('No getsatisfaction action for github event: for @payload', array('@payload' => serialize($payload)), WATCHDOG_DEBUG);
       }
@@ -239,4 +242,37 @@ function getsatisfaction_integration_cron() {
   if (variable_get('getsatisfaction_integration_cron', FALSE)) {
     getsatisfaction_integration_topics_to_github();
   }
+}
+
+
+/**
+ * @function _getsatisfaction_integration_update_topic_milestone
+ * 
+ * Notifies a topic about a milestone change.
+ * Only do this if there is no milestone status or the status is a change
+ */
+function _getsatisfaction_integration_update_topic_milestone($id, $milestone) {
+  $milestone = _getsatisfaction_integration_milestone_message($milestone);
+  $milestones = array_map(create_function('$a', 'return _getsatisfaction_integration_milestone_message($a["title"]);'), github_integration_milestones());
+  
+
+  $client = getsatisfaction_integration_client();
+  $replies = $client->api('topic')->call('replies', array('id' => $id, 'sort' => 'recently_created'));
+  //also check owner and loop if we need to.
+  foreach ($replies as $reply) {
+    if ($reply->content == $milestone) {
+      return; //last reply is this milestone so we're done.
+    }
+    
+    if (in_array($reply->content, $milestones)) {
+      break;
+    }
+  }
+  
+  //either we found a stale milestone or no milestone reply exists.  post an update now.
+  $client->api('topic')->call('reply', array('id' => $id, 'reply' => $milestone));
+}
+
+function _getsatisfaction_integration_milestone_message($milestone) {
+  return 'This request has been scheduled to be part of our ' . $milestone . ' release.';
 }

@@ -22,11 +22,11 @@ function getsatisfaction_integration_roadmap_page() {
     if ($status) { // && in_array('roadmap', $issue['labels'])) {
       $data[] = array('class' => array('issue-meta'), 'data'=>array(
         '<a href="javascript:void(0);" onclick="jQuery(\'.topic-'. $row['id']. '\').toggle()">+</a>',
-        "<a href='$topic->at_sfn'>$row[title]</a> ",
+        l($row['title'], $topic->at_sfn),
         $issue['user'],
         format_interval(time() - strtotime($issue['updated_at']), 1),
         ($issue['milestone']) ? $issue['milestone'] : t('N/A'),
-        "<a class='status $status' href='https://github.com/openscholar/integrated_support/issues/$row[external_id]'>$status</a>",
+        l($status, $issue['html_url'], array('attributes' => array('class' => array('status', $status)))),
       ));
       
       $data[] = array(array('data' => $topic->content, 'colspan' => count($header), 'class' => array('issue-body topic-' . $row['id'])));
