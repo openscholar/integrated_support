@@ -130,7 +130,7 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
   
         //apply status and update milestone
         foreach ($ids as $id) {
-          $return[] = getsatisfaction_integration_update_topic_status($id, $status);
+          $return[] = getsatisfaction_integration_update_topic_status($id, $status, @$payload['milestone']);
           if ($payload['milestone']) {
             _getsatisfaction_integration_update_topic_milestone($id, $payload['milestone']);
           }
@@ -152,7 +152,7 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
  *
  * Sets status on a GS topic
  */
-function getsatisfaction_integration_update_topic_status($topic_id, $status) {
+function getsatisfaction_integration_update_topic_status($topic_id, $status, $milestone = NULL) {
   if (!in_array($status, array('null', 'pending', 'active', 'complete', 'rejected'))) {
     return FALSE; //these are the only valid statuses.
   }
@@ -164,6 +164,23 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status) {
       'status' => $status,
     ),
   );
+  
+  //send a reply when the topic is set to copmlete.
+  if ($status == 'complete') {
+    $stored_status = db_select('getsatisfaction_topics', 'gs')
+      ->condition('id', $topic_id)
+      ->fields('gs', array('status'))
+      ->range(0, 1)
+      ->execute()
+      ->fetchField();
+    if ($stored_status && $stored_status != 'complete') {
+      $message = 'Development of this request is complete.';
+      if ($milestone) {
+        $message .= '  It will be deployed as part of our ' . $milestone . ' release.';
+      }
+      $client->api('topic')->call('reply', array('id' => $topic_id, 'reply' => array('content' => $message)));      
+    }
+  }
 
   $topic = $client->api('topic')->call('status', $update); //do you return the topic?
   _getsatisfaction_integration_update_topic_table($topic);
