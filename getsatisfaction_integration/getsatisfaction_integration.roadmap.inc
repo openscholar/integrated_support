@@ -11,40 +11,59 @@ function getsatisfaction_integration_roadmap_page() {
     ->fields('gs')
     ->execute();
 
-  $header = array(' ', 'Topic', 'Owner', 'Last Update', 'Milestone', 'Status');
-  $data = array();
-
+  $header = array(
+    array('data' => ' ', 'width' => '1em'),
+    array('data' => 'Topic', 'width' =>'75%'),
+    'Last Update', 
+    'Status'
+  );
+  
+  //get list of milestones.  soonest first.  finished at the bottom
+  $todo = array('state' => 'open', 'sort' => 'due_date', 'direction' => 'asc');
+  $done = array('state' => 'closed', 'sort' => 'due_date', 'direction' => 'desc');
+  $milestones = github_integration_milestones($todo) + github_integration_milestones($done);
+  $milestone_titles = array_map(create_function('$a', 'return $a["title"];'), $milestones);
+  $data = array_fill_keys($milestone_titles, array());
+  
+  //fill these milestones with their tickets
   while ($row = $results->fetchAssoc()) {
     $issue = github_integration_issue($row['external_id']);
     $topic = getsatisfaction_integration_topic($row['id']);
     $status = _getsatisfaction_integration_roadmap_status($topic, $issue);
+    if (!$issue['milestone']) {
+      continue;
+    }
     
     if ($status) { // && in_array('roadmap', $issue['labels'])) {
-      $data[] = array('class' => array('issue-meta'), 'data'=>array(
+      $data[$issue['milestone']][] = array('class' => array('issue-meta'), 'data'=>array(
         '<a href="javascript:void(0);" onclick="jQuery(\'.topic-'. $row['id']. '\').toggle()">+</a>',
         l($row['title'], $topic->at_sfn),
-        $issue['user'],
         format_interval(time() - strtotime($issue['updated_at']), 1),
-        ($issue['milestone']) ? $issue['milestone'] : t('N/A'),
-        l($status, $issue['html_url'], array('attributes' => array('class' => array('status', $status)))),
+        "<span class='$status status'>$status</span>",
       ));
       
-      $data[] = array(array('data' => $topic->content, 'colspan' => count($header), 'class' => array('issue-body topic-' . $row['id'])));
+      $data[$issue['milestone']][] = array(array('data' => $topic->content, 'colspan' => count($header), 'class' => array('issue-body topic-' . $row['id'])));
     }
   }
 
-  return array(
-    '#theme' => 'table',
-    '#header' => $header,
-    '#rows' => $data,  
-    '#attributes' => array(
-      'id' => 'roadmap',
-      'border' => '0',
-    ),
-    '#attached' => array(
-      'css' => array(array('type' => 'file', 'data' => drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration_roadmap.css')),
-    ),
-  );
+  $ret = array();
+  foreach ($data as $milestone => $ms_data) {
+    $ret[] = array(
+      '#theme' => 'table',
+      '#prefix' => "<h2>$milestone</h2>",
+      '#header' => $header,
+      '#rows' => $ms_data,  
+      '#attributes' => array(
+        'class' => array('roadmap'),
+        'border' => '0',
+      ),
+      '#attached' => array(
+        'css' => array(array('type' => 'file', 'data' => drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration_roadmap.css')),
+      ),
+    );
+  }
+  
+  return $ret;
 }
 
 /**

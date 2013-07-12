@@ -1,9 +1,10 @@
-#roadmap {
+.roadmap {
 	width: 100%;
 	border-collapse: separate;
+	padding-bottom: 2em;
 }
 
-#roadmap tr.issue-meta>td {
+.roadmap tr.issue-meta>td {
 	border-top: 1px white solid;
 }
 
@@ -11,35 +12,35 @@ td.issue-body {
 	display: none;
 }
 
-#roadmap a.status {
+.roadmap span.status {
 	color: white;
 	background-color: red;
   padding: 0 1em;
   border-radius: 3px;
 }
 
-#roadmap a.status:hover {
+.roadmap span.status:hover {
 	opacity: 0.8;
 }
 
-#roadmap a.Planned {
+.roadmap span.Planned {
 	background-color:white;
   color: black;
   border: 1px #ccc solid;
 }
 
-#roadmap a.Dev {
+.roadmap span.Dev {
   background-color: orange;
 }
 
-#roadmap a.QA {
+.roadmap span.QA {
   background-color: green;
 }
 
-#roadmap a.Coded {
+.roadmap span.Coded {
   background-color: blue;
 }
 
-#roadmap a.Deployed {
+.roadmap span.Deployed {
   background-color:black;
 }
