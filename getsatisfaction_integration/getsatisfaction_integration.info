@@ -1,11 +1,13 @@
 name = GetSatisfaction Integration
-description = "Provides GetSatisfaction Integration"
+description = Provides GetSatisfaction Integration
 core = 7.x
-configure = admin/config/integrated_support/getsatisfaction
 package = Integrated Support
+php = 5.2.4
 dependencies[] = features
-dependencies[] = integrated_support
 dependencies[] = github_integration
+dependencies[] = integrated_support
 dependencies[] = views
+configure = admin/config/integrated_support/getsatisfaction
+features[ctools][] = views:views_default:3.0
 features[features_api][] = api:1
 features[views_view][] = getsatisfaction_integration_road_map
