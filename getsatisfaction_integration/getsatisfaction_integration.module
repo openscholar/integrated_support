@@ -132,7 +132,9 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
         //apply status and update milestone
         foreach ($ids as $id) {
           $return[] = getsatisfaction_integration_update_topic_status($id, $status);
-          _getsatisfaction_integration_update_topic_milestone($id, $payload['milestone']);
+          if ($payload['milestone']) {
+            _getsatisfaction_integration_update_topic_milestone($id, $payload['milestone']);
+          }
         }
         
         
@@ -253,20 +255,25 @@ function getsatisfaction_integration_cron() {
  * Only do this if there is no milestone status or the status is a change
  */
 function _getsatisfaction_integration_update_topic_milestone($id, $milestone) {
+  if (empty($milestone)) {
+    return;
+  }
+  
   $milestone = _getsatisfaction_integration_milestone_message($milestone);
   $milestones = array_map(create_function('$a', 'return _getsatisfaction_integration_milestone_message($a["title"]);'), github_integration_milestones());
-  
 
   $client = getsatisfaction_integration_client();
   $replies = $client->api('topic')->call('replies', array('id' => $id, 'sort' => 'recently_created'));
   //also check owner and loop if we need to.
-  foreach ($replies as $reply) {
-    if ($reply->content == $milestone) {
-      return; //last reply is this milestone so we're done.
-    }
-    
-    if (in_array($reply->content, $milestones)) {
-      break;
+  foreach ($replies->data as $reply) {
+    if (isset($reply->content)) {
+      if ($reply->content == $milestone) {
+        return; //last reply is this milestone so we're done.
+      }
+      
+      if (in_array($reply->content, $milestones)) {
+        break;
+      }
     }
   }
   
