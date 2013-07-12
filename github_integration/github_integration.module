@@ -1,8 +1,8 @@
-<?php 
+<?php
 
 /**
  * @function github_integration_menu()
- * 
+ *
  * Implements hook_menu
  */
 function github_integration_menu() {
@@ -21,15 +21,15 @@ function github_integration_menu() {
       'access arguments' => array('access content'),
     )
 	);
-	
+
 	return $items;
 }
 
 /**
  * @function github_integration_integrated_support_info()
- * 
+ *
  * Implements hook_integrated_support_info
- * 
+ *
  * Defines github_issue event
  */
 function github_integration_integrated_support_info() {
@@ -45,7 +45,7 @@ function github_integration_integrated_support_info() {
 
 /**
  * Implements hook_libraries_info
- * 
+ *
  * Provides php-github-api
  */
 function github_integration_libraries_info() {
@@ -59,10 +59,10 @@ function github_integration_libraries_info() {
 }
 
 /**
- * @function github_integration_integrated_support_status() 
- * 
+ * @function github_integration_integrated_support_status()
+ *
  * Implements hook_integrated_support_status
- * 
+ *
  * Connects to github and returns confirmation that a connection is possible.
  */
 function github_integration_integrated_support_status() {
@@ -74,12 +74,12 @@ github_integration_issue(5);
     drupal_set_message(t('Github error: @msg', array('@msg' => $e->getMessage())));
 		$me = NULL;
 	}
-  return ($me) ? 'Logged into github as: ' . $me['login'] : 'Could not auth github';	
+  return ($me) ? 'Logged into github as: ' . $me['login'] : 'Could not auth github';
 }
 
 /**
  * @function github_client()
- * 
+ *
  * Returns object for poking github
  */
 function github_integration_client($auth = TRUE) {
@@ -97,13 +97,13 @@ function github_integration_client($auth = TRUE) {
   //$cache = new Github\HttpClient\CachedHttpClient(array('cache_dir' => __DIR__ . '/.github-api-cache'));
   $cache = new Github\HttpClient\CachedHttpClient(array('cache_dir' => $cache_dir));
   $gh_client = new Github\Client($cache);
-	
+
   if ($auth) {
     try {
       $gh_client->authenticate(variable_get('github_auth_token'), $gh_client::AUTH_HTTP_TOKEN);
     } catch (Exception $e) {
       $gh_client = NULL;
-    }   
+    }
   }
 
   return $gh_client;
@@ -111,7 +111,7 @@ function github_integration_client($auth = TRUE) {
 
 /**
  * @function github_integration_github_issue_process()
- * 
+ *
  * Extracts the id, milestone, and state after validating that the request came from github
  */
 function github_integration_github_issue_process($body) {
@@ -123,11 +123,11 @@ function github_integration_github_issue_process($body) {
 
   $json = json_decode($body);
   watchdog('github', '@json', array('@json' => $body), WATCHDOG_DEBUG);
-  
+
   if (isset($json->issue)) {
     //stash a local copy of this issue
     _github_intergation_update_issue_table($json->issue);
-    
+
     //github issue evnet hook
     $return = array(
       'event' => 'issue',
@@ -138,11 +138,11 @@ function github_integration_github_issue_process($body) {
       'labels' => array_map(create_function('$a', 'return $a->name;'), $json->issue->labels),
       'type' => 'issue',
     );
-    
+
     switch($json->action) {
-      
+
       //instead of adding to array, can't we toggle comment or issue and fetch from there?  where else could this data appear?
-      
+
       //pushed by an issue_comment
       case 'created':
         if (isset($json->comment)) {
@@ -154,9 +154,9 @@ function github_integration_github_issue_process($body) {
           );
         }
       break;
-  
+
       //opened a new issue
-      case 'opened': 
+      case 'opened':
         $return += array(
           'type' => 'issue',
           'url' => $json->issue->html_url,
@@ -165,8 +165,8 @@ function github_integration_github_issue_process($body) {
         );
       break;
     }
-  
-    
+
+
   } elseif (isset($json->commits)) {
     //github push event
     $return = array(
@@ -182,20 +182,20 @@ function github_integration_github_issue_process($body) {
     $return = array(
       'event' => 'unknown github event',
       'type' => 'unknown',
-      'payload' => $body,  
+      'payload' => $body,
     );
   }
-  
+
   $prefix = ($return['type'] == 'issue') ? '#' : '';
-  $return['link'] = (isset($return['url'])) ? "<a href='$return[url]'>${prefix}$return[id]</a>" : NULL; 
+  $return['link'] = (isset($return['url'])) ? "<a href='$return[url]'>${prefix}$return[id]</a>" : NULL;
   return $return;
 }
 
 /**
  * @function github_integration_integrated_support_event
- * 
+ *
  * Implements hook_integrated_support_event
- * 
+ *
  * Responds to a desk_integration event by creating a github issue
  */
 function github_integration_integrated_support_event($event, $payload) {
@@ -208,20 +208,20 @@ function github_integration_integrated_support_event($event, $payload) {
 		    'labels' => 'desk',
 		    'body' => $payload['case_body'],//theme('github_issue_body', $payload), //or should this map a payload?
 			));
-			
+
 			break;
 	}
-	
+
 	return $return;
 }
 
 /**
  * @function github_integration_github_issue_setup()
- * 
+ *
  * Sets up github repository to send github_issue events here.
  */
 function github_integration_github_issue_setup() {
-  global $base_url; 
+  global $base_url;
 
   //creates new one
   $hook_conf = array(
@@ -233,7 +233,7 @@ function github_integration_github_issue_setup() {
     ),
     'events' => array('issues', 'issue_comment',), //can we add push?  will be needed if we do @changelog (or should that be any hash tag?)
   );
-  
+
   _github_integration_github_api_setup($hook_conf);
 }
 
@@ -253,26 +253,150 @@ function github_integration_github_issue_setup() {
 //   watchdog('github', '@json', array('@json' => $body), WATCHDOG_DEBUG);
 //   $return = array(
 //     'body' => $json->commits->message,
-//     'link' => "<a href='$json->commits->url'>$json->commits->id</a>",  
+//     'link' => "<a href='$json->commits->url'>$json->commits->id</a>",
 //     'user' => $json->commits->name,
 //   );
-  
+
 //   return $return;
 // }
+
+/**
+ * Define roadmap tables for views
+ */
+function github_integration_views_data() {
+
+  $data['github_issues']['table']['group'] = t('GH');
+  $data['github_issues']['table']['base'] = array(
+    'field' => 'id', // This is the identifier field for the view.
+    'title' => t('Github issues.'),
+    'help' => t('Local storage of github issues.'),
+    'weight' => -10,
+  );
+
+  $data['github_issues']['table']['join'] = array(
+    'getsatisfaction_service_map' => array(
+      'left_field' => 'external_id',
+      'field' => 'id',
+    ),
+  );
+
+  //ID table field.
+  $data['github_issues']['id'] = array(
+    'title' => t('ID'),
+    'help' => t('Github ID.'),
+    'relationship' => array(
+      'base' => 'getsatisfaction_service_map', // The name of the table to join with.
+      'base field' => 'id', // The name of the field on the joined table.
+      // 'field' => 'nid' -- see hook_views_data_alter(); not needed here.
+      'handler' => 'views_handler_relationship',
+      'label' => t('GH - Issuemap'),
+      'title' => t('Relate to Github'),
+      'help' => t('Relate to Github'),
+    ),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
+
+  $data['github_issues']['title'] = array(
+    'title' => t('Issue Title'),
+    'help' => t('Github issue title.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE, // This is use by the table display plugin.
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  $data['github_issues']['body'] = array(
+    'title' => t('body'),
+    'help' => t('Serialized list of labels applied to this ticket.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE, // This is use by the table display plugin.
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  $data['github_issues']['updated'] = array(
+    'title' => t('Updated'),
+    'help' => t('Last time this ticket was updated.'),
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort_date',
+      'help' => t('Sort on a update date.'),
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_date',
+      'help' => t('Filter on update field.'),
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_date',
+      'numeric' => TRUE,
+      'help' => t('Argument on a Issue\'s date field.'),
+    ),
+  );
+
+  $data['getsatisfaction_topics']['milestone'] = array(
+    'title' => t('milestone'),
+    'help' => t('Github Milestone.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE, // This is use by the table display plugin.
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
+
+  return $data;
+}
 
 
 /**
  * @function _github_integration_github_api_setup
- * 
+ *
  * Given a github service hook, deletes old instances of hook and adds this one.
  */
 function _github_integration_github_api_setup($github_hook) {
   $gh = github_integration_client();
   $user = variable_get('github_repo_owner');
   $repo = variable_get('github_repo_repository');
-  
+
   $hooks = $gh->api('repo')->hooks()->all($user, $repo);
-  
+
   //delete old instance of this hook.
   if (isset($hooks['id'])) {
     $hooks = array($hooks);
@@ -290,7 +414,7 @@ function _github_integration_github_api_setup($github_hook) {
 
 /**
  * @function github_create_issue
- * 
+ *
  * Takes an assoc array and sends it to github.  Input field names here:
  * http://developer.github.com/v3/issues/#create-an-issue
  */
@@ -299,7 +423,7 @@ function github_create_issue($issue) {
     watchdog('github','Can\'t create a github issue with no title.');
     return False;
   }
-  
+
   $gh = github_integration_client();
   $issue = $gh->api('issue')->create(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $issue);
   _github_intergation_update_issue_table($issue);
@@ -352,7 +476,7 @@ function github_integration_alert_page() {
     return array(
       'description' => array(
         '#type' => 'markup',
-        '#markup' => '<p>Tickets marked with the Hotfix label will be released as soon as possible.  Other fixes will be available as part of our regularly scheduled updates.</p>',    
+        '#markup' => '<p>Tickets marked with the Hotfix label will be released as soon as possible.  Other fixes will be available as part of our regularly scheduled updates.</p>',
       ),
       'alerts' => array(
         '#theme' => 'item_list',
@@ -376,10 +500,10 @@ function github_integration_alert_page() {
 function github_integration_issue($id) {
   $gh = github_integration_client(); //authed req is better.  100x the rate limit.  when it works again, remove this false
   $issue = $gh->api('issue')->show(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $id);
-  
+
   //stash a copy of this issue
   _github_intergation_update_issue_table($issue);
- 
+
   //and back to the user
   return (!$issue) ? FALSE : array(
     'labels' =>     array_map(create_function('$a', 'return $a["name"];'),$issue['labels']),
@@ -395,7 +519,7 @@ function github_integration_issue($id) {
 
 /**
  * @function github_integration_milestones
- * 
+ *
  * Returns a list of GH milestones and their ids.
  */
 function github_integration_milestones($query = array()) {
@@ -405,7 +529,7 @@ function github_integration_milestones($query = array()) {
 
 /**
  * @function _github_intergation_update_issue_table
- * 
+ *
  * Stores a github issue locally so views can see it.
  */
 function _github_intergation_update_issue_table($issue) {
@@ -425,14 +549,14 @@ function _github_intergation_update_issue_table($issue) {
     'link' =>       $issue['html_url'],
     'milestone' =>  ($issue['milestone']) ? $issue['milestone']['title'] : NULL,
   );
-  
+
   $stored = db_select('github_issues', 'gh')
     ->condition('id', $issue['number'])
     ->fields('gh')
     ->range(0, 1)
     ->execute()
     ->fetchAssoc();
-  
+
   //create or update record
   if (!$stored) {
     drupal_write_record('github_issues', $record);

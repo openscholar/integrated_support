@@ -4,4 +4,3 @@ core = 7.x
 configure = admin/config/integrated_support
 package = Integrated Support
 dependencies[] = libraries
-dependencies[] = dblog
