@@ -268,6 +268,7 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone) {
   foreach ($replies->data as $reply) {
     if (isset($reply->content)) {
       if ($reply->content == $milestone) {
+        watchdog('getsatisfaction', 'topic @id already has milestone "@milestone"', array('@id' => $id, '@milestone' => $milestone));
         return; //last reply is this milestone so we're done.
       }
       
@@ -276,6 +277,8 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone) {
       }
     }
   }
+  
+  watchdog('getsatisfaction', 'topic @id needs milestone update: "@milestone"', array('@id' => $id, '@milestone' => $milestone));
   
   //either we found a stale milestone or no milestone reply exists.  post an update now.
   $client->api('topic')->call('reply', array('id' => $id, 'reply' => $milestone));

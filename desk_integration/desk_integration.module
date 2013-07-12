@@ -107,7 +107,7 @@ function desk_integration_integrated_support_event($event, $payload) {
 		    'case_custom_github_issue_id' => $payload['id'],
 			  'status' => 'open,pending,resolved',
 	    ));
-			watchdog('desk', 'Attemping to update cases: @cases.', array('@cases' => serialize($cases)));
+			watchdog('desk', 'Attempting to update cases: @cases.', array('@cases' => serialize($cases)));
 			
 			if (isset($cases->total_entries) && $cases->total_entries) {
 				foreach ($cases->_embedded->entries as $case) {
