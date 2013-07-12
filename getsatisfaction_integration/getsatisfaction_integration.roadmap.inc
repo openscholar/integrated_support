@@ -46,22 +46,23 @@ function getsatisfaction_integration_roadmap_page() {
     }
   }
 
-  array_filter($data);
   $ret = array();
   foreach ($data as $milestone => $ms_data) {
-    $ret[] = array(
-      '#theme' => 'table',
-      '#prefix' => "<h2>$milestone</h2>",
-      '#header' => $header,
-      '#rows' => $ms_data,  
-      '#attributes' => array(
-        'class' => array('roadmap'),
-        'border' => '0',
-      ),
-      '#attached' => array(
-        'css' => array(array('type' => 'file', 'data' => drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration_roadmap.css')),
-      ),
-    );
+    if ($ms_data) {
+      $ret[] = array(
+        '#theme' => 'table',
+        '#prefix' => "<h2>$milestone</h2>",
+        '#header' => $header,
+        '#rows' => $ms_data,  
+        '#attributes' => array(
+          'class' => array('roadmap'),
+          'border' => '0',
+        ),
+        '#attached' => array(
+          'css' => array(array('type' => 'file', 'data' => drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration_roadmap.css')),
+        ),
+      );
+    }
   }
   
   return $ret;
