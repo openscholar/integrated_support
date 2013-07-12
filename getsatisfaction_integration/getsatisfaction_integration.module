@@ -279,7 +279,16 @@ function _getsatisfaction_integration_milestone_message($milestone) {
 }
 
 
+/**
+ * @function _getsatisfaction_integration_update_topic_table
+ * 
+ * Makes or updates a local copy of a topic
+ */
 function _getsatisfaction_integration_update_topic_table($topic) {
+  if (!$topic) {
+    return;
+  }
+
   $record = array(
     'id' => $topic->id,
     'title' => $topic->subject,
