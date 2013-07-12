@@ -65,7 +65,6 @@ function getsatisfaction_integration_client() {
 function getsatisfaction_integration_integrated_support_status() {
   $client = getsatisfaction_integration_client();
   
-  getsatisfaction_integration_update_topic_status('this_topic_is_owned_by_a_non_admin_non_employee_can_i_poke_it', 'pending');
   $out = $client->api('topic')->call('all');  
   return ($out->total) ? t('Logged into getsatisfaction') : t('Error connecting to getsatisfaction');
 }
@@ -281,7 +280,7 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone) {
   watchdog('getsatisfaction', 'topic @id needs milestone update: "@milestone"', array('@id' => $id, '@milestone' => $milestone));
   
   //either we found a stale milestone or no milestone reply exists.  post an update now.
-  $client->api('topic')->call('reply', array('id' => $id, 'reply' => $milestone));
+  $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $milestone)));
 }
 
 function _getsatisfaction_integration_milestone_message($milestone) {
