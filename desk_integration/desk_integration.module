@@ -257,6 +257,8 @@ function desk_integration_desk_to_github_complete($payload, $responses = array()
   	watchdog('desk', 'Could not send from desk to github.  Request: ' . serialize($_REQUEST) . ' github response: ' . serialize($github) . ' desk update: ' . serialize($updated));
   }
   
+  watchdog('desk', 'Desk ticket "@case" -> github "@issue" complete.  @updated', array('@case' => $payload['case_id'], '@issue' => $github['number'], '@updated' => serialize($updated)));
+  
   //redirect if the hook says so
   if ($_REQUEST['redirect_to_github']) {
     drupal_goto($github['html_url']);
@@ -371,7 +373,7 @@ function desk_integration_update_cases($case_ids, $github_issue_id, $github_mile
   $notify_closed = (variable_get('desk_notify_closed', TRUE) && $github_status); //don't notify if no status given
 
   $custom = array_filter(array('github_issue_id' => $github_issue_id, 'github_milestone' => $github_milestone, 'github_status' => $github_status));
-  watchdog('desk', 'Updating cases @cases with @custom', array('@cases' => implode(', ', $case_ids), '@custom' => serialize($custom)));
+  watchdog('desk', 'Updating cases [@cases] with @custom', array('@cases' => implode(', ', $case_ids), '@custom' => serialize($custom)));
   
 	foreach ($case_ids as $id) {
     //optional notifications
