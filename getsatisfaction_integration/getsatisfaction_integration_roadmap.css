@@ -12,6 +12,29 @@ td.issue-body {
 	display: none;
 }
 
+/* Topic style icons */
+
+.roadmap a.style-question:after {
+	content: " [question]";
+}
+
+.roadmap a.style-problem:after {
+  content: " [bug]";
+}
+
+.roadmap a.style-praise:after {
+  content: " [praise]";
+}
+
+.roadmap a.style-idea:after {
+  content: " [feature]";
+}
+
+.roadmap a.style-update:after {
+  content: " [update]";
+}
+/* Status Labels */
+
 .roadmap span.status {
 	color: white;
 	background-color: red;
@@ -44,3 +67,4 @@ td.issue-body {
 .roadmap span.Deployed {
   background-color:black;
 }
+
