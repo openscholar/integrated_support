@@ -157,6 +157,19 @@ function getsatisfaction_integration_admin_tickets_validate(&$form, &$state) {
   } else {
     form_set_error('add_map', t('Could not find specified ticket in service.'));
   }
+  
+  //Dupe?
+  $mapped = db_select('getsatisfaction_service_map', 'gs')
+    ->condition('id', $topic->id)
+    ->condition('external_id', $state['values']['external_id'])
+    ->condition('external_service', $state['values']['external_service'])
+    ->range(0,1)
+    ->fields('gs', array('id'))
+    ->execute();
+  
+  if ($mapped->rowCount()) {
+    form_set_error('add_map', t('This mapping already exists.'));
+  }
 }
 
 /**
