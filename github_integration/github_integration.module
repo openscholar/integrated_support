@@ -74,6 +74,7 @@ github_integration_issue(5);
     drupal_set_message(t('Github error: @msg', array('@msg' => $e->getMessage())));
 		$me = NULL;
 	}
+	
   return ($me) ? 'Logged into github as: ' . $me['login'] : 'Could not auth github';
 }
 

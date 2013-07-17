@@ -103,6 +103,7 @@ function desk_integration_integrated_support_event($event, $payload) {
 		    return;		    //we only care about issues, so ignore code pushes.
 		  }
 		  
+		  //find affected desk cases
 			$desk = desk_integration_client();
 			$ids = array();
 			$cases = $desk->api('case')->call('search', array(
@@ -111,6 +112,7 @@ function desk_integration_integrated_support_event($event, $payload) {
 	    ));
 			watchdog('desk', 'Attempting to update cases: @cases.', array('@cases' => serialize($cases)));
 			
+			//get their ids
 			if (isset($cases->total_entries) && $cases->total_entries) {
 				foreach ($cases->_embedded->entries as $case) {
 					if (($payload['milestone'] != $case->custom_fields->github_milestone) || ($payload['state'] != $case->custom_fields->github_status)) {
@@ -119,11 +121,18 @@ function desk_integration_integrated_support_event($event, $payload) {
 				}
 			}
 			
+			//and update them
 			$updated = desk_integration_update_cases($ids, $payload['id'], $payload['milestone'], $payload['state']);
 			$return = array(
 		    'message' => t('Updated @count cases: @ids', array('@count' => count($ids), '@ids' => implode(', ', $ids))), 
 		    'responses' => serialize($updated)
 	    );			
+			
+			//make sure github issue is labeled as being related to desk cases
+			if ($ids && !in_array('desk', $payload)) {
+			  $gh = github_integration_client();
+			  $issue = $gh->api('issue')->labels()->add(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $payload['id'], 'desk');
+			}
 			break;
 	}
 	return $return;
