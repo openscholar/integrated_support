@@ -444,7 +444,7 @@ function github_integration_alert_page() {
   $client = github_integration_client(FALSE);
   $labels = array_filter(variable_get('github_alert_labels', array()));
   if (!$labels) {
-    return 'Alerts disabled';
+    return 'Alerts disabled.';
   }
 
   $issues = $client->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), array(

@@ -47,6 +47,15 @@ function getsatisfaction_integration_roadmap_page() {
   }
 
   $ret = array();
+  //include github alerts
+  if (module_exists('github_integration') && variable_get('getsatisfaction_roadmap_show_github_alert', FALSE)) {
+    $alerts = github_integration_alert_page();
+    if (!in_array($alerts, array('No reported service alerts.', 'Alerts disabled.'))) {
+      $ret[] = array('alert' => $alerts); //array('#type' => 'markup', '#markup' => $alerts);
+    }
+  }
+  
+  //show each milestone
   foreach ($data as $milestone => $ms_data) {
     if ($ms_data) {
       $ret[] = array(
