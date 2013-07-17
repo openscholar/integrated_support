@@ -1,5 +1,7 @@
 <?php 
 
+define('DESK_INTEGRATION_CASE_LOCKED', 'Case currently locked by another user');
+
 function desk_integration_menu() {
 	$items = array(
 		'admin/config/integrated_support/desk' => array(
@@ -327,12 +329,11 @@ function desk_integration_desk_to_getsatisfaction_setup() {
  * Finish up after desk ticket moves to getsatisfaction
  */
 function desk_integration_desk_to_getsatisfaction_complete($payload, $responses = array()) {
+  $desk = desk_integration_client();
   $getsatisfaction = $responses['getsatisfaction_integration'];
   if (!$getsatisfaction) {
     return;
   }
-
-  $desk = desk_integration_client();
 
   //reply to case with link to getsatisfaction topic
   $reply = array(
@@ -392,7 +393,11 @@ function desk_integration_update_cases($case_ids, $github_issue_id, $github_mile
     }
 
     //set state without notification
-	  $ret[] = $desk->api('case')->call('update', array('id' => $id, 'custom_fields' => $custom));
+    $args = array('id' => $id, 'custom_fields' => $custom);
+	  $response = $desk->api('case')->call('update', $args);
+	  if (isset($response->message) && $response->message == DESK_INTEGRATION_CASE_LOCKED) {
+	    desk_integration_enqueue('case', 'update', $args);
+	  }
 	}
   
   return $ret;
@@ -433,4 +438,42 @@ function _desk_integration_payload_data() {
   );
 
   return $data;
+}
+
+/**
+ * @function desk_integration_enqueue
+ *
+ * Save a call for later processing, mostlikely because the case was locked by another user
+ */
+function desk_integration_enqueue($api, $call, $args) {
+  $queue = variable_get('desk_integration_backlog', array());
+  $queue[] = array('api' => $api, 'call' => $call, 'args' => $args);
+  variable_set('desk_integration_backlog', $queue);
+}
+
+/**
+ * @function desk_integration_backlog
+ * 
+ * Desk can lock out tickets while they're owned by another user.  When this happens desk_integration enqueues them
+ * to be processed later.
+ */
+function desk_integration_backlog() {
+  $queue = variable_get('desk_integration_backlog', array());
+  $desk = desk_integration_client();
+  
+  foreach ($queue as $key => $item) {
+    $response = $desk->api($item['api'])->call($item['call'], $item['args']);
+    if (!isset($response->message) || $response->message != DESK_INTEGRATION_CASE_LOCKED) {
+      unset($queue[$key]);
+    }  
+  }
+  
+  variable_set('desk_integration_backlog', $queue);
+}
+
+/**
+ * Implements hook_cron
+ */
+function desk_integration_cron() {
+  desk_integration_backlog();
 }
