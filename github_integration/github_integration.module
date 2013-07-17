@@ -206,7 +206,7 @@ function github_integration_integrated_support_event($event, $payload) {
 				'title' => $payload['case_subject'],
 		    'assignee' => integrated_support_map_username($payload['case_user_name'], 'desk_integration', 'github_integration'), //(isset($conf['user_map'][$data['case_user_name']])) ? $conf['user_map'][$data['case_user_name']] : NULL,
 		    'labels' => 'desk',
-		    'body' => $payload['case_body'],//theme('github_issue_body', $payload), //or should this map a payload?
+		    'body' => $payload['link'] . "\n\n> " . $payload['case_body'],
 			));
 
 			break;
