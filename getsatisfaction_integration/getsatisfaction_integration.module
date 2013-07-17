@@ -94,7 +94,7 @@ function getsatisfaction_create_topic($subject, $detail = '', $style = '', $keyw
 /**
  * Implements hook_integrated_support_event
  *
- * Responds to a getsatisfaction_integration event by creating a github issue
+ * Responds to a getsatisfaction_integration event by updating a GS topic that is mapped to a GH issue
  */
 function getsatisfaction_integration_integrated_support_event($event, $payload) {
 	$return = array();

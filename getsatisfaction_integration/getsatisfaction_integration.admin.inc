@@ -148,6 +148,7 @@ function getsatisfaction_integration_admin_tickets_validate(&$form, &$state) {
       //It's good!  Collect data.
       $state['values']['id'] = $topic->id;
       $state['values']['title'] = $topic->subject;
+      $state['values']['at_sfn'] = $topic->at_sfn;
     }
   }
 
@@ -188,10 +189,11 @@ function getsatisfaction_integration_admin_tickets_submit(&$form, &$state) {
 
   drupal_write_record('getsatisfaction_service_map', $record);
 
-  //trigger an update now.  no sense in waiting.
+  //reply to github issue.  this will add a link pointing that issue to its GS coutnerpart, and trigger an issue_comment webhook, which will update the GS topic with the GH issue's current data.
   if ($record['external_service'] == 'github_integration') {
-    $state['values']['external_item']['type'] = 'issue';
-    getsatisfaction_integration_integrated_support_event('github_issue', $state['values']['external_item']);
+    $client = github_integration_client();
+    $comment = array('body' => 'This issue has been linked to a GetSatisfaction topic.  ' . $state['values']['at_sfn']);
+    $client->api('issue')->comments()->create(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $record['external_id'], $comment);
   }
 }
 
