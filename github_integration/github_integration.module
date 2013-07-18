@@ -471,10 +471,12 @@ function github_integration_alert_page() {
     return 'Alerts disabled.';
   }
 
+  //Get open issues
   $issues = $client->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), array(
     'labels' => implode(',', $labels),
   ));
 
+  //Get recently closed issues
   if (variable_get('github_integration_alert_show_closed', TRUE)) {
     $closed = $client->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), array(
       'labels' => implode(',', $labels),
@@ -487,6 +489,7 @@ function github_integration_alert_page() {
   }
 
   foreach ($issues as $issue) {
+    $issue['labels'] = _github_integration_filter_labels($issue['labels']);
     $items[] = theme('github_integration_issue', array('issue' => $issue));
   }
   
@@ -543,6 +546,21 @@ function github_integration_issue($id) {
 function github_integration_milestones($query = array()) {
   $gh = github_integration_client();
   return $gh->api('issue')->milestones()->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $query);
+}
+
+/**
+ * @function _github_integration_filter_labels
+ * 
+ * Removes labels that aren't whitelisted to show up.
+ */
+function _github_integration_filter_labels($labels) {
+  $whitelist = explode(',', variable_get('github_integration_label_whitelist', ''));
+  foreach ($labels as $key => $label) {
+    if (!in_array($label['name'], $whitelist)) {
+      unset($labels[$key]);
+    }
+  }
+  return $labels;
 }
 
 /**
