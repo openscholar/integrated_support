@@ -5,5 +5,8 @@ span.github-label {
     padding: 2px;
 }
 
-
+a.github-state-closed, a.github-state-closed:visited  {
+	color: #aaa;
+  text-decoration: line-through;
+}
 

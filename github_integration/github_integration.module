@@ -59,6 +59,30 @@ function github_integration_libraries_info() {
 }
 
 /**
+ * Implements hook_theme
+ * 
+ * Provides github_integration_theme_issue and github_integration_theme_issue_labels
+ */
+function github_integration_theme($existing, $type, $theme, $path) {
+  return array(
+    'github_integration_issue' => array(
+      'variables' => array(
+        'issue' => array(),
+      ),
+      'file' => 'github_integration.theme.inc',
+      'render element' => 'element',
+    ),
+    'github_integration_issue_labels' => array(
+      'variables' => array(
+        'labels' => array(),
+      ),
+      'file' => 'github_integration.theme.inc',
+      'render element' => 'element',
+    ),
+  );
+}
+
+/**
  * @function github_integration_integrated_support_status()
  *
  * Implements hook_integrated_support_status
@@ -451,28 +475,21 @@ function github_integration_alert_page() {
     'labels' => implode(',', $labels),
   ));
 
-
-  $show_labels = array('status: needs qa');
-  drupal_add_css(drupal_get_path('module', 'github_integration') . '/github_integration_labels.css');
-  foreach ($issues as $issue) {
-    $label_text = '';
-    foreach ($issue['labels'] as $label) {
-      //determine brightness so we can use black or white text.
-      $color = $label['color'];
-      $lightness = 0;
-      foreach (array($color[0], $color[2], $color[4]) as $c) {
-        if (!(is_numeric($c) && $c<8)) {
-          $lightness++;
-        }
-      }
-      $textcolor = ($lightness > 1) ? 'black' : 'white';
-      $label_text .= ' <span class="github-label" style="color: '.$textcolor.'; background-color:#'.$color.'">' . $label['name'] . '</span>';
-    }
-
-    $ago = format_interval(time() - strtotime($issue['created_at']), 1);
-    $items[] = l($issue['title'], $issue['html_url']) . "<p>Reported $ago ago. $label_text</p>";
+  if (variable_get('github_integration_alert_show_closed', TRUE)) {
+    $closed = $client->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), array(
+      'labels' => implode(',', $labels),
+      'state' => 'closed',
+      'sort' => 'updated',
+      'since' => date(DATE_ISO8601, time() - 60*60*24*7*2), //show all closures within two weeks  
+    ));
+    
+    $issues = array_merge($issues, $closed);
   }
 
+  foreach ($issues as $issue) {
+    $items[] = theme('github_integration_issue', array('issue' => $issue));
+  }
+  
   if ($items) {
     return array(
       'description' => array(
