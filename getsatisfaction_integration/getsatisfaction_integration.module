@@ -64,7 +64,7 @@ function getsatisfaction_integration_client() {
  */
 function getsatisfaction_integration_integrated_support_status() {
   $client = getsatisfaction_integration_client();
-
+  
   $out = $client->api('topic')->call('all');
   return ($out->total) ? t('Logged into getsatisfaction') : t('Error connecting to getsatisfaction');
 }
@@ -119,7 +119,7 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
         //figure out a status.  (can this be configged in admin page?
         $status = 'pending'; //all linked tickets are pending by default.
         $active = array('status: in dev', 'status: needs qa', 'status: needs review');
-        if (array_intersect($active, $payload['labels'])) {
+        if ($payload['milestone'] || array_intersect($active, $payload['labels'])) {
           $status = 'active';
         }
         if ($payload['state'] == 'closed') {
@@ -497,21 +497,23 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone) {
     return;
   }
 
-  $milestone = _getsatisfaction_integration_milestone_message($milestone);
-  $milestones = array_map(create_function('$a', 'return _getsatisfaction_integration_milestone_message($a["title"]);'), github_integration_milestones());
+  //build new message and all possible milestone messages
+  $reply = _getsatisfaction_integration_milestone_message($milestone);
+  $milestones = github_integration_milestones();
+  $milestone_titles = array_map(create_function('$a', 'return $a["title"];'), $milestones);
+  $milestone_replies = array_map(create_function('$a', 'return _getsatisfaction_integration_milestone_message($a["title"]);'), $milestones);
 
+  //check existing replies.  if this one is already in there, there's no need to post it.
   $client = getsatisfaction_integration_client();
   $replies = $client->api('topic')->call('replies', array('id' => $id, 'sort' => 'recently_created'));
-  //also check owner and loop if we need to.
-
   foreach ($replies->data as $reply) {
     if (isset($reply->content)) {
-      if ($reply->content == $milestone) {
-        watchdog('getsatisfaction', 'topic @id already has milestone "@milestone"', array('@id' => $id, '@milestone' => $milestone));
+      if ($reply->content == $reply) {
+        watchdog('getsatisfaction', 'topic @id already has milestone "@milestone"', array('@id' => $id, '@milestone' => $reply));
         return; //last reply is this milestone so we're done.
       }
 
-      if (in_array($reply->content, $milestones)) {
+      if (in_array($reply->content, $milestone_replies)) {
         break;
       }
     }
@@ -520,7 +522,16 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone) {
   watchdog('getsatisfaction', 'topic @id needs milestone update: "@milestone"', array('@id' => $id, '@milestone' => $milestone));
 
   //either we found a stale milestone or no milestone reply exists.  post an update now.
-  $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $milestone)));
+  $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $reply)));
+  
+  //now lets check tags, removing existing milestones and adding ours.
+  $topic = $client->api('topic')->call('topic', array('id' => $id));
+  $keywords = (isset($topic->keywords)) ? explode(',', $topic->keywords) : array();
+  if (!in_array($milestone, $keywords)) {
+    $keywords = array_diff($keywords, $milestone_titles);
+    $keywords[] = $milestone;
+    $client->api('topic')->call('update', array('id' => $id, 'topic' => array('keywords' => implode(',', $keywords))));
+  }
 }
 
 function _getsatisfaction_integration_milestone_message($milestone) {
