@@ -95,16 +95,16 @@ function _getsatisfaction_integration_roadmap_status($topic, $issue) {
   }
   
   //Check if milestone is closed. 
-  if ($issue['milestone'] && isset($milestone_states[$issue['milestone']]) && $milestone_states[$issue['milestone']] == 'closed') {
-    return 'Deployed';
-  }
+//   if ($issue['milestone'] && isset($milestone_states[$issue['milestone']]) && $milestone_states[$issue['milestone']] == 'closed') {
+//     return 'Closed & Deployed';
+//   }
   
   //Get status from GS
   $status_map = array(
-    'pending' => 'Planned',
-    'active' => 'Dev',
-    'complete' => 'Coded',    
+    'pending' => 'Pending',
+    'active' => 'Planned',
+    'complete' => 'Closed',    
   );
   
-  return (isset($status_map[$topic->status])) ? $status_map[$topic->status] : 'Planned';
+  return (isset($status_map[$topic->status])) ? $status_map[$topic->status] : 'Pending';
 }
