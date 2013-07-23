@@ -23,29 +23,42 @@ function getsatisfaction_integration_roadmap_page() {
   $done = array('state' => 'closed', 'sort' => 'due_date', 'direction' => 'desc');
   $milestones = github_integration_milestones($todo) + github_integration_milestones($done);
   $milestone_titles = array_map(create_function('$a', 'return $a["title"];'), $milestones);
-  $data = array_fill_keys($milestone_titles, array());
+  $styles = array('idea', 'problem', 'question', 'praise', 'update');
+  $data = array_fill_keys($milestone_titles, array_fill_keys($styles, array()));
+  
   
   //fill these milestones with their tickets
   while ($row = $results->fetchAssoc()) {
     $issue = github_integration_issue($row['external_id']);
     $topic = getsatisfaction_integration_topic($row['id']);
-    $status = _getsatisfaction_integration_roadmap_status($topic, $issue);
+    $status = _getsatisfaction_integration_roadmap_status($topic, $issue); 
+    $status_class = strtolower(str_replace(' ', '_', $status));
+    $append = &$data[$issue['milestone']][$topic->style];
     if (!$issue['milestone']) {
-      continue;
+      //continue;
     }
     
     if ($status) { // && in_array('roadmap', $issue['labels'])) {
-      $data[$issue['milestone']][] = array('class' => array('issue-meta'), 'data'=>array(
+      $append[] = array('class' => array('issue-meta'), 'data'=>array(
         '<a href="javascript:void(0);" onclick="jQuery(\'.topic-'. $row['id']. '\').toggle()">+</a>',
         l($row['title'], $topic->at_sfn, array('attributes' => array('class' => array('style-' . $topic->style)))),
         format_interval(time() - strtotime($issue['updated_at']), 1),
-        "<span class='$status status'>$status</span>",
+        "<span class='status $status_class'>$status</span>",
       ));
       
-      $data[$issue['milestone']][] = array(array('data' => $topic->content, 'colspan' => count($header), 'class' => array('issue-body topic-' . $row['id'])));
-    }
+      $append[] = array(array('data' => $topic->content, 'colspan' => count($header), 'class' => array('issue-body topic-' . $row['id'])));
+    }   
   }
-
+   
+  //flatten the nested topic styles
+  foreach ($data as $ms => $styles) {
+    $flattened = array();
+    foreach ($styles as $style) {
+      $flattened = array_merge($flattened, $style);
+    }
+    $data[$ms] = $flattened;
+  }
+  
   $ret = array();
   //include github alerts
   if (module_exists('github_integration') && variable_get('getsatisfaction_roadmap_show_github_alert', FALSE)) {
@@ -101,10 +114,10 @@ function _getsatisfaction_integration_roadmap_status($topic, $issue) {
   
   //Get status from GS
   $status_map = array(
-    'pending' => 'Pending',
-    'active' => 'Planned',
+    'pending' => '',
+    'active' => 'In Progress',
     'complete' => 'Closed',    
   );
   
-  return (isset($status_map[$topic->status])) ? $status_map[$topic->status] : 'Pending';
+  return (isset($status_map[$topic->status])) ? $status_map[$topic->status] : '';
 }
