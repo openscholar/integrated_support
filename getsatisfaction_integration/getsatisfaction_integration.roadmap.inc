@@ -45,7 +45,7 @@ function getsatisfaction_integration_roadmap_page() {
     $status_class = strtolower(str_replace(' ', '_', $status));
     $append = &$data[$issue['milestone']][$topic->style];
     if (!$issue['milestone']) {
-      //continue;
+      continue;
     }
     
     if ($status) { // && in_array('roadmap', $issue['labels'])) {
