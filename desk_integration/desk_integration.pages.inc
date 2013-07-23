@@ -156,3 +156,186 @@ function _desk_integration_service_rating_submit($id, $rating, $comments) {
     ->fields(array('comments' => check_plain($comments)))
     ->execute();
 }
+
+/**
+ * @function desk_integration_bug_report
+ * 
+ * Bug report form.  Sends a bug to both GS and GH, and links them.
+ */
+function desk_integration_bug_report($form, &$state, $case_id, $case_user, $case_agent) {
+  //this functionality relies on all three integrations being enabled.
+  if (!module_exists('github_integration') || !module_exists('getsatisfaction_integration')) {
+    return;
+  }
+  
+  //check that id is a case, and it has right user and agents.
+  if (($case = _desk_integration_bug_report_validate_case($case_id, $case_user, $case_agent)) == FALSE) {
+    return;
+  }
+  dpm($case);
+  //get github options
+  $client = github_integration_client();
+  $none = array(-1 =>  '-- Select --');
+  
+  $ms_order = array('state' => 'open', 'sort' => 'due_date', 'direction' => 'asc');
+  $milestones = $none + array_map(create_function('$a', 'return $a["title"];'), github_integration_milestones($ms_order));
+  
+  $users = $client->api('repo')->collaborators()->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'));
+  $users = ($users) ? $none + array_map(create_function('$a', 'return $a["login"];'), $users) : array();
+  
+  $labels = $client->api('repo')->labels()->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'));
+  $labels = ($labels) ? array_map(create_function('$a', 'return $a["name"];'), $labels) : array();
+  
+  //build the form
+  $form = array(
+    'title' => array(
+      '#title' => t('Title'),
+      '#description' => t('Ticket title.'),
+      '#type' => 'textfield',
+      '#default_value' => $case->subject,
+      '#required' => TRUE,
+    ),
+      
+    'body' => array(
+      '#title' => t('Body'),
+      '#description' => t('Main text to be sent to Github and GetSatisfaction.  Now is your chance to filter out any private data.'),
+      '#type' => 'textarea',
+      '#rows' => 15,
+      '#default_value' => $case->message->body,
+      '#required' => TRUE,
+    ),
+        
+    'destination' => array(
+      '#title' => t('Destination'),
+      '#description' => t('To which services should this ticket be sent?  Selecting both services will also create a link between them.'),
+      '#type' => 'checkboxes',
+      '#options' => array('github_integration' => t('Github'), 'getsatisfaction_integration' => t('GetSatisfaction')),
+      '#default_value' => array('github_integration', 'getsatisfaction_integration'),   
+    ),
+      
+    'github' => array(
+      '#type' => 'fieldset',
+      '#title' => t('Github'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      'milestone' => array(
+        '#title' => t('Github Milestone'),
+        '#type' => 'select',
+        '#options' => drupal_map_assoc($milestones),    
+      ),
+      'assignee' => array(
+        '#title' => t('Github Assignee'),
+        '#type' => 'select',
+        '#options' => drupal_map_assoc($users),
+      ),
+      'labels' => array(
+        '#title' => t('Github Labels'),
+        '#type' => 'checkboxes',
+        '#options' => drupal_map_assoc($labels),
+        '#default_value' => array('desk'),
+      ),
+    ),
+    
+    'getsatisfaction' => array(
+      '#type' => 'fieldset',
+      '#title' => t('GetSatisfaction'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,  
+      'style' => array(
+        '#title' => t('Style'),
+        '#type' => 'select',
+        '#options' => drupal_map_assoc(array('question', 'problem' ,'praise', 'idea', 'update')),
+        '#default_option' => 'problem',
+      ),
+    ),
+    
+    'submit' => array(
+      '#type' => 'submit',
+      '#value' => t('Create Tickets'),
+      '#submit' => array('desk_integration_bug_report_submit'),
+    )    
+  );
+  
+  return $form;
+}
+
+/**
+ * @function desk_integration_bug_report_submit
+ * 
+ * Submit function for desk_integration_bug_report.  Creates github and getsatisfaction
+ * tickets, links them.
+ */
+function desk_integration_bug_report_submit($form, &$state) {
+  $values = $state['values'];
+  list($case_id, $customer, $user) = $state['build_info']['args'];
+  $issue = $topic = NULL;
+  
+  //send to github
+  if ($values['destination']['github_integration']) {
+    $issue = array(
+      'title' => $values['title'],
+      'body' => preg_replace('/^/', '> ', $values['body']), //blockquote the entire body
+      'assignee' => ($values['assignee'] != '-- Select --') ? $values['assignee'] : NULL,
+      'labels' => implode(',', array_filter($values['labels'])),
+      'milestone' => ($values['milestone'] != '-- Select --') ? $values['milestone'] : NULL, 
+    );
+    
+    $issue = github_create_issue(array_filter($issue));
+    if ($issue) {
+      desk_integration_update_cases($case_id, $issue['number'], $issue['milestone']['title']);
+    }
+  }
+  
+  //send to getsatisfaction
+  if ($values['destination']['getsatisfaction_integration']) {
+    $gs_client = getsatisfaction_integration_client();
+    $topic = array(
+      'subject' => $values['title'],
+      'additional_detail' => $values['body'],
+      'style' => $values['style'],
+    );
+    $topic = $gs_client->api('topic')->call('create', $topic);
+  }
+  
+  //gs <-> gh linkage
+  if (isset($issue, $issue['number'], $topic, $topic->at_sfn)) {
+    $state = array('values' => array(
+      'external_service' => 'github_integration',
+      'external_id' => $issue['number'],
+      'getsatisfaction_url' => $topic->at_sfn,
+    ));
+    
+    require_once(drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration.admin.inc');
+    drupal_form_submit('getsatisfaction_integration_admin_tickets', $state);
+  }
+}
+
+/**
+ * @function _desk_integration_bug_report_validate_case()
+ * 
+ * Validates that a case's customer and agent match the user and agent ids we were given.  Returns case object if they do.
+ */
+function _desk_integration_bug_report_validate_case($case_id, $case_customer, $case_assigned_user) {
+  $desk = desk_integration_client();
+  $case = $desk->api('case')->call('show', array('id' => $case_id));
+  list(,,,,$customer) = explode('/', $case->_links->customer->href);
+  list(,,,,$assigned_user) = explode('/', $case->_links->assigned_user->href);
+  
+  if (!$case) {
+    drupal_set_message(t('Error loading case "@id"', array('@id' => $case_id)), 'error');
+    return FALSE;
+  }
+  
+  if ($assigned_user != $case_assigned_user || $customer != $case_customer) {
+    drupal_set_message(t('Error authenticating case "@id"', array('@id' => $case_id)), 'error');
+    return FALSE;
+  }
+  
+  if ($case->custom_fields->github_issue_id) {
+    drupal_set_message(t('This case already has a github issue assigned to it.'), 'error');
+    return FALSE;
+  }
+
+  $case->message = $desk->api('case')->call('message', array('id' => $case_id)); 
+  return $case;
+}

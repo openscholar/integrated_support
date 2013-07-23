@@ -25,6 +25,14 @@ function desk_integration_menu() {
 	    'page callback' => 'drupal_get_form',
       'page arguments' => array('desk_integration_service_rating', 2, 3, 4),
       'access arguments' => array('access content'),
+    ),
+	    
+    'desk/bug_report/%/%/%' => array(
+      'title' => 'Bug Report',
+      'file' => '/desk_integration.pages.inc',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('desk_integration_bug_report', 2, 3, 4),
+      'access arguments' => array('access content'),
     )
 	);
 	
@@ -52,7 +60,14 @@ function desk_integration_integrated_support_info() {
       'process function' => 'desk_integration_desk_to_getsatisfaction_process',
       'complete function' => 'desk_integration_desk_to_getsatisfaction_complete',
       'setup function' => 'desk_integration_desk_to_getsatisfaction_setup',
-    )
+    ),
+    'desk_to_bugreport' => array(
+      'name' => t('Desk to Bug Report'),
+      'description' => t('Moves ticket to GetSatisfaction and Github and synchronizes them.'),
+      'process function' => 'desk_integration_desk_to_bugreport_process',
+      'complete function' => 'desk_integration_desk_to_bugreport_complete',
+      'setup function' => 'desk_integration_desk_to_bugreport_setup',
+    ),
   );
 }
 
