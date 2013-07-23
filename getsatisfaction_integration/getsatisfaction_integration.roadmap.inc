@@ -48,16 +48,14 @@ function getsatisfaction_integration_roadmap_page() {
       continue;
     }
     
-    if ($status) { // && in_array('roadmap', $issue['labels'])) {
-      $append[] = array('class' => array('issue-meta'), 'data'=>array(
-        '<a href="javascript:void(0);" onclick="jQuery(\'.topic-'. $row['id']. '\').toggle()">+</a>',
-        l($row['title'], $topic->at_sfn, array('attributes' => array('class' => array('style-' . $topic->style)))),
-        format_interval(time() - strtotime($issue['updated_at']), 1),
-        "<span class='status $status_class'>$status</span>",
-      ));
-      
-      $append[] = array(array('data' => $topic->content, 'colspan' => count($header), 'class' => array('issue-body topic-' . $row['id'])));
-    }   
+    $append[] = array('class' => array('issue-meta'), 'data'=>array(
+      '<a href="javascript:void(0);" onclick="jQuery(\'.topic-'. $row['id']. '\').toggle()">+</a>',
+      l($row['title'], $topic->at_sfn, array('attributes' => array('class' => array('style-' . $topic->style)))),
+      format_interval(time() - strtotime($issue['updated_at']), 1),
+      "<span class='status $status_class'>$status</span>",
+    ));
+    
+    $append[] = array(array('data' => $topic->content, 'colspan' => count($header), 'class' => array('issue-body topic-' . $row['id'])));   
   }
    
   //flatten the nested topic styles
