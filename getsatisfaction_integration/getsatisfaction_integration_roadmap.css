@@ -68,3 +68,56 @@ td.issue-body {
   background-color:black;
 }
 
+/* STYLES FOR ROADMAP AND ALERT PAGES */
+ul.alert-issues {list-style-type:none;}
+ul.alert-issues li {margin-bottom:40px;}
+span.github-label {
+    border: none;
+    -webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+    font-size: 95%;
+    padding: 5px;
+    display:inline-block;
+}
+
+.roadmap span.status {
+    background-color: #F5F5F5;
+     padding: 4px 7px;
+}
+
+.roadmap span.status.closed {
+    background-color: #215990;
+}
+
+.roadmap span.status.in_progress {
+    background-color: #52854C;
+}
+
+.roadmap tr.even, .roadmap tr.odd {
+    background-color: #F5F5F5;
+}
+
+.roadmap tr.issue-meta > td {
+    padding: 11px 5px;
+}
+
+.roadmap tr.issue-meta > td:first-child a {
+    text-decoration: none;
+}
+
+
+.style,
+.style-problem {
+	background:url('../images/empty.png') 0 2px no-repeat;
+	padding:2px 0 2px 20px;
+}
+
+.style-idea {
+	background:url('../images/idea.png') 0 2px no-repeat;
+	padding:2px 0 2px 20px;
+}
+.style-bug {
+	background:url('../images/bug.png') 0 2px no-repeat;
+	padding:2px 0 2px 20px;
+}
