@@ -6,6 +6,16 @@
  * Page shows current roadmap, where roadmap is the issues in sync between getsatisfaction and github
  */
 function getsatisfaction_integration_roadmap_page() {
+  $ret = array();
+  if (user_access('administer site configuration')) {
+    $ret[] = array(
+      '#text' => 'Add tickets',
+      '#path' => 'admin/config/integrated_support/getsatisfaction/tickets',
+      '#theme' => 'link',
+      '#options' => array('attributes' => array('class' => array('add_new'))),
+    );
+  };
+  
   $results = db_select('getsatisfaction_service_map', 'gs')
     ->condition('external_service', 'github_integration')
     ->fields('gs')
@@ -59,7 +69,6 @@ function getsatisfaction_integration_roadmap_page() {
     $data[$ms] = $flattened;
   }
   
-  $ret = array();
   //include github alerts
   if (module_exists('github_integration') && variable_get('getsatisfaction_roadmap_show_github_alert', FALSE)) {
     $alerts = github_integration_alert_page();
