@@ -495,6 +495,8 @@ function github_integration_alert_page() {
   
   if ($items) {
     return array(
+      '#prefix' => '<div class="alerts">',
+      '#suffix' => '</div>',
       'description' => array(
         '#type' => 'markup',
         '#markup' => '<p>The following issues are considered critical and will be released as soon as possible, outside the normally scheduled release cycle.</p>',
