@@ -12,27 +12,7 @@ td.issue-body {
 	display: none;
 }
 
-/* Topic style icons */
 
-.roadmap a.style-question:after {
-	content: " [question]";
-}
-
-.roadmap a.style-problem:after {
-  content: " [bug]";
-}
-
-.roadmap a.style-praise:after {
-  content: " [praise]";
-}
-
-.roadmap a.style-idea:after {
-  content: " [feature]";
-}
-
-.roadmap a.style-update:after {
-  content: " [update]";
-}
 /* Status Labels */
 
 .roadmap span.status {
@@ -109,15 +89,15 @@ span.github-label {
 
 .style,
 .style-problem {
-	background:url('../images/empty.png') 0 2px no-repeat;
+	background:url('images/empty.png') 0 2px no-repeat;
 	padding:2px 0 2px 20px;
 }
 
 .style-idea {
-	background:url('../images/idea.png') 0 2px no-repeat;
+	background:url('images/idea.png') 0 2px no-repeat;
 	padding:2px 0 2px 20px;
 }
 .style-bug {
-	background:url('../images/bug.png') 0 2px no-repeat;
+	background:url('images/bug.png') 0 2px no-repeat;
 	padding:2px 0 2px 20px;
 }
