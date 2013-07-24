@@ -87,6 +87,8 @@ span.github-label {
 }
 
 
+.updated (color:#AAAAAA;)
+
 .style{
 	background:url('images/empty.png') 0 2px no-repeat;
 	padding:2px 0 2px 20px;
@@ -98,6 +100,6 @@ span.github-label {
 }
 .style-bug,
 .style-problem  {
-	background:url('images/bug.png') 0 2px no-repeat;
+	background:url('images/bug.png') 0 2px no-repeat !important;
 	padding:2px 0 2px 20px;
 }
