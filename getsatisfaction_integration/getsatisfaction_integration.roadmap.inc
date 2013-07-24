@@ -62,7 +62,9 @@ function getsatisfaction_integration_roadmap_page() {
   foreach ($data as $ms => $styles) {
     $flattened = array();
     foreach ($styles as $style) {
-      $flattened = array_merge($flattened, $style);
+      if ($style) {
+        $flattened = array_merge($flattened, $style);
+      }
     }
     $data[$ms] = $flattened;
   }
@@ -115,15 +117,19 @@ function _getsatisfaction_integration_roadmap_status($topic, $issue) {
   }
   
   //Check if milestone is closed. 
-//   if ($issue['milestone'] && isset($milestone_states[$issue['milestone']]) && $milestone_states[$issue['milestone']] == 'closed') {
-//     return 'Closed & Deployed';
-//   }
+  if ($issue['milestone'] && isset($milestone_states[$issue['milestone']]) && $milestone_states[$issue['milestone']] == 'closed') {
+    return 'Done';
+  }
+  
+  if ($issue['state'] == 'closed') {
+    return 'Done';
+  }
   
   //Get status from GS
   $status_map = array(
     'pending' => '',
     'active' => 'In Progress',
-    'complete' => 'Closed',    
+    'complete' => 'Done',    
   );
   
   return (isset($status_map[$topic->status])) ? $status_map[$topic->status] : '';

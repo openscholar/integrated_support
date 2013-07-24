@@ -66,7 +66,7 @@ span.github-label {
      padding: 4px 7px;
 }
 
-.roadmap span.status.closed {
+.roadmap span.status.done {
     background-color: #215990;
 }
 
@@ -87,8 +87,7 @@ span.github-label {
 }
 
 
-.style,
-.style-problem {
+.style{
 	background:url('images/empty.png') 0 2px no-repeat;
 	padding:2px 0 2px 20px;
 }
@@ -97,7 +96,8 @@ span.github-label {
 	background:url('images/idea.png') 0 2px no-repeat;
 	padding:2px 0 2px 20px;
 }
-.style-bug {
+.style-bug,
+.style-problem  {
 	background:url('images/bug.png') 0 2px no-repeat;
 	padding:2px 0 2px 20px;
 }
