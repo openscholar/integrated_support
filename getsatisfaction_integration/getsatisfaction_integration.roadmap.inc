@@ -43,6 +43,8 @@ function getsatisfaction_integration_roadmap_page() {
     $topic = getsatisfaction_integration_topic($row['id']);
     $status = _getsatisfaction_integration_roadmap_status($topic, $issue); 
     $status_class = strtolower(str_replace(' ', '_', $status));
+    $status_label = "<span class='status $status_class'>$status</span>"; 
+    
     $append = &$data[$issue['milestone']][$topic->style];
     if (!$issue['milestone']) {
       continue;
@@ -52,7 +54,7 @@ function getsatisfaction_integration_roadmap_page() {
       '<a href="javascript:void(0);" onclick="jQuery(\'.topic-'. $row['id']. '\').toggle()">+</a>',
       l($row['title'], $topic->at_sfn, array('attributes' => array('class' => array('style-' . $topic->style)))),
       format_interval(time() - strtotime($issue['updated_at']), 1),
-      "<span class='status $status_class'>$status</span>",
+      (user_access('administer site configuration')) ? l($status_label, $issue['html_url'], array('html' => TRUE)) : $status_label,
     ));
     
     $append[] = array(array('data' => $topic->content, 'colspan' => count($header), 'class' => array('issue-body topic-' . $row['id'])));   
