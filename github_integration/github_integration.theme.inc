@@ -17,7 +17,7 @@ function theme_github_integration_issue($variables) {
     ),    
   )));
   
-  return $link . '<p>' . $updated . ' ' . $label_text . '</p>';
+  return $link . '(' . $updated . ' ' . $label_text . ')';
 }
 
 function theme_github_integration_issue_labels($variables) {
