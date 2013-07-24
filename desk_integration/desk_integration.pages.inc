@@ -165,14 +165,14 @@ function _desk_integration_service_rating_submit($id, $rating, $comments) {
 function desk_integration_bug_report($form, &$state, $case_id, $case_user, $case_agent) {
   //this functionality relies on all three integrations being enabled.
   if (!module_exists('github_integration') || !module_exists('getsatisfaction_integration')) {
-    return;
+    return array();
   }
   
   //check that id is a case, and it has right user and agents.
   if (($case = _desk_integration_bug_report_validate_case($case_id, $case_user, $case_agent)) == FALSE) {
-    return;
+    return array();
   }
-  dpm($case);
+
   //get github options
   $client = github_integration_client();
   $none = array(-1 =>  '-- Select --');

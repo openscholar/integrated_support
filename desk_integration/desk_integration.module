@@ -314,31 +314,47 @@ function desk_integration_client() {
   return $desk;
 }
 
-
-/**
- * @function desk_integration_desk_to_getsatisfaction_process
+/*
+ * @function desk_integration_desk_to_bugreport_process
  * 
- * Prepares a case from desk to be created as an issue in getsatisfaction
+ * Catches bug report request.  Gets case id, customer and user ids, so we can verify that bug report came from ticket.
  */
-function desk_integration_desk_to_getsatisfaction_process($body) {
-  $data =_desk_integration_payload_data();
-	return $data;
+function desk_integration_desk_to_bugreport_process($body) {
+  $keep = array('case_id', 'case_customer_id', 'case_user_id');
+  $return = array_intersect_key($_REQUEST, array_flip($keep));
+  $return = array_filter($return);
+  
+  if (count($return) < count($keep)) {
+    return 'Invalid bug report.  Missing parameters';
+  }
+  
+  return $return;
 }
 
 /**
- * @function desk_integration_desk_to_getsatisfaction_setup
+ * @function desk_integration_desk_to_bugreport_complete
  * 
- * Enables desk's desk_to_getsatisfaction integration url
+ * Displays bug report form.  Completion of form sends ticket to GS/GH
  */
-function desk_integration_desk_to_getsatisfaction_setup() {
-  $name = 'Move Desk case to GetSatisfaction';
+function desk_integration_desk_to_bugreport_complete($payload, $responses) {
+  require_once drupal_get_path('module', 'desk_integration') . '/desk_integration.pages.inc';
+  return drupal_get_form('desk_integration_bug_report', $payload['case_id'], $payload['case_customer_id'], $payload['case_user_id']);
+}
+
+/**
+ * @function desk_integration_desk_to_bugreport_setup
+ * 
+ * Registers bug report url as a desk.com integration url
+ */
+function desk_integration_desk_to_bugreport_setup() {
+  $name = '(testing) Create Bug Report';
   global $base_url;
-	 
+  
   //create a service
-  $url = $base_url . '/integrated_support/desk_to_getsatisfaction?redirect_to_getsatisfaction=1';
+  $url = $base_url . '/integrated_support/desk_to_github?';
   $config = array(
     'name' => $name,
-    'description' => t('Move tickets to GetSatisfaction'),
+    'description' => t('Send tickets to other services'),
     'enabled' => TRUE,
     'markup' => $url,  //template can be straight up vars now.  no need for json
   );
@@ -346,40 +362,6 @@ function desk_integration_desk_to_getsatisfaction_setup() {
   desk_integration_setup_integration_url($name, $config);
 }
 
-
-/**
- * @function desk_integration_desk_to_getsatisfaction_complete
- * 
- * Finish up after desk ticket moves to getsatisfaction
- */
-function desk_integration_desk_to_getsatisfaction_complete($payload, $responses = array()) {
-  $desk = desk_integration_client();
-  $getsatisfaction = $responses['getsatisfaction_integration'];
-  if (!$getsatisfaction) {
-    return;
-  }
-
-  //reply to case with link to getsatisfaction topic
-  $reply = array(
-  	'id' => $payload['case_id'],
-    'direction' => 'out',
-    'status' => 'sent',
-  );
-  $desk->api('case')->call('create_reply', $reply);
-  
-  //and close the ticket
-  $update = array(
-  	'id' => $payload['case_id'],
-  	'status' => 'closed'
-  );
-  $desk->api('case')->call('update', $reply);
-  
-  //redirect if the hook says so
-  if ($_REQUEST['redirect_to_getsatisfaction']) {
-    drupal_goto($getsatisfaction['at_sfn']);
-  }
-	
-}
 
 /**
  * @function desk_integration_update_cases

@@ -71,12 +71,14 @@ function integrated_support_event($name) {
 		}
 		
 		if (isset($event['complete function']) && function_exists($event['complete function'])) {
-			$event['complete function']($payload, $responses);
+			$return = $event['complete function']($payload, $responses);
 		}
 	} else {
 		watchdog('integrated_support', 'No webhook named: @name', array('@name' => $name), WATCHDOG_WARNING);
 		return 'Event does not exist: ' . $name;
 	}
+	
+	return (isset($return)) ? $return : NULL;
 }
 
 /**

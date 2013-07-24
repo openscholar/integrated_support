@@ -49,7 +49,7 @@ function desk_liquid_url_template() {
 }
 
 function desk_liquid_vars() {
-  $fields = array('customer.name', 'case.id', 'case.subject', 'case.labels', 'case.user.name', 'case.custom_github_issue_id',);
+  $fields = array('customer.name', 'case.id', 'case.subject', 'case.labels', 'case.user.name', 'case.custom_github_issue_id', 'case.user.id', 'case.customer.id');
   $ret = array_combine(
     str_replace('.', '_', $fields), 
     preg_replace('/.*/', '{{$0}}', $fields, 1)
