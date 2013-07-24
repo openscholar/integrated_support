@@ -497,7 +497,7 @@ function github_integration_alert_page() {
     return array(
       'description' => array(
         '#type' => 'markup',
-        '#markup' => '<p>Tickets marked with the Hotfix label will be released as soon as possible.  Other fixes will be available as part of our regularly scheduled updates.</p>',
+        '#markup' => '<p>The following issues are considered critical and will be released as soon as possible, outside the normally scheduled release cycle.</p>',
       ),
       'alerts' => array(
         '#theme' => 'item_list',
