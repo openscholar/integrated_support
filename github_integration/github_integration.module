@@ -499,7 +499,7 @@ function github_integration_alert_page() {
       '#suffix' => '</div>',
       'description' => array(
         '#type' => 'markup',
-        '#markup' => '<p>The following issues are considered critical and will be released as soon as possible, outside the normally scheduled release cycle.</p>',
+        '#markup' => '<p>The following issues are considered time sensitive and will be released as soon as possible, outside the normally scheduled release cycle.</p>',
       ),
       'alerts' => array(
         '#theme' => 'item_list',
