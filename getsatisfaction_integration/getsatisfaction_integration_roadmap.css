@@ -26,28 +26,6 @@ td.issue-body {
 	opacity: 0.8;
 }
 
-.roadmap span.Planned {
-	background-color:white;
-  color: black;
-  border: 1px #ccc solid;
-}
-
-.roadmap span.Dev {
-  background-color: orange;
-}
-
-.roadmap span.QA {
-  background-color: green;
-}
-
-.roadmap span.Coded {
-  background-color: blue;
-}
-
-.roadmap span.Deployed {
-  background-color:black;
-}
-
 /* STYLES FOR ROADMAP AND ALERT PAGES */
 ul.alert-issues {list-style-type:none;}
 ul.alert-issues li {margin-bottom:40px;}
@@ -72,6 +50,15 @@ span.github-label {
 
 .roadmap span.status.in_progress {
     background-color: #52854C;
+}
+
+.roadmap span.status.pending,
+.roadmap span.status.design,
+.roadmap span.status.development,
+.roadmap span.status.review,
+.roadmap span.status.testing
+{
+    background-color: black;
 }
 
 .roadmap tr.even, .roadmap tr.odd {

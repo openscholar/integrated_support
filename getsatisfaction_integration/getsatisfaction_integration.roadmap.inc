@@ -106,10 +106,16 @@ function getsatisfaction_integration_roadmap_page() {
  * @function _getsatisfaction_integration_issue_status
  * 
  * Determines roadmap status to use on an issue
- * @param unknown_type $issue
  */
 function _getsatisfaction_integration_roadmap_status($topic, $issue) {
-  $gh_client = github_integration_client();
+  $label_status = variable_get('getsatisfaction_roadmap_status_labels', array(
+    'status: pending' => 'Pending',
+    'status: needs spec' => 'Design',
+    'status: in dev' => 'Development',
+    'status: needs review' => 'Review',
+    'status: needs qa' => 'Testing',
+    'status: fixed' => 'Done',  
+  ));
   
   static $milestone_states;
   if (empty($milestone_states)) {
@@ -128,12 +134,24 @@ function _getsatisfaction_integration_roadmap_status($topic, $issue) {
     return 'Done';
   }
   
-  //Get status from GS
+  //Get status from github label.  Order matters.
+  $status = '';
+  foreach ($label_status as $label => $text) {
+    if (in_array($label, $issue['labels'])) {
+      $status = $text;
+    }
+  }
+  
+  if ($status) {
+    return $status;
+  }
+  
+  //Get status from GS if still undetermined.
   $status_map = array(
-    'pending' => '',
+    'pending' => '--',
     'active' => 'In Progress',
     'complete' => 'Done',    
   );
   
-  return (isset($status_map[$topic->status])) ? $status_map[$topic->status] : '';
+  return (isset($status_map[$topic->status])) ? $status_map[$topic->status] : '--';
 }
