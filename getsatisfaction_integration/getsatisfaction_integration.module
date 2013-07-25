@@ -64,7 +64,6 @@ function getsatisfaction_integration_client() {
  */
 function getsatisfaction_integration_integrated_support_status() {
   $client = getsatisfaction_integration_client();
-  
   $out = $client->api('topic')->call('all');
   return ($out->total) ? t('Logged into getsatisfaction') : t('Error connecting to getsatisfaction');
 }
@@ -224,7 +223,14 @@ function getsatisfaction_integration_topics_to_github() {
     ->condition('external_service', 'github_integration')
     ->execute()
     ->fetchCol();
-
+  
+  //more logging.  *sigh*
+  $ids = array_map(create_function('$obj', 'return $obj->id;'), $topics->data);
+  $todo = array_diff($ids, $mapped);
+  watchdog('getsatisfaction', 'pending topics: [@topics].  already mapped: [@mapped].  todo: [@todo]', array(
+    '@topics' => implode(', ', $ids), '@mapped' => implode(', ', $mapped), '@todo' => implode(', ', $todo)
+  ));
+  
   foreach ($topics->data as $topic) {
     _getsatisfaction_integration_update_topic_table($topic);
     //check if topic is mapped
@@ -234,8 +240,8 @@ function getsatisfaction_integration_topics_to_github() {
 
     //send it to github
     $gh = github_create_issue(array(
-      'title' => 'Feature: ' . $topic->subject,
-      'body' => $topic->at_sfn . "\n>" . $topic->content,
+      'title' => $topic->subject,
+      'body' => $topic->content,
     ));
 
     //create map
