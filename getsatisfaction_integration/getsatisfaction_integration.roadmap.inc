@@ -6,7 +6,21 @@
  * Page shows current roadmap, where roadmap is the issues in sync between getsatisfaction and github
  */
 function getsatisfaction_integration_roadmap_page() {
-  $ret = array();
+  $ret = array(
+    '#prefix' => '<h2 class="roadmap">Roadmap</h2>',    
+  );
+
+  //include github alerts
+  if (module_exists('github_integration') && variable_get('getsatisfaction_roadmap_show_github_alert', TRUE)) {
+    $alerts = github_integration_alert_page();
+    if (!in_array($alerts, array('No reported service alerts.', 'Alerts disabled.'))) {
+      $ret[] = array('alert' => $alerts); //array('#type' => 'markup', '#markup' => $alerts);
+    }
+  }
+  
+  //add legend
+  $ret[] = _getsatisfaction_integration_roadmap_legend();
+  
   if (user_access('administer site configuration')) {
     $ret[] = array(
       '#text' => 'Add tickets',
@@ -70,14 +84,7 @@ function getsatisfaction_integration_roadmap_page() {
     }
     $data[$ms] = $flattened;
   }
-  
-  //include github alerts
-  if (module_exists('github_integration') && variable_get('getsatisfaction_roadmap_show_github_alert', TRUE)) {
-    $alerts = github_integration_alert_page();
-    if (!in_array($alerts, array('No reported service alerts.', 'Alerts disabled.'))) {
-      $ret[] = array('alert' => $alerts); //array('#type' => 'markup', '#markup' => $alerts);
-    }
-  }
+
   
   //show each milestone
   foreach ($data as $milestone => $ms_data) {
@@ -100,6 +107,61 @@ function getsatisfaction_integration_roadmap_page() {
   }
   
   return $ret;
+}
+
+/**
+ * @function _getsatisfaction_integration_roadmap_legend
+ * 
+ * Draws a legend describing elements of the roadmap
+ */
+function _getsatisfaction_integration_roadmap_legend() {
+  $header = array(
+    array('data' => 'Label', 'width' =>'8em'),
+    array('data' => 'Description'),
+  );
+      
+  $statuses = array(
+    'Pending' => t('This status needs a description'),
+    'Design' => t('This status needs a description'),
+    'Development' => t('This status needs a description'),
+    'Review' => t('This status needs a description'),
+    'Testing' => t('This status needs a description'),
+    'Done' => t('This status needs a description'),
+  );
+  
+  $styles = array(
+    'idea' => t('This icon needs a description'),
+    'bug' => t('This icon needs a description'),
+  );
+  
+  $rows = array();
+  
+  foreach ($statuses as $name => $desc) {
+    $class = strtolower(str_replace(' ', '_', $name));
+    $rows[] = array(
+      "<span class='status $class'>$name</span>",
+      $desc,      
+    );
+  }
+  
+  foreach ($styles as $style => $desc) {
+    $rows[] = array(
+      "<span class='style-$style'> &nbsp; </span>",
+      $desc,  
+    );
+  }
+  
+  return array(
+    '#theme' => 'table',
+    '#prefix' => "<div class='legend'><h2>Legend</h2>",
+    '#suffix' => '</div>',
+    '#rows' => $rows,
+    '#header' => $header,
+    '#attributes' => array(
+      'class' => array('roadmap'),
+      'border' => '0',
+    )
+  );
 }
 
 /**
@@ -148,10 +210,10 @@ function _getsatisfaction_integration_roadmap_status($topic, $issue) {
   
   //Get status from GS if still undetermined.
   $status_map = array(
-    'pending' => '--',
-    'active' => 'In Progress',
+    'pending' => '',
+    //'active' => 'In Progress', //retired.
     'complete' => 'Done',    
   );
   
-  return (isset($status_map[$topic->status])) ? $status_map[$topic->status] : '--';
+  return (isset($status_map[$topic->status])) ? $status_map[$topic->status] : '';
 }
