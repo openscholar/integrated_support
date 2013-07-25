@@ -84,7 +84,8 @@ function getsatisfaction_integration_roadmap_page() {
     if ($ms_data) {
       $ret[] = array(
         '#theme' => 'table',
-        '#prefix' => "<h2>$milestone</h2>",
+        '#prefix' => "<div class='milestone'><h2>$milestone</h2>",
+        '#suffix' => '</div>',
         '#header' => $header,
         '#rows' => $ms_data,  
         '#attributes' => array(
