@@ -137,7 +137,7 @@ function desk_integration_integrated_support_event($event, $payload) {
 			}
 			
 			//and update them
-			$updated = desk_integration_update_cases($ids, $payload['id'], $payload['milestone'], $payload['state']);
+			$updated = desk_integration_update_cases($ids, $payload['id'], $payload['milestone'], $payload['state'], $payload['labels']);
 			$return = array(
 		    'message' => t('Updated @count cases: @ids', array('@count' => count($ids), '@ids' => implode(', ', $ids))), 
 		    'responses' => serialize($updated)
@@ -162,7 +162,7 @@ function desk_integration_integrated_support_event($event, $payload) {
 function desk_integration_integrated_support_status() {
   $desk = desk_integration_client();
   try {
-    $search = $desk->api('case')->call('search', array('case_id' => 4));
+    $search = $desk->api('case')->call('search', array('case_id' => 161));
   } catch (Exception $e) {
     drupal_set_message('Desk: ' . $e->getMessage(), 'error');
   }
@@ -170,7 +170,7 @@ function desk_integration_integrated_support_status() {
   if (!isset($search->total_entries)) {
     return t('Error logging in to desk.');
   }
-
+  
   $custom_fields = (array) $search->_embedded->entries[0]->custom_fields;
   $check = array('github_issue_id', 'github_milestone', 'github_status');
   $missing = array_diff($check, array_keys($custom_fields));
@@ -278,7 +278,7 @@ function desk_integration_desk_to_github_complete($payload, $responses = array()
     return;
   }
 
-  $updated = desk_integration_update_cases($payload['case_id'], $github['number'], $github['milestone'], $github['state']);
+  $updated = desk_integration_update_cases($payload['case_id'], $github['number'], $github['milestone'], $github['state'], $github['labels']);
   if (!$updated) {
   	watchdog('desk', 'Could not send from desk to github.  Request: ' . serialize($_REQUEST) . ' github response: ' . serialize($github) . ' desk update: ' . serialize($updated));
   }
@@ -368,7 +368,7 @@ function desk_integration_desk_to_bugreport_setup() {
  * 
  * Updates the desk issue specified with $case_id or array($ids) with the other properties.
  */
-function desk_integration_update_cases($case_ids, $github_issue_id, $github_milestone = NULL, $github_status = NULL) {
+function desk_integration_update_cases($case_ids, $github_issue_id, $github_milestone = NULL, $github_status = NULL, $labels = array()) {
   $ret = array();
 	if (!is_array($case_ids)) {                   
 		$case_ids = array($case_ids);
@@ -388,13 +388,24 @@ function desk_integration_update_cases($case_ids, $github_issue_id, $github_mile
       $case = $desk->api('case')->call('show', array('id' => $id));
 
       if ($notify_milestone && $case && $case->custom_fields->github_milestone != $github_milestone) {
-        $msg = 'Your request has been scheduled to be fixed as part of the ' . $github_milestone . ' release.';
-        $ret[] = $desk->api('case')->call('create_reply', array('id' => $id, 'body' => $msg, 'direction' => 'out'));
+        if (in_array('Hotfix', $labels)) {
+          $msg = 'Your request has been scheduled to be fixed as soon as possible';
+        } else {
+          $msg = 'Your request has been scheduled to be fixed as part of the ' . $github_milestone . ' release.';
+        }
       }
 
       if ($notify_closed && $case && $case->custom_fields->github_status != $github_status) {
-        $msg = 'Your request has been fixed in development.  The update is scheduled to go live as part of our ' . $github_milestone . ' release.';
-        $ret[] = $desk->api('case')->call('create_reply', array('id' => $id, 'body' => $msg, 'direction' => 'out'));
+        if (in_array('Hotfix', $labels)) {
+          $msg = 'A fix has been developed for your request.  We will update our servers with the change shortly.';
+        } else {
+          $msg = 'Your request has been fixed in development.  The update is scheduled to go live as part of our ' . $github_milestone . ' release.';
+        }
+      }
+      
+      if (isset($msg) && $msg) {
+        $ret[] = _desk_integration_case_reply($id, $msg); 
+        $desk->api('case')->call('create_reply', array('id' => $id, 'body' => $msg, 'direction' => 'out'));
       }
     }
 
@@ -407,6 +418,30 @@ function desk_integration_update_cases($case_ids, $github_issue_id, $github_mile
 	}
   
   return $ret;
+}
+
+/**
+ * @function _desk_integration_case_reply
+ * 
+ * Reply to a desk case.  Don't repost if reply text is already present.
+ */
+function _desk_integration_case_reply($id, $msg, $repost = FALSE) {
+  $desk = desk_integration_client();
+  
+  $page = 1;
+  while ($page) {
+    $replies = $desk->api('case')->call('list_replies', array('id' => $id));    
+    foreach ($replies->_embedded->entries as $reply) {
+      if ($reply->body == $msg) {
+        return NULL;
+      }
+    }
+    
+    //loop until we're out of pages
+    $page = ($replies->_links->self->next) ? $page + 1 : FALSE; 
+  }
+  
+  return $desk->api('case')->call('create_reply', array('id' => $id, 'body' => $msg, 'direction' => 'out'));
 }
 
 /*
