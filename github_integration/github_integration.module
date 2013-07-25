@@ -499,7 +499,7 @@ function github_integration_alert_page() {
       '#suffix' => '</div>',
       'description' => array(
         '#type' => 'markup',
-        '#markup' => '<p>The following issues are considered time sensitive and will be released as soon as possible, outside the normally scheduled release cycle.</p>',
+        '#markup' => '<h2 class="roadmap">Hotfixes</h2><p>The following issues are considered time sensitive and will be released as soon as possible, outside the normally scheduled release cycle.</p>',
       ),
       'alerts' => array(
         '#theme' => 'item_list',

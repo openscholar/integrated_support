@@ -27,6 +27,10 @@ td.issue-body {
 }
 
 /* STYLES FOR ROADMAP AND ALERT PAGES */
+.alerts {float:right;width:30%;}
+.milestone {float:left;}
+
+
 ul.alert-issues {list-style-type:none;}
 ul.alert-issues li {margin-bottom:40px;}
 span.github-label {
