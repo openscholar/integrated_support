@@ -6,10 +6,21 @@ function theme_github_integration_issue($variables) {
   
   $issue = $variables['issue'];
   $label_text = theme('github_integration_issue_labels', array('labels' => $issue['labels']));
+  $deployed = variable_get('os_status_last_deployed', 0); //updated in acquia post code deploy hook
+  $created = strtotime($issue['created_at']);
+  $closed = strtotime($issue['closed_at']);
   
-  $time = ($issue['state'] != 'closed') ? $issue['created_at'] : $issue['closed_at'];
-  $ago = format_interval(time() - strtotime($time), 1);
-  $updated = ($issue['state'] != 'closed') ? "Reported $ago ago" : "Closed $ago ago";
+  if ($issue['state'] != 'closed') {
+    $time = $created;
+    $verbed = 'Reported';
+  } else {
+    $time = max($closed, $deployed);
+    $verbed = ($closed > $deployed) ? 'Closed' : 'Deployed';
+  }
+    
+  $now = time();
+  $ago = format_interval(time() - $time, 1);
+  $updated = "$verbed $ago ago";
   
   $link = l($issue['title'], $issue['html_url'], array('attributes' => array(
     'class' => array(
