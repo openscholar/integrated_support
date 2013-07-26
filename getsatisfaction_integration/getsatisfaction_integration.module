@@ -83,7 +83,12 @@ function getsatisfaction_create_topic($subject, $detail = '', $style = '', $keyw
     'style' => (in_array($style, array('question', 'problem', 'praise', 'idea', 'update'))) ? $style : 'question',
   ));
 
-  $out = $client->api('topic')->call('create', array('topic' => $topic, 'company' => variable_get('getsatisfaction_company')));
+  try {
+    $out = $client->api('topic')->call('create', array('topic' => $topic, 'company' => variable_get('getsatisfaction_company')));
+  } catch (Exception $e) {
+    watchdog('getsatisfaction', '@code error creating topic: @topic', array('@code' => $e->getCode(), '@topic' => serialize($topic)));
+    return FALSE;
+  }
   _getsatisfaction_integration_update_topic_table($out);
   watchdog('getsatisfaction', 'created topic @out', array('@out' => serialize($out)), WATCHDOG_DEBUG);
 
