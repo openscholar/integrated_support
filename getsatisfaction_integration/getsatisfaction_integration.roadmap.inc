@@ -121,17 +121,17 @@ function _getsatisfaction_integration_roadmap_legend() {
   );
       
   $statuses = array(
-    'Pending' => t('This status needs a description'),
-    'Design' => t('This status needs a description'),
-    'Development' => t('This status needs a description'),
-    'Review' => t('This status needs a description'),
-    'Testing' => t('This status needs a description'),
-    'Done' => t('This status needs a description'),
+    'Design' => t('In the design phase prior to development'),
+    'Development' => t('Actively being worked on by a developer'),
+    'Review' => t('Code is being reviewed prior to being sent to QA'),
+    'Testing' => t('Being tested by QA personnel'),
+    'Done' => t('Completed, ready for deployment'),
+    'Pending' => t('Work is blocked by dependent functionality'),
   );
   
   $styles = array(
-    'idea' => t('This icon needs a description'),
-    'bug' => t('This icon needs a description'),
+    'idea' => t('New feature idea'),
+    'bug' => t('System bug'),
   );
   
   $rows = array();

@@ -1,12 +1,19 @@
+.page-roadmap #content-column h1#page-title {
+     display: none;
+}
+
 .roadmap {
      border-collapse: separate;
      padding-bottom: 2em;
      width: 100%;
 }
 
+h2.roadmap {
+     padding-bottom: 10px;
+}
 
 .page-roadmap a {
-color: #215990;
+     color: #215990;
 }
 
 .roadmap tr.issue-meta > td {
@@ -29,8 +36,13 @@ td.issue-body {
      padding: 15px;
 }
 
+.alerts {
+     margin-top: -55px;
+}
+
 .milestone {
      float: left;
+     width: 67%;
 }
 
 ul.alert-issues {
@@ -118,7 +130,7 @@ span.github-label {
      padding: 2px 0px 2px 20px;
 }
 
-.alerts > p {
+.alerts p {
      background: url("images/warning.png") no-repeat scroll 0px 0px transparent;
      padding: 3px 0px 3px 28px;
 }
