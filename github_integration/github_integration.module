@@ -472,20 +472,25 @@ function github_integration_alert_page() {
   }
 
   //Get open issues
-  $issues = $client->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), array(
-    'labels' => implode(',', $labels),
-  ));
-
-  //Get recently closed issues
-  if (variable_get('github_integration_alert_show_closed', TRUE)) {
-    $closed = $client->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), array(
+  try {
+    $issues = $client->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), array(
       'labels' => implode(',', $labels),
-      'state' => 'closed',
-      'sort' => 'updated',
-      'since' => date(DATE_ISO8601, time() - 60*60*24*7*2), //show all closures within two weeks  
     ));
-    
-    $issues = array_merge($issues, $closed);
+  
+    //Get recently closed issues
+    if (variable_get('github_integration_alert_show_closed', TRUE)) {
+      $closed = $client->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), array(
+        'labels' => implode(',', $labels),
+        'state' => 'closed',
+        'sort' => 'updated',
+        'since' => date(DATE_ISO8601, time() - 60*60*24*7*2), //show all closures within two weeks  
+      ));
+      
+      $issues = array_merge($issues, $closed);
+    }
+  } catch (Exception $e) {
+    watchdog('github', '@code error connecting to github.  @msg', array('@code' => $e->getCode(), '@msg' => $e->getMessage()));
+    return t('Could not connect to github.  Status alerts temporarily unavailable.');
   }
 
   foreach ($issues as $issue) {
@@ -525,7 +530,7 @@ function github_integration_issue($id) {
   try {
     $issue = $gh->api('issue')->show(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $id);
   } catch (Exception $e) {
-    watchdog('github', 'Couldn\'t fetch github ticket "@id".  Error: @error', array('@id' => $id, '@error' => $e->getCode()), WATCHDOG_ERROR);
+    watchdog('github', 'Couldn\'t fetch github ticket "@id".  Error: @error.  Message: @msg', array('@id' => $id, '@error' => $e->getCode(), '@msg' => $e->getMessage()), WATCHDOG_ERROR);
     return FALSE;
   }
 
