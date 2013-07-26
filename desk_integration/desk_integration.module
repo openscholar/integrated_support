@@ -351,7 +351,7 @@ function desk_integration_desk_to_bugreport_setup() {
   global $base_url;
   
   //create a service
-  $url = $base_url . '/integrated_support/desk_to_github?';
+  $url = $base_url . '/integrated_support/desk_to_bugreport?';
   $config = array(
     'name' => $name,
     'description' => t('Send tickets to other services'),
