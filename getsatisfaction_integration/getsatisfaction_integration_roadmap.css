@@ -1,96 +1,124 @@
 .roadmap {
-	width: 100%;
-	border-collapse: separate;
-	padding-bottom: 2em;
-}
-
-.roadmap tr.issue-meta>td {
-	border-top: 1px white solid;
-}
-
-td.issue-body {
-	display: none;
+     border-collapse: separate;
+     padding-bottom: 2em;
+     width: 100%;
 }
 
 
-
-
-/* STYLES FOR ROADMAP AND ALERT PAGES */
-.alerts {float:right;width:30%;}
-.milestone {float:left;}
-
-
-ul.alert-issues {list-style-type:none;}
-ul.alert-issues li {margin-bottom:20px;}
-span.github-label {
-    border: none;
-    -webkit-border-radius: 3px;
-	-moz-border-radius: 3px;
-	border-radius: 3px;
-    font-size: 95%;
-    padding: 5px;
-    display:inline-block;
-}
-
-.roadmap span.status {
-    background-color: #F5F5F5;
-     padding: 4px 7px;
-     border-radius: 3px;
-}
-
-
-.roadmap span.status:hover {
-	opacity: 0.8;
-}
-
-.roadmap span.status.closed,
-.roadmap span.status.done {
-    background-color: #215990;
-}
-
-.roadmap span.status.in_progress {
-    background-color: #52854C;
-}
-
-.roadmap span.status.pending,
-.roadmap span.status.design,
-.roadmap span.status.development,
-.roadmap span.status.review,
-.roadmap span.status.testing
-{
-    background-color: black;
-}
-
-.roadmap tr.even, .roadmap tr.odd {
-    background-color: #F5F5F5;
+.page-roadmap a {
+color: #215990;
 }
 
 .roadmap tr.issue-meta > td {
-    padding: 11px 5px;
+     border-top: 1px solid white;
+}
+
+td.issue-body {
+     display: none;
+}
+
+.alerts, .legend {
+     float: right;
+     width: 28%;
+}
+
+.alerts, .legend {
+     background: none repeat scroll 0% 0% #F5F5F5;
+     clear: right;
+     margin-bottom: 20px;
+     padding: 15px;
+}
+
+.milestone {
+     float: left;
+}
+
+ul.alert-issues {
+     list-style-type: none;
+}
+
+ul.alert-issues li {
+     margin-bottom: 20px;
+}
+
+span.github-label {
+     border-radius: 3px 3px 3px 3px;
+     border: medium none;
+     display: inline-block;
+     font-size: 95%;
+     padding: 5px;
+}
+
+.roadmap span.status:hover {
+     opacity: 0.8;
+}
+
+.roadmap span.status, .roadmap span.status.pending, .roadmap span.status.design, .roadmap span.status.development, .roadmap span.status.review, .roadmap span.status.testing {
+     background-color: #F5F5F5;
+     border-radius: 3px 3px 3px 3px;
+     color: #FFFFFF;
+     display: block;
+     padding: 4px 7px;
+     text-align: center;
+     width: 78px;
+}
+
+.roadmap span.status.pending {
+     background-color: grey;
+}
+
+.roadmap span.status.design {
+     background-color: orange;
+}
+
+.roadmap span.status.testing {
+     background-color: #9CA812;
+}
+
+.roadmap span.status.review {
+     background-color: #0EA793;
+}
+
+.roadmap span.status.closed, .roadmap span.status.done {
+     background-color: #215990;
+}
+
+.roadmap span.status.development, .roadmap span.status.in_progress {
+     background-color: #52854C;
+}
+
+.roadmap tr.even, .roadmap tr.odd {
+     background-color: #F5F5F5;
+}
+
+.roadmap tr.issue-meta > td {
+     padding: 11px 5px;
 }
 
 .roadmap tr.issue-meta > td:first-child a {
-    text-decoration: none;
+     text-decoration: none;
 }
 
+.updated {
+     color: #AAAAAA;
+}
 
-.updated {color:#AAAAAA;}
-
-.style{
-	background:url('images/empty.png') 0 2px no-repeat;
-	padding:2px 0 2px 20px;
+.style {
+     background: url("images/empty.png") no-repeat scroll 0px 2px transparent;
+     padding: 2px 0px 2px 20px;
 }
 
 .style-idea {
-	background:url('images/idea.png') 0 2px no-repeat;
-	padding:2px 0 2px 20px;
-}
-.style-bug,
-.style-problem  {
-	background:url('images/bug.png') 0 2px no-repeat !important;
-	padding:2px 0 2px 20px;
+     background: url("images/idea.png") no-repeat scroll 0px 2px transparent;
+     padding: 2px 0px 2px 20px;
 }
 
+.style-bug, .style-problem {
+     background: url("images/bug.png") no-repeat scroll 0px 2px transparent ! important;
+     padding: 2px 0px 2px 20px;
+}
 
-.alerts > p {background: url("images/warning.png") no-repeat scroll 0 0 transparent;
-    padding: 3px 0 3px 28px;}
+.alerts > p {
+     background: url("images/warning.png") no-repeat scroll 0px 0px transparent;
+     padding: 3px 0px 3px 28px;
+}
