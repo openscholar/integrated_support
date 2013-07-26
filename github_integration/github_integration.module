@@ -450,7 +450,12 @@ function github_create_issue($issue) {
   }
 
   $gh = github_integration_client();
-  $issue = $gh->api('issue')->create(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $issue);
+  try {
+    $issue = $gh->api('issue')->create(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $issue);
+  } catch (Exception $e) {
+    watchdog('github', '@code error creating issue "@issue": @msg', array('@issue' => serialize($issue), '@code' => $e->getCode(), '@msg' => $e->getMessage()));
+    return FALSE;
+  }
   _github_intergation_update_issue_table($issue);
   return $issue;
 }

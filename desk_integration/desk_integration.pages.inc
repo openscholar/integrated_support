@@ -178,7 +178,10 @@ function desk_integration_bug_report($form, &$state, $case_id, $case_user, $case
   $none = array(-1 =>  '-- Select --');
   
   $ms_order = array('state' => 'open', 'sort' => 'due_date', 'direction' => 'asc');
-  $milestones = $none + array_map(create_function('$a', 'return $a["title"];'), github_integration_milestones($ms_order));
+  //$milestones = $none + array_map(create_function('$a', 'return $a["title"];'), github_integration_milestones($ms_order));
+  foreach (github_integration_milestones($ms_order) as $milestone) {
+    $milestones[$milestone['number']] = $milestone['title'];
+  }
   
   $users = $client->api('repo')->collaborators()->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'));
   $users = ($users) ? $none + array_map(create_function('$a', 'return $a["login"];'), $users) : array();
@@ -221,7 +224,7 @@ function desk_integration_bug_report($form, &$state, $case_id, $case_user, $case
       'milestone' => array(
         '#title' => t('Github Milestone'),
         '#type' => 'select',
-        '#options' => drupal_map_assoc($milestones),    
+        '#options' => $milestones,    
       ),
       'assignee' => array(
         '#title' => t('Github Assignee'),
@@ -269,6 +272,7 @@ function desk_integration_bug_report_submit($form, &$state) {
   $values = $state['values'];
   list($case_id, $customer, $user) = $state['build_info']['args'];
   $issue = $topic = NULL;
+  $done = array();
   
   //send to github
   if ($values['destination']['github_integration']) {
@@ -280,10 +284,18 @@ function desk_integration_bug_report_submit($form, &$state) {
       'milestone' => ($values['milestone'] != '-- Select --') ? $values['milestone'] : NULL, 
     );
     
-    $issue = github_create_issue(array_filter($issue));
+    try {
+      $issue = github_create_issue(array_filter($issue));
+    } catch (Exception $e) {
+      watchdog('github', '@code Error creating issue: @msg', array('@code' => $e->getCode(), '@msg' => $e->getMessage()));
+      drupal_set_message('Error sending issue to github.  Please try again.', 'error');
+      return FALSE;
+    }
     if ($issue) {
       desk_integration_update_cases($case_id, $issue['number'], $issue['milestone']['title']);
     }
+    
+    $done[] = l('Created github issue.', $issue['html_url']);
   }
   
   //send to getsatisfaction
@@ -295,6 +307,10 @@ function desk_integration_bug_report_submit($form, &$state) {
       'style' => $values['style'],
     );
     $topic = $gs_client->api('topic')->call('create', $topic);
+    
+    if ($topic && $topic->at_sfn) {
+      $done[] = l('Created GetSatisfaction topic.', $topic->at_sfn);
+    }
   }
   
   //gs <-> gh linkage
@@ -307,6 +323,11 @@ function desk_integration_bug_report_submit($form, &$state) {
     
     require_once(drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration.admin.inc');
     drupal_form_submit('getsatisfaction_integration_admin_tickets', $state);
+  }
+  
+  drupal_get_messages();
+  if ($done) {
+    drupal_set_message(implode("<br>\n", $done));
   }
 }
 
