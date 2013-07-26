@@ -170,6 +170,10 @@ function _getsatisfaction_integration_roadmap_legend() {
  * Determines roadmap status to use on an issue
  */
 function _getsatisfaction_integration_roadmap_status($topic, $issue) {
+  if (!$issue) {
+    return '';
+  }
+  
   $label_status = variable_get('getsatisfaction_roadmap_status_labels', array(
     'status: pending' => 'Pending',
     'status: needs spec' => 'Design',

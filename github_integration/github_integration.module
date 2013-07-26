@@ -522,7 +522,12 @@ function github_integration_alert_page() {
  */
 function github_integration_issue($id) {
   $gh = github_integration_client(); //authed req is better.  100x the rate limit.  when it works again, remove this false
-  $issue = $gh->api('issue')->show(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $id);
+  try {
+    $issue = $gh->api('issue')->show(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $id);
+  } catch (Exception $e) {
+    watchdog('github', 'Couldn\'t fetch github ticket "@id".  Error: @error', array('@id' => $id, '@error' => $e->getCode()), WATCHDOG_ERROR);
+    return FALSE;
+  }
 
   //stash a copy of this issue
   _github_intergation_update_issue_table($issue);
@@ -546,8 +551,22 @@ function github_integration_issue($id) {
  * Returns a list of GH milestones and their ids.
  */
 function github_integration_milestones($query = array()) {
-  $gh = github_integration_client();
-  return $gh->api('issue')->milestones()->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $query);
+  $cache = cache_get('github_milestones');
+  if ($cache && (time() < $cache->expire)) {
+    return $cache->data;
+  }
+  
+  try {
+    $gh = github_integration_client();
+    $milestones = $gh->api('issue')->milestones()->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $query);
+  } catch (Exception $e) {
+    watchdog('github', 'Could not fetch github milestones: @code', array('@code' => $e->getCode()), WATCHDOG_ERROR);
+    drupal_set_message('There was an error connecting to github.  Please try again in a few minutes.', 'error');
+    return NULL; 
+  }
+  
+  cache_set('github_milestones', $milestones, 'cache', time() + 3600);
+  return $milestones;
 }
 
 /**
