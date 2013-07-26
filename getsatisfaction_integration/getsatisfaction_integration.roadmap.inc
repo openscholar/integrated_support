@@ -9,17 +9,6 @@ function getsatisfaction_integration_roadmap_page() {
   $ret = array(
     '#prefix' => '<h2 class="roadmap">Roadmap</h2>',    
   );
-
-  //include github alerts
-  if (module_exists('github_integration') && variable_get('getsatisfaction_roadmap_show_github_alert', TRUE)) {
-    $alerts = github_integration_alert_page();
-    if (!in_array($alerts, array('No reported service alerts.', 'Alerts disabled.'))) {
-      $ret[] = array('alert' => $alerts); //array('#type' => 'markup', '#markup' => $alerts);
-    }
-  }
-  
-  //add legend
-  $ret[] = _getsatisfaction_integration_roadmap_legend();
   
   if (user_access('administer site configuration')) {
     $ret[] = array(
@@ -105,6 +94,17 @@ function getsatisfaction_integration_roadmap_page() {
       );
     }
   }
+  
+  //include github alerts
+  if (module_exists('github_integration') && variable_get('getsatisfaction_roadmap_show_github_alert', TRUE)) {
+    $alerts = github_integration_alert_page();
+    if (!in_array($alerts, array('No reported service alerts.', 'Alerts disabled.'))) {
+      $ret[] = array('alert' => $alerts); //array('#type' => 'markup', '#markup' => $alerts);
+    }
+  }
+  
+  //add legend
+  $ret[] = _getsatisfaction_integration_roadmap_legend();
   
   return $ret;
 }
