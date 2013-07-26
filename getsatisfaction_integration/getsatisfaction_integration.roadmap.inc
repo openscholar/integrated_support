@@ -76,9 +76,10 @@ function getsatisfaction_integration_roadmap_page() {
 
   
   //show each milestone
+  $tables = array();
   foreach ($data as $milestone => $ms_data) {
     if ($ms_data) {
-      $ret[] = array(
+      $tables[] = array(
         '#theme' => 'table',
         '#prefix' => "<div class='milestone'><h2>$milestone</h2>",
         '#suffix' => '</div>',
@@ -94,6 +95,12 @@ function getsatisfaction_integration_roadmap_page() {
       );
     }
   }
+  
+  $ret[] = array(
+    '#prefix' => "<div class='milestonewrapper'>",
+    '#suffix' => '</div>',
+    'milestones' => $tables,
+  );
   
   //include github alerts
   if (module_exists('github_integration') && variable_get('getsatisfaction_roadmap_show_github_alert', TRUE)) {
