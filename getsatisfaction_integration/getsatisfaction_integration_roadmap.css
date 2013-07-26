@@ -16,6 +16,10 @@ h2.roadmap {
      color: #215990;
 }
 
+a.github-state-closed, a.github-state-closed:visited {
+    color: #AAAAAA !important;
+}
+
 .roadmap tr.issue-meta > td {
      border-top: 1px solid white;
 }
