@@ -69,11 +69,11 @@ function getsatisfaction_integration_integrated_support_status() {
 }
 
 /**
- * @function getsatisfaction_create_topic
+ * @function getsatisfaction_integration_create_topic
  *
  * Creates a topic on getsatisfaction as the configured user.
  */
-function getsatisfaction_create_topic($subject, $detail = '', $style = '', $keywords = array()) {
+function getsatisfaction_integration_create_topic($subject, $detail = '', $style = '', $keywords = array()) {
   $client = getsatisfaction_integration_client();
 
   $topic = array_filter(array(
@@ -105,7 +105,7 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
 	switch ($event) {
 
 	  case 'desk_to_getsatisfaction':
-	    $return[] = getsatisfaction_create_topic($payload['case_subject'], $payload['case_body']);
+	    $return[] = getsatisfaction_integration_create_topic($payload['case_subject'], $payload['case_body']);
 	    break;
 
     case 'github_issue':

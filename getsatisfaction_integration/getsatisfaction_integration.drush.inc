@@ -66,7 +66,7 @@ function _drush_getsatisfaction_integration_issue_to_topic($issue) {
   $style = drush_get_option('style','question');
   $remove_labels = drush_get_option('remove-labels', '0');
   
-  $topic = getsatisfaction_create_topic($issue['title'], $issue['body'], $style);
+  $topic = getsatisfaction_integration_create_topic($issue['title'], $issue['body'], $style);
   if ($topic) {
     //topic created.  link it to the GH issue.
     $state = array('values' => array(

@@ -300,15 +300,7 @@ function desk_integration_bug_report_submit($form, &$state) {
   
   //send to getsatisfaction
   if ($values['destination']['getsatisfaction_integration']) {
-    $gs_client = getsatisfaction_integration_client();
-    $topic = array(
-      'subject' => $values['title'],
-      'additional_detail' => $values['body'],
-      'style' => $values['style'],
-      'company' => variable_get('getsatisfaction_company'),
-      //no status.  we're just logging this for now.
-    );
-    $topic = $gs_client->api('topic')->call('create', $topic);
+    $topic = getsatisfaction_integration_create_topic($values['title'], $values['body'], $values['style']);
     
     if ($topic && isset($topic->at_sfn)) {
       $done[] = l('Created GetSatisfaction topic.', $topic->at_sfn);
