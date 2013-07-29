@@ -561,7 +561,9 @@ function github_integration_issue($id) {
  * Returns a list of GH milestones and their ids.
  */
 function github_integration_milestones($query = array()) {
-  $cache = cache_get('github_milestones');
+  asort($query);
+  $key = 'github_milestones::' . http_build_query($query);
+  $cache = cache_get($key);
   if ($cache && (time() < $cache->expire)) {
     return $cache->data;
   }
@@ -575,7 +577,7 @@ function github_integration_milestones($query = array()) {
     return NULL; 
   }
   
-  cache_set('github_milestones', $milestones, 'cache', time() + 3600);
+  cache_set($key, $milestones, 'cache', time() + 3600);
   return $milestones;
 }
 
