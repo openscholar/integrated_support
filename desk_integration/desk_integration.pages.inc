@@ -305,6 +305,8 @@ function desk_integration_bug_report_submit($form, &$state) {
       'subject' => $values['title'],
       'additional_detail' => $values['body'],
       'style' => $values['style'],
+      'company' => variable_get('getsatisfaction_company'),
+      //no status.  we're just logging this for now.
     );
     $topic = $gs_client->api('topic')->call('create', $topic);
     
@@ -329,6 +331,8 @@ function desk_integration_bug_report_submit($form, &$state) {
   if ($done) {
     drupal_set_message(implode("<br>\n", $done));
   }
+  
+  drupal_goto('roadmap'); //to get this far, we already know getsatisfaction and its roadmap are provided
 }
 
 /**
