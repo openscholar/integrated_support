@@ -437,7 +437,7 @@ function _desk_integration_case_reply($id, $msg, $repost = FALSE) {
     }
     
     //loop until we're out of pages
-    $page = ($replies->_links->self->next) ? $page + 1 : FALSE; 
+    $page = (isset($replies->_links->self->next)) ? $page + 1 : FALSE; 
   }
   
   return $desk->api('case')->call('create_reply', array('id' => $id, 'body' => $msg, 'direction' => 'out'));

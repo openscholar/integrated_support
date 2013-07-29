@@ -310,8 +310,10 @@ function desk_integration_bug_report_submit($form, &$state) {
     );
     $topic = $gs_client->api('topic')->call('create', $topic);
     
-    if ($topic && $topic->at_sfn) {
+    if ($topic && isset($topic->at_sfn)) {
       $done[] = l('Created GetSatisfaction topic.', $topic->at_sfn);
+    } else {
+      watchdog('getsatisfaction', 'I can\'t get no satisfaction: @topic', array('@topic' => serialize($topic)));
     }
   }
   
