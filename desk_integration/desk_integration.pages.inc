@@ -224,7 +224,7 @@ function desk_integration_bug_report($form, &$state, $case_id, $case_user, $case
       'milestone' => array(
         '#title' => t('Github Milestone'),
         '#type' => 'select',
-        '#options' => $milestones,    
+        '#options' => array('-- Select --' => '-- Select --') + $milestones,    
       ),
       'assignee' => array(
         '#title' => t('Github Assignee'),
