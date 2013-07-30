@@ -94,11 +94,22 @@ function getsatisfaction_integration_admin_tickets() {
       '#type' => 'fieldset',
       '#collapsible' => FALSE,
       '#title' => t('Sync tickets'),
+
+      'getsatisfaction_null' => array(
+        '#title' => t('Omit getsatisfaction'),
+        '#description' => t('Add a ticket to the roadmap without linking it to getsatisfaction'),
+        '#type' => 'checkbox',
+        '#default_value' => FALSE,              
+      ),
+        
       'getsatisfaction_url' => array(
         '#title' => t('Link to GetSatisfaction Topic'),
         '#type' => 'textfield',
-        '#required' => TRUE,
+        '#required' => FALSE,
         '#maxlength' => 1024,
+        '#states' => array(
+          'visible' => array('input[name="getsatisfaction_null"]' => array('checked' => FALSE)),
+        ),
       ),
       'external_service' => array(
         '#title' => t('Other Service'),
@@ -133,25 +144,33 @@ function getsatisfaction_integration_admin_tickets() {
  */
 function getsatisfaction_integration_admin_tickets_validate(&$form, &$state) {
   //GetSatisfaction
-  if (!filter_var($state['values']['getsatisfaction_url'], FILTER_VALIDATE_URL)) {
-    form_set_error('getsatisfaction_url', t('Must be a URL'));
+  if ($state['values']['getsatisfaction_null']) {
+    //not using getsatisfaction
+    $state['values']['id'] = '';
+    $state['values']['title'] = '';
+    $state['values']['at_sfn'] = '';
   } else {
-    $slug = @end(explode('/', $state['values']['getsatisfaction_url']));
-    $slug = @current(explode('?', $slug));
-    $gs_client = getsatisfaction_integration_client();
-
-    $topic = getsatisfaction_integration_topic($slug);
-    if (!$topic) {
-      //Could not connect
-      form_set_error('getsatisfaction_url', t('Can\'t retrieve topic.  Is this URL correct?'));
+    //using getsatisfaction.  make sure input is valid and download the topic
+    if (!filter_var($state['values']['getsatisfaction_url'], FILTER_VALIDATE_URL)) {
+      form_set_error('getsatisfaction_url', t('Must be a URL'));
     } else {
-      //It's good!  Collect data.
-      $state['values']['id'] = $topic->id;
-      $state['values']['title'] = $topic->subject;
-      $state['values']['at_sfn'] = $topic->at_sfn;
+      $slug = @end(explode('/', $state['values']['getsatisfaction_url']));
+      $slug = @current(explode('?', $slug));
+      $gs_client = getsatisfaction_integration_client();
+  
+      $topic = getsatisfaction_integration_topic($slug);
+      if (!$topic) {
+        //Could not connect
+        form_set_error('getsatisfaction_url', t('Can\'t retrieve topic.  Is this URL correct?'));
+      } else {
+        //It's good!  Collect data.
+        $state['values']['id'] = $topic->id;
+        $state['values']['title'] = $topic->subject;
+        $state['values']['at_sfn'] = $topic->at_sfn;
+      }
     }
   }
-
+  
   //Other Service
   if ($item = _getsatisfaction_integration_item_by_id($state['values']['external_service'], $state['values']['external_id'])) {
     $state['values']['external_item'] = $item;
@@ -190,7 +209,7 @@ function getsatisfaction_integration_admin_tickets_submit(&$form, &$state) {
   drupal_write_record('getsatisfaction_service_map', $record);
 
   //reply to github issue.  this will add a link pointing that issue to its GS coutnerpart, and trigger an issue_comment webhook, which will update the GS topic with the GH issue's current data.
-  if ($record['external_service'] == 'github_integration') {
+  if ($record['external_service'] == 'github_integration' && $state['values']['id']) {
     $client = github_integration_client();
     $comment = array('body' => 'This issue has been linked to a GetSatisfaction topic.  ' . $state['values']['at_sfn']);
     $client->api('issue')->comments()->create(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $record['external_id'], $comment);

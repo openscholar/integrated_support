@@ -126,12 +126,14 @@ span.github-label {
 
 .style-idea {
      background: url("images/idea.png") no-repeat scroll 0px 2px transparent;
-     padding: 2px 0px 2px 20px;
 }
 
 .style-bug, .style-problem {
      background: url("images/bug.png") no-repeat scroll 0px 2px transparent ! important;
-     padding: 2px 0px 2px 20px;
+}
+
+.style-github {
+     background: url("images/github.png") no-repeat scroll 0px 2px transparent ! important;
 }
 
 .alerts p {

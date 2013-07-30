@@ -43,7 +43,8 @@ function getsatisfaction_integration_roadmap_page() {
   //fill these milestones with their tickets
   while ($row = $results->fetchAssoc()) {
     $issue = github_integration_issue($row['external_id']);
-    $topic = getsatisfaction_integration_topic($row['id']);
+    $topic = ($row['id']) ? getsatisfaction_integration_topic($row['id']) : 
+      (object) array('style' => 'github', 'at_sfn' => $issue['html_url'], 'content' => '', 'subject' => $issue['title']);
     $status = _getsatisfaction_integration_roadmap_status($topic, $issue); 
     $status_class = strtolower(str_replace(' ', '_', $status));
     $status_label = "<span class='status $status_class'>$status</span>"; 
@@ -55,7 +56,7 @@ function getsatisfaction_integration_roadmap_page() {
     
     $append[] = array('class' => array('issue-meta'), 'data'=>array(
       '<a href="javascript:void(0);" onclick="jQuery(\'.topic-'. $row['id']. '\').toggle()">+</a>',
-      l($row['title'], $topic->at_sfn, array('attributes' => array('class' => array('style-' . $topic->style)))),
+      l($topic->subject, $topic->at_sfn, array('attributes' => array('class' => array('style style-' . $topic->style)))),
       format_interval(time() - strtotime($issue['updated_at']), 1),
       (user_access('administer site configuration')) ? l($status_label, $issue['html_url'], array('html' => TRUE)) : $status_label,
     ));
@@ -139,6 +140,7 @@ function _getsatisfaction_integration_roadmap_legend() {
   $styles = array(
     'idea' => t('New feature idea'),
     'bug' => t('System bug'),
+    'github' => t('Infrastructure')
   );
   
   $rows = array();
