@@ -10,6 +10,7 @@ function getsatisfaction_integration_roadmap_page() {
     '#prefix' => '<h2 class="roadmap">Roadmap</h2>',    
   );
   
+  //admins get a link to the ticekt mapping form
   if (user_access('administer site configuration')) {
     $ret[] = array(
       '#text' => 'Add tickets',
@@ -36,34 +37,41 @@ function getsatisfaction_integration_roadmap_page() {
   $done = array('state' => 'closed', 'sort' => 'due_date', 'direction' => 'desc');
   $milestones = github_integration_milestones($todo) + github_integration_milestones($done);
   $milestone_titles = array_map(create_function('$a', 'return $a["title"];'), $milestones);
-  $styles = array('idea', 'problem', 'question', 'praise', 'update');
+  $styles = array('idea', 'problem', 'question', 'praise', 'update', 'github');
   $data = array_fill_keys($milestone_titles, array_fill_keys($styles, array()));
-  
+  $gh_ids = array();
   
   //fill these milestones with their tickets
   while ($row = $results->fetchAssoc()) {
     $issue = github_integration_issue($row['external_id']);
     $topic = ($row['id']) ? getsatisfaction_integration_topic($row['id']) : 
-      (object) array('style' => 'github', 'at_sfn' => $issue['html_url'], 'content' => '', 'subject' => $issue['title']);
-    $status = _getsatisfaction_integration_roadmap_status($topic, $issue); 
-    $status_class = strtolower(str_replace(' ', '_', $status));
-    $status_label = "<span class='status $status_class'>$status</span>"; 
-    
+      (object) array('style' => 'github', 'at_sfn' => $issue['html_url'], 'content' => '', 'subject' => $issue['title'], 'id' => NULL);
     $append = &$data[$issue['milestone']][$topic->style];
-    if (!$issue['milestone']) {
-      continue;
-    }
-    
-    $append[] = array('class' => array('issue-meta'), 'data'=>array(
-      '<a href="javascript:void(0);" onclick="jQuery(\'.topic-'. $row['id']. '\').toggle()">+</a>',
-      l($topic->subject, $topic->at_sfn, array('attributes' => array('class' => array('style style-' . $topic->style)))),
-      format_interval(time() - strtotime($issue['updated_at']), 1),
-      (user_access('administer site configuration')) ? l($status_label, $issue['html_url'], array('html' => TRUE)) : $status_label,
-    ));
-    
-    $append[] = array(array('data' => $topic->content, 'colspan' => count($header), 'class' => array('issue-body topic-' . $row['id'])));   
+    $gh_ids[] = $issue['id'];
+
+    if ($issue['milestone']) {
+      $append[] = _getsatisfaction_integration_roadmap_render_row($topic, $issue);
+      $append[] = array(array('data' => $topic->content, 'colspan' => count($header), 'class' => array('issue-body topic-' . $row['id'])));
+    }   
   }
-   
+  
+  //now add tagged GH issues
+  $labels = variable_get('getsatisfaction_integration_github_roadmap_label', 'roadmap');
+  $issues = github_integration_issues(array('labels' => $labels, 'state' => 'closed'));
+  $issues = array_merge($issues, github_integration_issues(array('labels' => $labels, 'state' => 'open')));    
+  foreach ($issues as $issue) {
+    if ($issue['milestone'] and !in_array($issue['number'], $gh_ids)) {
+      $issue['labels'] = array_map(create_function('$a', 'return $a["name"];'), $issue['labels']);
+      $ms = $issue['milestone']['title'];
+      $topic = (object) array('style' => 'github', 'at_sfn' => $issue['html_url'], 'content' => '', 'subject' => $issue['title'], 'id' => NULL);
+      $append = &$data[$ms][$topic->style];
+    
+      $append[] = _getsatisfaction_integration_roadmap_render_row($topic, $issue);
+      $append[] = array(array('data' => $topic->content, 'colspan' => count($header), 'class' => array('issue-body topic-' . $row['id'])));
+    }
+  }
+  
+  
   //flatten the nested topic styles
   foreach ($data as $ms => $styles) {
     $flattened = array();
@@ -155,7 +163,7 @@ function _getsatisfaction_integration_roadmap_legend() {
   
   foreach ($styles as $style => $desc) {
     $rows[] = array(
-      "<span class='style-$style'> &nbsp; </span>",
+      "<span class='style style-$style'> &nbsp; </span>",
       $desc,  
     );
   }
@@ -171,6 +179,26 @@ function _getsatisfaction_integration_roadmap_legend() {
       'border' => '0',
     )
   );
+}
+
+/**
+ * @function _getsatisfaction_integration_roadmap_render_row
+ * 
+ * Turns a github issue and getsatisfaction topic into a data row for the roadmap table
+ */
+function _getsatisfaction_integration_roadmap_render_row($topic, $issue) {
+  $status = _getsatisfaction_integration_roadmap_status($topic, $issue);
+  $status_class = strtolower(str_replace(' ', '_', $status));
+  $status_label = "<span class='status $status_class'>$status</span>";
+  
+  $return = array('class' => array('issue-meta'), 'data'=>array(
+    ($topic->id) ? '<a href="javascript:void(0);" onclick="jQuery(\'.topic-'. $topic->id . '\').toggle()">+</a>' : '',
+    l($topic->subject, $topic->at_sfn, array('attributes' => array('class' => array('style style-' . $topic->style)))),
+    format_interval(time() - strtotime($issue['updated_at']), 1),
+    (user_access('administer site configuration')) ? l($status_label, $issue['html_url'], array('html' => TRUE)) : $status_label,
+  ));
+  
+  return $return;
 }
 
 /**
@@ -201,7 +229,7 @@ function _getsatisfaction_integration_roadmap_status($topic, $issue) {
   }
   
   //Check if milestone is closed. 
-  if ($issue['milestone'] && isset($milestone_states[$issue['milestone']]) && $milestone_states[$issue['milestone']] == 'closed') {
+  if (@$milestone_states[$issue['milestone']] == 'closed') {
     return 'Done';
   }
   
@@ -224,9 +252,8 @@ function _getsatisfaction_integration_roadmap_status($topic, $issue) {
   //Get status from GS if still undetermined.
   $status_map = array(
     'pending' => '',
-    //'active' => 'In Progress', //retired.
     'complete' => 'Done',    
   );
   
-  return (isset($status_map[$topic->status])) ? $status_map[$topic->status] : '';
+  return (isset($topic->status, $status_map[$topic->status])) ? $status_map[$topic->status] : '';
 }

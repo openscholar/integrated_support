@@ -555,6 +555,34 @@ function github_integration_issue($id) {
   );
 }
 
+
+/**
+ * @function github_integration_issues
+ * 
+ * Searches github for issues matching a variety of criteria
+ */
+function github_integration_issues($parameters) {
+  $client = github_integration_client();
+  $page = 1;
+  $parameters['per_page'] = (isset($parameters['per_page'])) ? $parameters['per_page'] : 30;
+  $ret = array();
+   
+  while ($page) {
+    $parameters['page'] = $page;
+  
+    try {
+      $issues = $client->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $parameters);
+    } catch (Exception $e) {
+      watchdog('github', 'Could not load issues matching params: @params', array('@params' => serialize($parameters)));
+      return FALSE;
+    }
+
+    $page = (count($issues) == $parameters['per_page']) ? $page + 1 : FALSE;
+    $ret = array_merge($ret, $issues);
+  }
+  
+  return $ret;
+}
 /**
  * @function github_integration_milestones
  *
