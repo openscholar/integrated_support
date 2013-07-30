@@ -1,0 +1,10 @@
+.highscores > li {
+	margin: 1em !important;
+	padding: 1em !important;
+	border: 1px black solid;
+	border-radius: 1em;
+}
+
+.highscores {
+	list-style-type: none;
+}

@@ -19,7 +19,13 @@ function github_integration_menu() {
       'title' => 'Service Alerts',
       'page callback' => 'github_integration_alert_page',
       'access arguments' => array('access content'),
-    )
+    ),
+    'highscore' => array(
+      'title' => 'Github High Scores',
+      'page callback' => 'github_integration_highscore_page',
+      'file' => '/github_integration.pages.inc',
+      'access arguments' => array('access content'),
+    ),
 	);
 
 	return $items;
@@ -562,6 +568,13 @@ function github_integration_issue($id) {
  * Searches github for issues matching a variety of criteria
  */
 function github_integration_issues($parameters) {
+  $cache_key = 'github_integration_issues::' . http_build_query($parameters);
+  $cached = cache_get($cache_key);
+  if ($cached && $cached->expire > time()) {
+    return $cached->data;
+  }
+  
+  
   $client = github_integration_client();
   $page = 1;
   $parameters['per_page'] = (isset($parameters['per_page'])) ? $parameters['per_page'] : 30;
@@ -581,6 +594,7 @@ function github_integration_issues($parameters) {
     $ret = array_merge($ret, $issues);
   }
   
+  cache_set($cache_key, $ret, 'cache', 60*60*24);
   return $ret;
 }
 /**
