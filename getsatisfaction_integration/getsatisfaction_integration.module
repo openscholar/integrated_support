@@ -120,16 +120,7 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
           ->execute()
           ->fetchCol();
 
-        //figure out a status.  (can this be configged in admin page?
-        $status = 'pending'; //all linked tickets are pending by default.
-        $active = array('status: in dev', 'status: needs qa', 'status: needs review');
-        if ($payload['milestone'] || array_intersect($active, $payload['labels'])) {
-          $status = 'active';
-        }
-        if ($payload['state'] == 'closed') {
-          $status = 'complete';
-        }
-
+        $status = ($payload['state'] == 'closed') ? 'complete' : 'active';
         watchdog('getsatisfaction', 'applying @status status to topics: @ids', array('@status' => $status, '@ids' => implode(',', $ids)));
 
         //apply status and update milestone
@@ -225,7 +216,7 @@ function getsatisfaction_integration_topic($id) {
  */
 function getsatisfaction_integration_topics_to_github() {
   $client = getsatisfaction_integration_client();
-  $query = array('status' => 'pending', 'company' => variable_get('getsatisfaction_company'));
+  $query = array('status' => 'active', 'company' => variable_get('getsatisfaction_company'));
 
   $topics = $client->api('topic')->call('company_topic', $query);
   $mapped = db_select('getsatisfaction_service_map', 'gs')
@@ -237,7 +228,7 @@ function getsatisfaction_integration_topics_to_github() {
   //more logging.  *sigh*
   $ids = array_map(create_function('$obj', 'return $obj->id;'), $topics->data);
   $todo = array_diff($ids, $mapped);
-  watchdog('getsatisfaction', 'pending topics: [@topics].  already mapped: [@mapped].  todo: [@todo]', array(
+  watchdog('getsatisfaction', 'active topics: [@topics].  already mapped: [@mapped].  todo: [@todo]', array(
     '@topics' => implode(', ', $ids), '@mapped' => implode(', ', $mapped), '@todo' => implode(', ', $todo)
   ));
   

@@ -252,6 +252,7 @@ function _getsatisfaction_integration_roadmap_status($topic, $issue) {
   //Get status from GS if still undetermined.
   $status_map = array(
     'pending' => '',
+    'active' => '',
     'complete' => 'Done',    
   );
   
