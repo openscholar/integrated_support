@@ -1,10 +1,46 @@
 .highscores > li {
 	margin: 1em !important;
 	padding: 1em !important;
-	border: 1px black solid;
+	border: 1px #000 solid;
 	border-radius: 1em;
+  background-color: #cfc;
+  box-shadow: 10px 10px 15px #aaa, inset 0px 0px 15px #8a8;
+	color: black;
 }
 
 .highscores {
 	list-style-type: none;
+}
+
+td.winner:after {
+  font-size: 50%;
+  display:block;
+}
+
+td.carpal:after {
+	content: ' (carpal)';
+}
+
+td.verbose:after {
+  content: ' (verbose)';
+}
+
+td.poor:after {
+  content: ' (poor)';
+}
+
+td.slacker:after {
+  content: ' (slacker)';
+}
+
+td.git-r-done:after {
+  content: ' (git-r-done)';
+}
+
+td.diplomat:after {
+  content: ' (diplomat)';
+}
+
+td.loudmouth:after {
+  content: ' (loudmouth)';
 }

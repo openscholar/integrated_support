@@ -22,7 +22,7 @@ function github_integration_highscore_page() {
 //  shuffle($milestones);
   $milestone = current($milestones);
   $params = array('milestone' => $milestone['number'], 'per_page' => 100);
-unset($params['milestone']);
+//unset($params['milestone']);
   //get all users
   $client = github_integration_client();
   $users = $client->api('repo')->collaborators()->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'));
@@ -36,7 +36,7 @@ unset($params['milestone']);
     'Open issues I reported',
     'Closed issues I own',
     'Open issues I own',  
-      
+    'Characters written'
   );
   
   /**
@@ -48,12 +48,24 @@ diplomat: best reported ratio
   
   $stats = array();
   foreach ($users as $user) {
+    $created_closed = github_integration_issues($params + array('state' => 'closed', 'creator' => $user));
+    $created_open = github_integration_issues($params + array('state' => 'open', 'creator' => $user));
+    $assigned_closed = github_integration_issues($params + array('state' => 'closed', 'assignee' => $user));
+    $assigned_open = github_integration_issues($params + array('state' => 'open', 'assignee' => $user));
+    
+    $bodies = array_reduce(array_merge($created_closed, $created_open), create_function('$a, $b', 'return $a . $b["body"];'), '');
+    
     $stats[$user] = array(
       'name' => $user,
-      'created_resolved' => _github_integration_count_issues($params + array('state' => 'closed', 'creator' => $user)),
-      'created_unresolved' => _github_integration_count_issues($params + array('state' => 'open', 'creator' => $user)),
-      'assigned_resolved' => _github_integration_count_issues($params + array('state' => 'closed', 'assignee' => $user)),
-      'assigned_unresolved' => _github_integration_count_issues($params + array('state' => 'open', 'assignee' => $user)),
+      'created_resolved' => count($created_closed),
+      'created_unresolved' => count($created_open),
+      'assigned_resolved' => count($assigned_closed),
+      'assigned_unresolved' => count($assigned_open),
+      'chars' => strlen($bodies),
+//       'created_resolved' => _github_integration_count_issues($params + array('state' => 'closed', 'creator' => $user)),
+//       'created_unresolved' => _github_integration_count_issues($params + array('state' => 'open', 'creator' => $user)),
+//       'assigned_resolved' => _github_integration_count_issues($params + array('state' => 'closed', 'assignee' => $user)),
+//       'assigned_unresolved' => _github_integration_count_issues($params + array('state' => 'open', 'assignee' => $user)),
     );
   }
   //turnaround time?  shortest created -> closed time.
@@ -62,9 +74,10 @@ diplomat: best reported ratio
     t('Diplomat - Best success rate on tickets filed.') => array_map(create_function('$a', '$c = $a["created_resolved"] + $a["created_unresolved"]; return ($c) ? round($a["created_resolved"] / $c, 3) : 0;'), $stats),
     t('Git-R-Done - Best closure rate on owned tickets.') => array_map(create_function('$a', '$c = $a["assigned_resolved"] + $a["assigned_unresolved"]; return ($c) ? round($a["assigned_resolved"] / $c, 3) : 0;'), $stats),
     t('Slacker - Most open, unresolved tickets.') => array_map(create_function('$a', 'return $a["assigned_unresolved"];'), $stats),
-    t('Poor Social Skills- Worst success rate on tickets filed.') => array_map(create_function('$a', '$c = $a["created_resolved"] + $a["created_unresolved"]; return ($c) ? round($a["created_unresolved"] / $c, 3) : 0;'), $stats),
+    t('Poor Social Skills - Worst success rate on tickets filed.') => array_map(create_function('$a', '$c = $a["created_resolved"] + $a["created_unresolved"]; return ($c) ? round($a["created_unresolved"] / $c, 3) : 0;'), $stats),
+    t('Verbose - Avg text length per issue') => array_map(create_function('$a', '$c = $a["created_resolved"] + $a["created_unresolved"]; return ($c) ? round($a["chars"] / $c, 1) : 0;'), $stats),
+    t('Carpal tunnel syndrome - Most text total') => array_map(create_function('$a', 'return $a["chars"];'), $stats)
   );
-  dpm($achievements);
   
   $top = 5;
   $highscores = array();
@@ -73,7 +86,19 @@ diplomat: best reported ratio
     $scores = array_reverse($scores, TRUE);
     $winners = array();
     foreach ($scores as $name => $score) {
-      $winners[] = count($winners) ? "$name ($score)" : "<strong>$name ($score)</strong>";
+      //add class to winner.  restructure the array if needed.  it must be [data=>[], class=>[]] to have a class
+      if (count($winners) == 0) {
+        $winners[] = "<strong>$name ($score)</strong>";
+
+        if (!is_array($stats[$name]['name'])) {
+          $stats[$name]['name'] = array('data' => $stats[$name]['name'], 'class' => array('winner'));
+        
+        }
+        $stats[$name]['name']['class'][] = strtolower(preg_replace('/ .*/', '', $title));
+      } else {
+        $winners[] = "$name ($score)";
+      }
+      
       if (count($winners) >= $top) {
         break;
       }
