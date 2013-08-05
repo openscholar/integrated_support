@@ -7,7 +7,7 @@
  */
 function getsatisfaction_integration_schema() {
   $schema = array();
-  
+
   $schema['getsatisfaction_service_map'] = array(
     'description' => 'Maps ids of GetSatisfaction topics to ids of issues in other services.',
     'fields' => array(
@@ -48,68 +48,68 @@ function getsatisfaction_integration_schema() {
     'description' => 'Local storage of get_sfn topics.',
     'primary key' => array('id'),
     'unique keys' => array('id' => array('id')),
-      'fields' => array(
-        'id' => array(
-          'description' => 'GetSatisfaction topic id',
-          'type' => 'varchar',
-          'length' => 255,
-          'not null' => TRUE,
-        ),
-        'title' => array(
-          'description' => 'GetSatisfaction topic title',
-          'type' => 'varchar',
-          'length' => 255,
-          'not null' => TRUE,
-        ),
-        'status'  => array(
-          'description' => 'GetSatisfaction topic status',
-          'type' => 'varchar',
-          'length' => 255,
-          'not null' => FALSE,
-        ),
-        'author'  => array(
-          'description' => 'GetSatisfaction topic author',
-          'type' => 'varchar',
-          'length' => 255,
-          'not null' => FALSE,
-        ),
-        'style'  => array(
-          'description' => 'question, problem, praise, idea, or update',
-          'type' => 'varchar',
-          'length' => 255,
-          'not null' => FALSE,
-        ),
-        'me_too_count'  => array(
-          'description' => 'How many +1s ',
-          'type' => 'int',
-          'not null' => TRUE,
-          'default' => 0,
-        ),
-        'body'  => array(
-          'description' => 'GetSatisfaction topic body',
-          'type' => 'text',
-          'not null' => TRUE,
-        ),
-        'created_at'  => array(
-          'description' => 'Created date',
-          'type' => 'varchar',
-          'length' => 255,
-          'not null' => FALSE,
-        ),
-        'last_active_at'  => array(
-          'description' => 'Updated date',
-          'type' => 'varchar',
-          'length' => 255,
-          'not null' => FALSE,
-        ),
-        'link'  => array(
-          'description' => 'Link',
-          'type' => 'varchar',
-          'length' => 512,
-          'not null' => FALSE,
-        ),        
-      )
-    );
-  
+    'fields' => array(
+      'id' => array(
+        'description' => 'GetSatisfaction topic id',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'title' => array(
+        'description' => 'GetSatisfaction topic title',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'status'  => array(
+        'description' => 'GetSatisfaction topic status',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'author'  => array(
+        'description' => 'GetSatisfaction topic author',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'style'  => array(
+        'description' => 'question, problem, praise, idea, or update',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'me_too_count'  => array(
+        'description' => 'How many +1s ',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'body'  => array(
+        'description' => 'GetSatisfaction topic body',
+        'type' => 'text',
+        'not null' => TRUE,
+      ),
+      'created_at'  => array(
+        'description' => 'Created date',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'last_active_at'  => array(
+        'description' => 'Updated date',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
+      'link'  => array(
+        'description' => 'Link',
+        'type' => 'varchar',
+        'length' => 512,
+        'not null' => FALSE,
+      ),        
+    )
+  );
+
   return $schema;
 }

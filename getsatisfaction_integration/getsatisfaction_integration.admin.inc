@@ -101,7 +101,7 @@ function getsatisfaction_integration_admin_tickets() {
         '#type' => 'checkbox',
         '#default_value' => FALSE,              
       ),
-        
+
       'getsatisfaction_url' => array(
         '#title' => t('Link to GetSatisfaction Topic'),
         '#type' => 'textfield',
@@ -157,7 +157,7 @@ function getsatisfaction_integration_admin_tickets_validate(&$form, &$state) {
       $slug = @end(explode('/', $state['values']['getsatisfaction_url']));
       $slug = @current(explode('?', $slug));
       $gs_client = getsatisfaction_integration_client();
-  
+
       $topic = getsatisfaction_integration_topic($slug);
       if (!$topic) {
         //Could not connect
@@ -170,14 +170,14 @@ function getsatisfaction_integration_admin_tickets_validate(&$form, &$state) {
       }
     }
   }
-  
+
   //Other Service
   if ($item = _getsatisfaction_integration_item_by_id($state['values']['external_service'], $state['values']['external_id'])) {
     $state['values']['external_item'] = $item;
   } else {
     form_set_error('add_map', t('Could not find specified ticket in service.'));
   }
-  
+
   //Dupe?
   $mapped = db_select('getsatisfaction_service_map', 'gs')
     ->condition('id', $topic->id)
@@ -186,7 +186,7 @@ function getsatisfaction_integration_admin_tickets_validate(&$form, &$state) {
     ->range(0,1)
     ->fields('gs', array('id'))
     ->execute();
-  
+
   if ($mapped->rowCount()) {
     form_set_error('add_map', t('This mapping already exists.'));
   }
@@ -245,11 +245,11 @@ function getsatisfaction_integration_admin_tickets_delete($ajax, $gs_id, $servic
 function _getsatisfaction_integration_item_by_id($service, $id) {
   try {
     switch ($service) {
-      case 'github_integration':
-        return github_integration_issue($id);
+    case 'github_integration':
+      return github_integration_issue($id);
 
-      default:
-        return 'N/A';
+    default:
+      return 'N/A';
     }
   } catch (Exception $e) {
     return False;

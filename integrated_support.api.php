@@ -5,10 +5,10 @@
  * was successful.
  */
 function hook_integrated_support_status() {
-	$client = service_get_client();
-	$data = $client->connect();
-	
-	return ($data) ? 'Service connected' : 'Service failed';
+  $client = service_get_client();
+  $data = $client->connect();
+
+  return ($data) ? 'Service connected' : 'Service failed';
 }
 
 /**
@@ -23,20 +23,20 @@ function hook_integrated_support_status() {
  *   
  */
 function hook_integration_integrated_support_info() {
-	return array(
-		'github_issue' => array(
-			'name' => t('Github Issue'),
-			'description' => t('Github notifies Integrated Support whenever an issue is opened, closed, or commented on.'),
-			'process function' => 'github_integration_github_issue_prep',
-			'setup function' => 'github_integration_setup',
-		)
-	);
+  return array(
+    'github_issue' => array(
+      'name' => t('Github Issue'),
+      'description' => t('Github notifies Integrated Support whenever an issue is opened, closed, or commented on.'),
+      'process function' => 'github_integration_github_issue_prep',
+      'setup function' => 'github_integration_setup',
+    )
+  );
 }
 
 /**
  * After a webhook has been recieved, implement this hook to respond to it
  */
 function hook_integrated_support_event($module, $payload) {
-	
+
 }
 

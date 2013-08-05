@@ -6,23 +6,23 @@
  * Implements hook_menu
  */
 function github_integration_menu() {
-	$items = array(
-		'admin/config/integrated_support/github' => array(
-			'title' => 'Github',
-			'file' => '/github_integration.admin.inc',
-			'page callback' => 'drupal_get_form',
-			'page arguments' => array('github_integration_admin'),
-			'type' => MENU_LOCAL_TASK,
-			'access arguments' => array('administer site configuration')
-		),
+  $items = array(
+    'admin/config/integrated_support/github' => array(
+      'title' => 'Github',
+      'file' => '/github_integration.admin.inc',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('github_integration_admin'),
+      'type' => MENU_LOCAL_TASK,
+      'access arguments' => array('administer site configuration')
+    ),
     'alert' => array(
       'title' => 'Service Alerts',
       'page callback' => 'github_integration_alert_page',
       'access arguments' => array('access content'),
     )
-	);
+  );
 
-	return $items;
+  return $items;
 }
 
 /**
@@ -33,14 +33,14 @@ function github_integration_menu() {
  * Defines github_issue event
  */
 function github_integration_integrated_support_info() {
-	return array(
-		'github_issue' => array(
-			'name' => t('Github Issue'),
-			'description' => t('Github notifies Integrated Support when tickets are opened, closed, commented on, or pushed to.'),
-			'process function' => 'github_integration_github_issue_process',
-			'setup function' => 'github_integration_github_issue_setup',
-		),
-	);
+  return array(
+    'github_issue' => array(
+      'name' => t('Github Issue'),
+      'description' => t('Github notifies Integrated Support when tickets are opened, closed, commented on, or pushed to.'),
+      'process function' => 'github_integration_github_issue_process',
+      'setup function' => 'github_integration_github_issue_setup',
+    ),
+  );
 }
 
 /**
@@ -49,13 +49,13 @@ function github_integration_integrated_support_info() {
  * Provides php-github-api
  */
 function github_integration_libraries_info() {
-	return array(
+  return array(
     'composer' => array(
       'name' => 'Composer Libs',
       'files' => array('php' => array('vendor/autoload.php')),
       'version' => 'master',
     ),
-	);
+  );
 }
 
 /**
@@ -90,15 +90,15 @@ function github_integration_theme($existing, $type, $theme, $path) {
  * Connects to github and returns confirmation that a connection is possible.
  */
 function github_integration_integrated_support_status() {
-	$gh = github_integration_client();
-github_integration_issue(5);
-	try {
-  	$me = $gh->api('current_user')->show();
-	} catch (Exception $e) {
+  $gh = github_integration_client();
+  github_integration_issue(5);
+  try {
+    $me = $gh->api('current_user')->show();
+  } catch (Exception $e) {
     drupal_set_message(t('Github error: @msg', array('@msg' => $e->getMessage())));
-		$me = NULL;
-	}
-	
+    $me = NULL;
+  }
+
   return ($me) ? 'Logged into github as: ' . $me['login'] : 'Could not auth github';
 }
 
@@ -141,10 +141,10 @@ function github_integration_client($auth = TRUE) {
  */
 function github_integration_github_issue_process($body) {
   $hash = hash_hmac('sha1', $body, variable_get('github_secret'));
-//   if (!isset($_SERVER['HTTP_X_HUB_SIGNATURE']) || ('sha1='.$hash != $_SERVER['HTTP_X_HUB_SIGNATURE'])) {
-//     watchdog('github', 'Error authenticating origin of github/hook_issue request', array(), WATCHDOG_ERROR);
-//     return;
-//   }
+  //   if (!isset($_SERVER['HTTP_X_HUB_SIGNATURE']) || ('sha1='.$hash != $_SERVER['HTTP_X_HUB_SIGNATURE'])) {
+  //     watchdog('github', 'Error authenticating origin of github/hook_issue request', array(), WATCHDOG_ERROR);
+  //     return;
+  //   }
 
   $json = json_decode($body);
   watchdog('github', '@json', array('@json' => $body), WATCHDOG_DEBUG);
@@ -156,7 +156,7 @@ function github_integration_github_issue_process($body) {
     //github issue evnet hook
     $return = array(
       'event' => 'issue',
-  	  'id' => $json->issue->number,
+      'id' => $json->issue->number,
       'milestone' => (isset($json->issue->milestone)) ? $json->issue->milestone->title : NULL,
       'state' => (in_array($json->action, array('closed', 'reopened'))) ? $json->action : $json->issue->state,
       'title' => $json->issue->title,
@@ -169,25 +169,25 @@ function github_integration_github_issue_process($body) {
       //instead of adding to array, can't we toggle comment or issue and fetch from there?  where else could this data appear?
 
       //pushed by an issue_comment
-      case 'created':
-        if (isset($json->comment)) {
-          $return += array(
-            'type' => 'comment',
-          	'url' => $json->comment->html_url,
-          	'user' => $json->comment->user->login, //user necessary?
-          	'body' => $json->comment->body,
-          );
-        }
+    case 'created':
+      if (isset($json->comment)) {
+        $return += array(
+          'type' => 'comment',
+          'url' => $json->comment->html_url,
+          'user' => $json->comment->user->login, //user necessary?
+          'body' => $json->comment->body,
+        );
+      }
       break;
 
       //opened a new issue
-      case 'opened':
-        $return += array(
-          'type' => 'issue',
-          'url' => $json->issue->html_url,
-          'user' => $json->issue->user->login,
-          'body' => $json->issue->body,
-        );
+    case 'opened':
+      $return += array(
+        'type' => 'issue',
+        'url' => $json->issue->html_url,
+        'user' => $json->issue->user->login,
+        'body' => $json->issue->body,
+      );
       break;
     }
 
@@ -224,20 +224,20 @@ function github_integration_github_issue_process($body) {
  * Responds to a desk_integration event by creating a github issue
  */
 function github_integration_integrated_support_event($event, $payload) {
-	$return = array();
-	switch ($event) {
-		case 'desk_to_github':
-			$return = github_create_issue(array(
-				'title' => $payload['case_subject'],
-		    'assignee' => integrated_support_map_username($payload['case_user_name'], 'desk_integration', 'github_integration'), //(isset($conf['user_map'][$data['case_user_name']])) ? $conf['user_map'][$data['case_user_name']] : NULL,
-		    'labels' => 'desk',
-		    'body' => $payload['link'] . "\n\n> " . $payload['case_body'],
-			));
+  $return = array();
+  switch ($event) {
+  case 'desk_to_github':
+    $return = github_create_issue(array(
+      'title' => $payload['case_subject'],
+      'assignee' => integrated_support_map_username($payload['case_user_name'], 'desk_integration', 'github_integration'), //(isset($conf['user_map'][$data['case_user_name']])) ? $conf['user_map'][$data['case_user_name']] : NULL,
+      'labels' => 'desk',
+      'body' => $payload['link'] . "\n\n> " . $payload['case_body'],
+    ));
 
-			break;
-	}
+    break;
+  }
 
-	return $return;
+  return $return;
 }
 
 /**
@@ -481,7 +481,7 @@ function github_integration_alert_page() {
     $issues = $client->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), array(
       'labels' => implode(',', $labels),
     ));
-  
+
     //Get recently closed issues
     if (variable_get('github_integration_alert_show_closed', TRUE)) {
       $closed = $client->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), array(
@@ -490,7 +490,7 @@ function github_integration_alert_page() {
         'sort' => 'updated',
         'since' => date(DATE_ISO8601, time() - 60*60*24*7*2), //show all closures within two weeks  
       ));
-      
+
       $issues = array_merge($issues, $closed);
     }
   } catch (Exception $e) {
@@ -502,7 +502,7 @@ function github_integration_alert_page() {
     $issue['labels'] = _github_integration_filter_labels($issue['labels']);
     $items[] = theme('github_integration_issue', array('issue' => $issue));
   }
-  
+
   if ($items) {
     return array(
       '#prefix' => '<div class="alerts">',
@@ -566,10 +566,10 @@ function github_integration_issues($parameters) {
   $page = 1;
   $parameters['per_page'] = (isset($parameters['per_page'])) ? $parameters['per_page'] : 30;
   $ret = array();
-   
+
   while ($page) {
     $parameters['page'] = $page;
-  
+
     try {
       $issues = $client->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $parameters);
     } catch (Exception $e) {
@@ -580,7 +580,7 @@ function github_integration_issues($parameters) {
     $page = (count($issues) == $parameters['per_page']) ? $page + 1 : FALSE;
     $ret = array_merge($ret, $issues);
   }
-  
+
   return $ret;
 }
 /**
@@ -595,7 +595,7 @@ function github_integration_milestones($query = array()) {
   if ($cache && (time() < $cache->expire)) {
     return $cache->data;
   }
-  
+
   try {
     $gh = github_integration_client();
     $milestones = $gh->api('issue')->milestones()->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $query);
@@ -604,7 +604,7 @@ function github_integration_milestones($query = array()) {
     drupal_set_message('There was an error connecting to github.  Please try again in a few minutes.', 'error');
     return NULL; 
   }
-  
+
   cache_set($key, $milestones, 'cache', time() + 3600);
   return $milestones;
 }
@@ -636,7 +636,7 @@ function _github_intergation_update_issue_table($issue) {
       $issue[$item] = (array) $issue[$item];
     }
   }
-  
+
   //add to local storage.
   $record = array(
     'id' =>         $issue['number'],
@@ -666,9 +666,9 @@ function _github_intergation_update_issue_table($issue) {
     drupal_write_record('github_issues', $record);
   } elseif ($stored['updated'] != $issue['updated_at']) {
     db_update('github_issues')
-    ->fields($record)
-    ->condition('id', $issue['number'])
-    ->execute();
+      ->fields($record)
+      ->condition('id', $issue['number'])
+      ->execute();
   }
 }
 

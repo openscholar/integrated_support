@@ -1,27 +1,27 @@
 <?php 
 
 function integrated_support_menu() {
-	$items = array(
-		'integrated_support/%' => array(
-			'title' => 'Integrated Support',
-			'page callback' => 'integrated_support_event',
-			'page arguments' => array(1),
-			'access callback' => TRUE,
-	  ),
-		'admin/config/integrated_support' => array(
-			'title' => 'Integrated Support',
-			'file' => '/integrated_support.admin.inc',
-			'page callback' => 'drupal_get_form',
-			'page arguments' => array('integrated_support_admin_form'),
-			'access arguments' => array('administer site configuration')
-		),		
-	);
-	$items['admin/config/integrated_support/integrated_support'] = $items['admin/config/integrated_support'];
-	$items['admin/config/integrated_support/integrated_support']['type'] = MENU_DEFAULT_LOCAL_TASK;
-	
-	//$items['integrated_support/%/%'] = $items['integrated_support/%'];
-	
-	return $items;
+  $items = array(
+    'integrated_support/%' => array(
+      'title' => 'Integrated Support',
+      'page callback' => 'integrated_support_event',
+      'page arguments' => array(1),
+      'access callback' => TRUE,
+    ),
+    'admin/config/integrated_support' => array(
+      'title' => 'Integrated Support',
+      'file' => '/integrated_support.admin.inc',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('integrated_support_admin_form'),
+      'access arguments' => array('administer site configuration')
+    ),		
+  );
+  $items['admin/config/integrated_support/integrated_support'] = $items['admin/config/integrated_support'];
+  $items['admin/config/integrated_support/integrated_support']['type'] = MENU_DEFAULT_LOCAL_TASK;
+
+  //$items['integrated_support/%/%'] = $items['integrated_support/%'];
+
+  return $items;
 }
 
 /**
@@ -31,12 +31,12 @@ function integrated_support_menu() {
  * Checks each of the service integration modules to see if they can connect
  */
 function integrated_support_status() {
-	$statuses = module_invoke_all('integrated_support_status');
-	
-	return theme('item_list', (array(
-		'items' => $statuses,
-		'type' => 'ul',
-	)));
+  $statuses = module_invoke_all('integrated_support_status');
+
+  return theme('item_list', (array(
+    'items' => $statuses,
+    'type' => 'ul',
+  )));
 }
 
 /**
@@ -48,37 +48,37 @@ function integrated_support_status() {
  */
 function integrated_support_event($name) {
   watchdog('integrated_support', 'received: @name', array('@name' => $name), WATCHDOG_DEBUG);
-	$events = module_invoke_all('integrated_support_info');
-	if ($event = $events[$name]) {
-		$body = file_get_contents('php://input');
-		$payload = $event['process function']($body);
-		watchdog('integrated_support', '@name payload: @payload', array('@name' => $name, '@payload' => serialize($payload)), WATCHDOG_DEBUG);
-		
-		foreach (module_implements(__FUNCTION__) as $module) {
-			$responses[$module] = module_invoke($module, __FUNCTION__, $name, $payload);
-		}
-		
-		//$responses = array_filter($responses);
-		if ($responses) {
-  		watchdog(
-  			'integrated_support', 
-  			'@event event triggered reactions in @modules',
-  			array('@event' => $name, '@modules' => implode(', ', array_keys($responses))),
-  			WATCHDOG_INFO  
-  		);
-		} else {
-		  watchdog('integrated_support', 'No events completed for @event', array('@event' => $name), WATCHDOG_INFO);
-		}
-		
-		if (isset($event['complete function']) && function_exists($event['complete function'])) {
-			$return = $event['complete function']($payload, $responses);
-		}
-	} else {
-		watchdog('integrated_support', 'No webhook named: @name', array('@name' => $name), WATCHDOG_WARNING);
-		return 'Event does not exist: ' . $name;
-	}
-	
-	return (isset($return)) ? $return : NULL;
+  $events = module_invoke_all('integrated_support_info');
+  if ($event = $events[$name]) {
+    $body = file_get_contents('php://input');
+    $payload = $event['process function']($body);
+    watchdog('integrated_support', '@name payload: @payload', array('@name' => $name, '@payload' => serialize($payload)), WATCHDOG_DEBUG);
+
+    foreach (module_implements(__FUNCTION__) as $module) {
+      $responses[$module] = module_invoke($module, __FUNCTION__, $name, $payload);
+    }
+
+    //$responses = array_filter($responses);
+    if ($responses) {
+      watchdog(
+        'integrated_support', 
+        '@event event triggered reactions in @modules',
+        array('@event' => $name, '@modules' => implode(', ', array_keys($responses))),
+        WATCHDOG_INFO  
+      );
+    } else {
+      watchdog('integrated_support', 'No events completed for @event', array('@event' => $name), WATCHDOG_INFO);
+    }
+
+    if (isset($event['complete function']) && function_exists($event['complete function'])) {
+      $return = $event['complete function']($payload, $responses);
+    }
+  } else {
+    watchdog('integrated_support', 'No webhook named: @name', array('@name' => $name), WATCHDOG_WARNING);
+    return 'Event does not exist: ' . $name;
+  }
+
+  return (isset($return)) ? $return : NULL;
 }
 
 /**
@@ -100,11 +100,11 @@ function integrated_support_map_username($username, $from_service, $to_service) 
 function _integrated_support_cache_set($url, $parameters, $data, $headers = NULL) {
   $expire = time() + 3600; //default to one hour
   $force_cache = variable_get('integrated_support_force_cache', FALSE);
-  
+
   //Determine cache policy.  Are there any no-cache directives we need?
   if ($headers) {
     $headers = _integrated_support_http_parse_headers($headers);
-  
+
     if (isset($headers['Expires'])) {
       $expire = strtotime($headers['Expires']);    
     } elseif (isset($headers['Cache-Control'])) {
@@ -122,7 +122,7 @@ function _integrated_support_cache_set($url, $parameters, $data, $headers = NULL
   if ($force_cache) {
     $expire = time() + $force_cache;
   }
-  
+
   asort($parameters);
   $key = $url . '?' . http_build_query($parameters);
   cache_set('integrated_support:'.$key, $data, 'cache', $expire);
@@ -134,7 +134,7 @@ function _integrated_support_cache_get($url, $parameters) {
   if ($cached && $cached->expire > time()) {
     return $cached->data;
   }
-  
+
   cache_clear_all($key, 'cache');
   return NULL;
 }

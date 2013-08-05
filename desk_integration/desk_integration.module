@@ -3,30 +3,30 @@
 define('DESK_INTEGRATION_CASE_LOCKED', 'Case currently locked by another user');
 
 function desk_integration_menu() {
-	$items = array(
-		'admin/config/integrated_support/desk' => array(
-			'title' => 'Desk',
-			'file' => '/desk_integration.admin.inc',
-			'page callback' => 'drupal_get_form',
-			'page arguments' => array('desk_integration_admin'),
-			'access arguments' => array('administer site configuration'),
-			'type' => MENU_LOCAL_TASK,
-		),
-	  'desk' => array(
-	    'title' => 'Desk Mass Message',
-	    'file' => '/desk_integration.pages.inc',
-	    'page callback' => 'drupal_get_form',  
+  $items = array(
+    'admin/config/integrated_support/desk' => array(
+      'title' => 'Desk',
+      'file' => '/desk_integration.admin.inc',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('desk_integration_admin'),
+      'access arguments' => array('administer site configuration'),
+      'type' => MENU_LOCAL_TASK,
+    ),
+    'desk' => array(
+      'title' => 'Desk Mass Message',
+      'file' => '/desk_integration.pages.inc',
+      'page callback' => 'drupal_get_form',  
       'page arguments' => array('desk_integration_mass_message_form'),
       'access arguments' => array('administer site configuration'),
     ),
     'desk/service_rating/%/%/%' => array(
       'title' => 'Rate our service',
       'file' => '/desk_integration.pages.inc',
-	    'page callback' => 'drupal_get_form',
+      'page callback' => 'drupal_get_form',
       'page arguments' => array('desk_integration_service_rating', 2, 3, 4),
       'access arguments' => array('access content'),
     ),
-	    
+
     'desk/bug_report/%/%/%' => array(
       'title' => 'Bug Report',
       'file' => '/desk_integration.pages.inc',
@@ -34,9 +34,9 @@ function desk_integration_menu() {
       'page arguments' => array('desk_integration_bug_report', 2, 3, 4),
       'access arguments' => array('access content'),
     )
-	);
-	
-	return $items;
+  );
+
+  return $items;
 }
 
 
@@ -77,10 +77,10 @@ function desk_integration_integrated_support_info() {
  * Provides Desk api via tapir
  */
 function desk_integration_libraries_info() {
-	return array(
-		'tapir' => array(
-			'name' => 'Tapir',
-			'version' => 'master',
+  return array(
+    'tapir' => array(
+      'name' => 'Tapir',
+      'version' => 'master',
       'files' => array('php' => array('tapir.php')),
       'dependencies' => array('pear'),
     ),
@@ -110,47 +110,47 @@ function _desk_integration_pear_path() {
  * Responds to a desk_integration event by creating a github issue
  */
 function desk_integration_integrated_support_event($event, $payload) {
-	$return = array();
-	switch ($event) {
-		case 'github_issue':
-		  if ($payload['event'] != 'issue') {
-		    //watchdog('desk', 'Ignoring github issue.  Event is not set to "issue".');
-		    return;		    //we only care about issues, so ignore code pushes.
-		  }
-		  
-		  //find affected desk cases
-			$desk = desk_integration_client();
-			$ids = array();
-			$cases = $desk->api('case')->call('search', array(
-		    'case_custom_github_issue_id' => $payload['id'],
-			  'status' => 'open,pending,resolved',
-	    ));
-			watchdog('desk', 'Attempting to update cases: @cases.', array('@cases' => serialize($cases)));
-			
-			//get their ids
-			if (isset($cases->total_entries) && $cases->total_entries) {
-				foreach ($cases->_embedded->entries as $case) {
-					if (($payload['milestone'] != $case->custom_fields->github_milestone) || ($payload['state'] != $case->custom_fields->github_status)) {
-						$ids[] = end(explode('/', $case->_links->self->href));
-					}
-				}
-			}
-			
-			//and update them
-			$updated = desk_integration_update_cases($ids, $payload['id'], $payload['milestone'], $payload['state'], $payload['labels']);
-			$return = array(
-		    'message' => t('Updated @count cases: @ids', array('@count' => count($ids), '@ids' => implode(', ', $ids))), 
-		    'responses' => serialize($updated)
-	    );			
-			
-			//make sure github issue is labeled as being related to desk cases
-			if ($ids && !in_array('desk', $payload)) {
-			  $gh = github_integration_client();
-			  $issue = $gh->api('issue')->labels()->add(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $payload['id'], 'desk');
-			}
-			break;
-	}
-	return $return;
+  $return = array();
+  switch ($event) {
+  case 'github_issue':
+    if ($payload['event'] != 'issue') {
+      //watchdog('desk', 'Ignoring github issue.  Event is not set to "issue".');
+      return;		    //we only care about issues, so ignore code pushes.
+    }
+
+    //find affected desk cases
+    $desk = desk_integration_client();
+    $ids = array();
+    $cases = $desk->api('case')->call('search', array(
+      'case_custom_github_issue_id' => $payload['id'],
+      'status' => 'open,pending,resolved',
+    ));
+    watchdog('desk', 'Attempting to update cases: @cases.', array('@cases' => serialize($cases)));
+
+    //get their ids
+    if (isset($cases->total_entries) && $cases->total_entries) {
+      foreach ($cases->_embedded->entries as $case) {
+        if (($payload['milestone'] != $case->custom_fields->github_milestone) || ($payload['state'] != $case->custom_fields->github_status)) {
+          $ids[] = end(explode('/', $case->_links->self->href));
+        }
+      }
+    }
+
+    //and update them
+    $updated = desk_integration_update_cases($ids, $payload['id'], $payload['milestone'], $payload['state'], $payload['labels']);
+    $return = array(
+      'message' => t('Updated @count cases: @ids', array('@count' => count($ids), '@ids' => implode(', ', $ids))), 
+      'responses' => serialize($updated)
+    );			
+
+    //make sure github issue is labeled as being related to desk cases
+    if ($ids && !in_array('desk', $payload)) {
+      $gh = github_integration_client();
+      $issue = $gh->api('issue')->labels()->add(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $payload['id'], 'desk');
+    }
+    break;
+  }
+  return $return;
 }
 
 /**
@@ -166,18 +166,18 @@ function desk_integration_integrated_support_status() {
   } catch (Exception $e) {
     drupal_set_message('Desk: ' . $e->getMessage(), 'error');
   }
-  
+
   if (!isset($search->total_entries)) {
     return t('Error logging in to desk.');
   }
-  
+
   $custom_fields = (array) $search->_embedded->entries[0]->custom_fields;
   $check = array('github_issue_id', 'github_milestone', 'github_status');
   $missing = array_diff($check, array_keys($custom_fields));
   if ($missing) {
     return t('Logged into Desk.com, but the following custom fields were missing: @missing', array('@missing' => implode(', ', $missing)));
   }
-  
+
   return t('Logged into Desk.com');
 }
 
@@ -193,19 +193,19 @@ function desk_integration_desk_to_github_process($body) {
   if (empty($data['case_id'])) {
     return 'Case has no id.  Send after its saved so GH can reference it.';
   }
-  
+
   //don't create tickets from cases that are already assigned to an id
   if ($data['case_custom_github_issue_id']) {
     return 'Case already has a github id.';
   }
-  
+
   //build a generic ticket from the desk payload
   $data += array(
     'text' => $data['case_body'],
     'assignee' => NULL, //(isset($conf['user_map'][$data['case_user_name']])) ? $conf['user_map'][$data['case_user_name']] : NULL,
     'labels' => 'Desk',
   );
-  
+
   return $data;
 }
 
@@ -219,7 +219,7 @@ function desk_integration_desk_to_github_process($body) {
 function desk_integration_desk_to_github_setup() {
   $name = 'Create GitHub Issue';
   global $base_url;
-	 
+
   //create a service
   $url = $base_url . '/integrated_support/desk_to_github?';
   $url .= 'redirect_to_github=1&';
@@ -229,7 +229,7 @@ function desk_integration_desk_to_github_setup() {
     'enabled' => TRUE,
     'markup' => $url,  //template can be straight up vars now.  no need for json
   );
-  
+
   desk_integration_setup_integration_url($name, $config);
 }
 
@@ -239,12 +239,12 @@ function desk_integration_desk_to_github_setup() {
  * Wrapper for the generic parts of of integration url setup functions
  */
 function desk_integration_setup_integration_url($name, $config) {
-	//liquid template vars
+  //liquid template vars
   require_once(drupal_get_path('module', 'desk_integration') . '/desk_liquid.inc');
   $desk = desk_integration_client();
   $vars = desk_liquid_template();
   $config['markup'] .= desk_liquid_url_template();
-  
+
   //prune old services.
   $results = $desk->api('integration_urls')->call('list');
   if ($results->total_entries) {
@@ -256,7 +256,7 @@ function desk_integration_setup_integration_url($name, $config) {
       }
     }
   }
-  
+
   $results = $desk->api('integration_urls')->call('create', $config);
   if ($results) {
     drupal_set_message('Enabled ' . $name . ' on Desk.com.  Don\'t forget to set it to use a new window.');
@@ -280,11 +280,11 @@ function desk_integration_desk_to_github_complete($payload, $responses = array()
 
   $updated = desk_integration_update_cases($payload['case_id'], $github['number'], $github['milestone'], $github['state'], $github['labels']);
   if (!$updated) {
-  	watchdog('desk', 'Could not send from desk to github.  Request: ' . serialize($_REQUEST) . ' github response: ' . serialize($github) . ' desk update: ' . serialize($updated));
+    watchdog('desk', 'Could not send from desk to github.  Request: ' . serialize($_REQUEST) . ' github response: ' . serialize($github) . ' desk update: ' . serialize($updated));
   }
-  
+
   watchdog('desk', 'Desk ticket "@case" -> github "@issue" complete.  @updated', array('@case' => $payload['case_id'], '@issue' => $github['number'], '@updated' => serialize($updated)));
-  
+
   //redirect if the hook says so
   if ($_REQUEST['redirect_to_github']) {
     drupal_goto($github['html_url']);
@@ -323,11 +323,11 @@ function desk_integration_desk_to_bugreport_process($body) {
   $keep = array('case_id', 'case_customer_id', 'case_user_id');
   $return = array_intersect_key($_REQUEST, array_flip($keep));
   $return = array_filter($return);
-  
+
   if (count($return) < count($keep)) {
     return 'Invalid bug report.  Missing parameters';
   }
-  
+
   return $return;
 }
 
@@ -349,7 +349,7 @@ function desk_integration_desk_to_bugreport_complete($payload, $responses) {
 function desk_integration_desk_to_bugreport_setup() {
   $name = '(testing) Create Bug Report';
   global $base_url;
-  
+
   //create a service
   $url = $base_url . '/integrated_support/desk_to_bugreport?';
   $config = array(
@@ -358,7 +358,7 @@ function desk_integration_desk_to_bugreport_setup() {
     'enabled' => TRUE,
     'markup' => $url,  //template can be straight up vars now.  no need for json
   );
-  
+
   desk_integration_setup_integration_url($name, $config);
 }
 
@@ -370,10 +370,10 @@ function desk_integration_desk_to_bugreport_setup() {
  */
 function desk_integration_update_cases($case_ids, $github_issue_id, $github_milestone = NULL, $github_status = NULL, $labels = array()) {
   $ret = array();
-	if (!is_array($case_ids)) {                   
-		$case_ids = array($case_ids);
-	}                              
-	                            
+  if (!is_array($case_ids)) {                   
+    $case_ids = array($case_ids);
+  }                              
+
   $desk = desk_integration_client();
   $github_status = _desk_integration_validate_github_status($github_status);
   $notify_milestone = (variable_get('desk_notify_milestone', TRUE) && $github_milestone); //don't notify if no milestone is given
@@ -381,8 +381,8 @@ function desk_integration_update_cases($case_ids, $github_issue_id, $github_mile
 
   $custom = array_filter(array('github_issue_id' => $github_issue_id, 'github_milestone' => $github_milestone, 'github_status' => $github_status));
   watchdog('desk', 'Updating cases [@cases] with @custom', array('@cases' => implode(', ', $case_ids), '@custom' => serialize($custom)));
-  
-	foreach ($case_ids as $id) {
+
+  foreach ($case_ids as $id) {
     //optional notifications
     if ($notify_closed || $notify_milestone) {
       $case = $desk->api('case')->call('show', array('id' => $id));
@@ -402,7 +402,7 @@ function desk_integration_update_cases($case_ids, $github_issue_id, $github_mile
           $msg = 'Your request has been fixed in development.  The update is scheduled to go live as part of our ' . $github_milestone . ' release.';
         }
       }
-      
+
       if (isset($msg) && $msg) {
         $ret[] = _desk_integration_case_reply($id, $msg); 
       }
@@ -410,12 +410,12 @@ function desk_integration_update_cases($case_ids, $github_issue_id, $github_mile
 
     //set state without notification
     $args = array('id' => $id, 'custom_fields' => $custom);
-	  $response = $desk->api('case')->call('update', $args);
-	  if (isset($response->message) && $response->message == DESK_INTEGRATION_CASE_LOCKED) {
-	    desk_integration_enqueue('case', 'update', $args);
-	  }
-	}
-  
+    $response = $desk->api('case')->call('update', $args);
+    if (isset($response->message) && $response->message == DESK_INTEGRATION_CASE_LOCKED) {
+      desk_integration_enqueue('case', 'update', $args);
+    }
+  }
+
   return $ret;
 }
 
@@ -426,7 +426,7 @@ function desk_integration_update_cases($case_ids, $github_issue_id, $github_mile
  */
 function _desk_integration_case_reply($id, $msg, $repost = FALSE) {
   $desk = desk_integration_client();
-  
+
   $page = 1;
   while ($page) {
     $replies = $desk->api('case')->call('list_replies', array('id' => $id));    
@@ -435,11 +435,11 @@ function _desk_integration_case_reply($id, $msg, $repost = FALSE) {
         return NULL;
       }
     }
-    
+
     //loop until we're out of pages
     $page = (isset($replies->_links->self->next)) ? $page + 1 : FALSE; 
   }
-  
+
   return $desk->api('case')->call('create_reply', array('id' => $id, 'body' => $msg, 'direction' => 'out'));
 }
 
@@ -449,15 +449,15 @@ function _desk_integration_case_reply($id, $msg, $repost = FALSE) {
  * Make sure github_status is one of the three valid options.
  */
 function _desk_integration_validate_github_status($github_status) {
-	switch (strtolower($github_status)) {
-		case 'open':
-		case 'repoened':
-			return 'Open';
-    case 'closed':
-    	return 'Closed';
-    default:
-		  return NULL;
-	}
+  switch (strtolower($github_status)) {
+  case 'open':
+  case 'repoened':
+    return 'Open';
+  case 'closed':
+    return 'Closed';
+  default:
+    return NULL;
+  }
 }
 
 
@@ -472,7 +472,7 @@ function _desk_integration_payload_data() {
   foreach (array_keys(desk_liquid_vars()) as $var) {
     $data[$var] = $_REQUEST[$var];
   }
-  
+
   $data += array(
     'link' => 'http://'. variable_get('desk_subdomain') . '.desk.com/agent/case/' . $data['case_id'],
   );
@@ -500,14 +500,14 @@ function desk_integration_enqueue($api, $call, $args) {
 function desk_integration_backlog() {
   $queue = variable_get('desk_integration_backlog', array());
   $desk = desk_integration_client();
-  
+
   foreach ($queue as $key => $item) {
     $response = $desk->api($item['api'])->call($item['call'], $item['args']);
     if (!isset($response->message) || $response->message != DESK_INTEGRATION_CASE_LOCKED) {
       unset($queue[$key]);
     }  
   }
-  
+
   variable_set('desk_integration_backlog', $queue);
 }
 

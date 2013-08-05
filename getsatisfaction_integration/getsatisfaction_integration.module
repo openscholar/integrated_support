@@ -4,15 +4,15 @@
  * Implements hook_menu
  */
 function getsatisfaction_integration_menu() {
-	$items = array(
-		'admin/config/integrated_support/getsatisfaction' => array(
-			'title' => 'GetSatisfaction',
-			'file' => '/getsatisfaction_integration.admin.inc',
-			'page callback' => 'drupal_get_form',
-			'page arguments' => array('getsatisfaction_integration_admin'),
-			'access arguments' => array('administer site configuration'),
-			'type' => MENU_LOCAL_TASK,
-		),
+  $items = array(
+    'admin/config/integrated_support/getsatisfaction' => array(
+      'title' => 'GetSatisfaction',
+      'file' => '/getsatisfaction_integration.admin.inc',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('getsatisfaction_integration_admin'),
+      'access arguments' => array('administer site configuration'),
+      'type' => MENU_LOCAL_TASK,
+    ),
     'admin/config/integrated_support/getsatisfaction/tickets' => array(
       'title' => 'GetSatisfaction Ticket Mappings',
       'file' => '/getsatisfaction_integration.admin.inc',
@@ -35,9 +35,9 @@ function getsatisfaction_integration_menu() {
       'page callback' => 'getsatisfaction_integration_roadmap_page',
       'access arguments' => array('access content'),
     )
-	);
+  );
 
-	return $items;
+  return $items;
 }
 
 /**
@@ -101,45 +101,45 @@ function getsatisfaction_integration_create_topic($subject, $detail = '', $style
  * Responds to a getsatisfaction_integration event by updating a GS topic that is mapped to a GH issue
  */
 function getsatisfaction_integration_integrated_support_event($event, $payload) {
-	$return = array();
-	switch ($event) {
+  $return = array();
+  switch ($event) {
 
-	  case 'desk_to_getsatisfaction':
-	    $return[] = getsatisfaction_integration_create_topic($payload['case_subject'], $payload['case_body']);
-	    break;
+  case 'desk_to_getsatisfaction':
+    $return[] = getsatisfaction_integration_create_topic($payload['case_subject'], $payload['case_body']);
+    break;
 
-    case 'github_issue':
-      if (isset($payload['type']) && in_array($payload['type'], array('issue', 'comment'))) {
-        //get affected getsatisfaction topics
-        $gh_id = $payload['id'];
-        $ids = db_select('getsatisfaction_service_map', 'gs')
-          ->condition('external_id', $gh_id)
-          ->condition('external_service', 'github_integration')
-          ->fields('gs', array('id'))
-          ->distinct()
-          ->execute()
-          ->fetchCol();
+  case 'github_issue':
+    if (isset($payload['type']) && in_array($payload['type'], array('issue', 'comment'))) {
+      //get affected getsatisfaction topics
+      $gh_id = $payload['id'];
+      $ids = db_select('getsatisfaction_service_map', 'gs')
+        ->condition('external_id', $gh_id)
+        ->condition('external_service', 'github_integration')
+        ->fields('gs', array('id'))
+        ->distinct()
+        ->execute()
+        ->fetchCol();
 
-        $status = ($payload['state'] == 'closed') ? 'complete' : 'active';
-        watchdog('getsatisfaction', 'applying @status status to topics: @ids', array('@status' => $status, '@ids' => implode(',', $ids)));
+      $status = ($payload['state'] == 'closed') ? 'complete' : 'active';
+      watchdog('getsatisfaction', 'applying @status status to topics: @ids', array('@status' => $status, '@ids' => implode(',', $ids)));
 
-        //apply status and update milestone
-        foreach ($ids as $id) {
-          $return[] = getsatisfaction_integration_update_topic_status($id, $status, @$payload['milestone'], @$payload['labels']);
-          if ($payload['milestone']) {
-            _getsatisfaction_integration_update_topic_milestone($id, $payload['milestone']);
-          }
+      //apply status and update milestone
+      foreach ($ids as $id) {
+        $return[] = getsatisfaction_integration_update_topic_status($id, $status, @$payload['milestone'], @$payload['labels']);
+        if ($payload['milestone']) {
+          _getsatisfaction_integration_update_topic_milestone($id, $payload['milestone']);
         }
-
-
-      } else {
-        watchdog('No getsatisfaction action for github event: for @payload', array('@payload' => serialize($payload)), WATCHDOG_DEBUG);
       }
-      break;
-	}
+
+
+    } else {
+      watchdog('No getsatisfaction action for github event: for @payload', array('@payload' => serialize($payload)), WATCHDOG_DEBUG);
+    }
+    break;
+  }
 
   watchdog('getsatisfaction', '@event return: @ret', array('@event' => $event, '@ret' => serialize($return)), WATCHDOG_DEBUG);
-	return $return;
+  return $return;
 }
 
 /**
@@ -170,14 +170,14 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status, $mi
       ->fetchField();
     if ($stored_status && $stored_status != 'complete') {
       $message = 'Development of this request is complete.';
-      
+
       if (in_array('Hotfix', $labels)) {
         $message .= ' It will be released promptly.';
       }
       elseif ($milestone) {
         $message .= '  It will be deployed as part of our ' . $milestone . ' release.';
       }
-           
+
       $client->api('topic')->call('reply', array('id' => $topic_id, 'reply' => array('content' => $message)));
     }
   }
@@ -224,14 +224,14 @@ function getsatisfaction_integration_topics_to_github() {
     ->condition('external_service', 'github_integration')
     ->execute()
     ->fetchCol();
-  
+
   //more logging.  *sigh*
   $ids = array_map(create_function('$obj', 'return $obj->id;'), $topics->data);
   $todo = array_diff($ids, $mapped);
   watchdog('getsatisfaction', 'active topics: [@topics].  already mapped: [@mapped].  todo: [@todo]', array(
     '@topics' => implode(', ', $ids), '@mapped' => implode(', ', $mapped), '@todo' => implode(', ', $todo)
   ));
-  
+
   foreach ($topics->data as $topic) {
     _getsatisfaction_integration_update_topic_table($topic);
     //check if topic is mapped
@@ -305,17 +305,17 @@ function getsatisfaction_integration_views_data() {
     'field' => array(
       'handler' => 'views_handler_field',
       'click sortable' => TRUE, // This is use by the table display plugin.
-      ),
-      'sort' => array(
-        'handler' => 'views_handler_sort',
-      ),
-      'filter' => array(
-        'handler' => 'views_handler_filter_string',
-      ),
-      'argument' => array(
-        'handler' => 'views_handler_argument_string',
-      ),
-    );
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
 
   $data['getsatisfaction_service_map']['external_service'] = array(
     'title' => t('external service'),
@@ -335,162 +335,162 @@ function getsatisfaction_integration_views_data() {
     ),
   );
 
-    // Example numeric text field.
-    $data['getsatisfaction_service_map']['external_id'] = array(
-      'title' => t('External ID'),
-      'help' => t('External service\'s unique ticket id.'),
-      'field' => array(
-        'handler' => 'views_handler_field_numeric',
-        'click sortable' => TRUE,
-      ),
-      'filter' => array(
-        'handler' => 'views_handler_filter_numeric',
-      ),
-      'sort' => array(
-        'handler' => 'views_handler_sort',
-      ),
-    );
+  // Example numeric text field.
+  $data['getsatisfaction_service_map']['external_id'] = array(
+    'title' => t('External ID'),
+    'help' => t('External service\'s unique ticket id.'),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
 
-    $data['getsatisfaction_topics']['table']['group'] = t('GS');
-    $data['getsatisfaction_topics']['table']['base'] = array(
-      'field' => 'id', // This is the identifier field for the view.
-      'title' => t('GS Topics.'),
-      'help' => t('Local storage of get_sfn topics.'),
-      'weight' => -10,
-    );
+  $data['getsatisfaction_topics']['table']['group'] = t('GS');
+  $data['getsatisfaction_topics']['table']['base'] = array(
+    'field' => 'id', // This is the identifier field for the view.
+    'title' => t('GS Topics.'),
+    'help' => t('Local storage of get_sfn topics.'),
+    'weight' => -10,
+  );
 
-    $data['getsatisfaction_topics']['table']['join'] = array(
-      'getsatisfaction_service_map' => array(
-        'left_field' => 'id',
-        'field' => 'id',
-      ),
-    );
+  $data['getsatisfaction_topics']['table']['join'] = array(
+    'getsatisfaction_service_map' => array(
+      'left_field' => 'id',
+      'field' => 'id',
+    ),
+  );
 
-    //ID table field.
-    $data['getsatisfaction_topics']['id'] = array(
-      'title' => t('ID'),
-      'help' => t('GS ID.'),
-      'relationship' => array(
-        'base' => 'getsatisfaction_service_map', // The name of the table to join with.
-        'base field' => 'id', // The name of the field on the joined table.
-        // 'field' => 'nid' -- see hook_views_data_alter(); not needed here.
-        'handler' => 'views_handler_relationship',
-        'label' => t('GS - Topicmap'),
-        'title' => t('Relate to GetSatisfaction'),
-        'help' => t('Relate to GetSatisfaction'),
-      ),
-      'field' => array(
-        'handler' => 'views_handler_field_numeric',
-        'click sortable' => TRUE,
-      ),
-      'filter' => array(
-        'handler' => 'views_handler_filter_numeric',
-      ),
-      'sort' => array(
-        'handler' => 'views_handler_sort',
-      ),
-    );
+  //ID table field.
+  $data['getsatisfaction_topics']['id'] = array(
+    'title' => t('ID'),
+    'help' => t('GS ID.'),
+    'relationship' => array(
+      'base' => 'getsatisfaction_service_map', // The name of the table to join with.
+      'base field' => 'id', // The name of the field on the joined table.
+      // 'field' => 'nid' -- see hook_views_data_alter(); not needed here.
+      'handler' => 'views_handler_relationship',
+      'label' => t('GS - Topicmap'),
+      'title' => t('Relate to GetSatisfaction'),
+      'help' => t('Relate to GetSatisfaction'),
+    ),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
 
-    $data['getsatisfaction_topics']['title'] = array(
-      'title' => t('Topic Title'),
-      'help' => t('GetSatisfaction topic title.'),
-      'field' => array(
-        'handler' => 'views_handler_field',
-        'click sortable' => TRUE, // This is use by the table display plugin.
-      ),
-      'sort' => array(
-        'handler' => 'views_handler_sort',
-      ),
-      'filter' => array(
-        'handler' => 'views_handler_filter_string',
-      ),
-      'argument' => array(
-        'handler' => 'views_handler_argument_string',
-      ),
-    );
+  $data['getsatisfaction_topics']['title'] = array(
+    'title' => t('Topic Title'),
+    'help' => t('GetSatisfaction topic title.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE, // This is use by the table display plugin.
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
 
-    $data['getsatisfaction_topics']['status'] = array(
-      'title' => t('Status'),
-      'help' => t('GetSatisfaction topic status.'),
-      'field' => array(
-        'handler' => 'views_handler_field',
-        'click sortable' => TRUE, // This is use by the table display plugin.
-      ),
-      'sort' => array(
-        'handler' => 'views_handler_sort',
-      ),
-      'filter' => array(
-        'handler' => 'views_handler_filter_string',
-      ),
-      'argument' => array(
-        'handler' => 'views_handler_argument_string',
-      ),
-    );
+  $data['getsatisfaction_topics']['status'] = array(
+    'title' => t('Status'),
+    'help' => t('GetSatisfaction topic status.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE, // This is use by the table display plugin.
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
 
-    $data['getsatisfaction_topics']['author'] = array(
-      'title' => t('author'),
-      'help' => t('GetSatisfaction topic author.'),
-      'field' => array(
-        'handler' => 'views_handler_field',
-        'click sortable' => TRUE, // This is use by the table display plugin.
-      ),
-      'sort' => array(
-        'handler' => 'views_handler_sort',
-      ),
-      'filter' => array(
-        'handler' => 'views_handler_filter_string',
-      ),
-      'argument' => array(
-        'handler' => 'views_handler_argument_string',
-      ),
-    );
+  $data['getsatisfaction_topics']['author'] = array(
+    'title' => t('author'),
+    'help' => t('GetSatisfaction topic author.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE, // This is use by the table display plugin.
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
 
-    $data['getsatisfaction_topics']['me_too_count'] = array(
-      'title' => t('How many +1s'),
-      'help' => t('How many +1s.'),
-      'field' => array(
-        'handler' => 'views_handler_field_numeric',
-        'click sortable' => TRUE,
-      ),
-      'filter' => array(
-        'handler' => 'views_handler_filter_numeric',
-      ),
-      'sort' => array(
-        'handler' => 'views_handler_sort',
-      ),
-    );
+  $data['getsatisfaction_topics']['me_too_count'] = array(
+    'title' => t('How many +1s'),
+    'help' => t('How many +1s.'),
+    'field' => array(
+      'handler' => 'views_handler_field_numeric',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_numeric',
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+  );
 
-    $data['getsatisfaction_topics']['body'] = array(
-      'title' => t('body'),
-      'help' => t('GetSatisfaction topic body.'),
-      'field' => array(
-        'handler' => 'views_handler_field',
-        'click sortable' => TRUE, // This is use by the table display plugin.
-      ),
-      'sort' => array(
-        'handler' => 'views_handler_sort',
-      ),
-      'filter' => array(
-        'handler' => 'views_handler_filter_string',
-      ),
-      'argument' => array(
-        'handler' => 'views_handler_argument_string',
-      ),
-    );
+  $data['getsatisfaction_topics']['body'] = array(
+    'title' => t('body'),
+    'help' => t('GetSatisfaction topic body.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE, // This is use by the table display plugin.
+    ),
+    'sort' => array(
+      'handler' => 'views_handler_sort',
+    ),
+    'filter' => array(
+      'handler' => 'views_handler_filter_string',
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
 
-    $data['getsatisfaction_topics']['link'] = array(
-      'title' => t('link'),
-      'help' => t('GetSatisfaction topic link.'),
-      'field' => array(
-        'handler' => 'views_handler_field',
-        'click sortable' => TRUE, // This is use by the table display plugin.
-      ),
-      'argument' => array(
-        'handler' => 'views_handler_argument_string',
-      ),
-    );
+  $data['getsatisfaction_topics']['link'] = array(
+    'title' => t('link'),
+    'help' => t('GetSatisfaction topic link.'),
+    'field' => array(
+      'handler' => 'views_handler_field',
+      'click sortable' => TRUE, // This is use by the table display plugin.
+    ),
+    'argument' => array(
+      'handler' => 'views_handler_argument_string',
+    ),
+  );
 
-    return $data;
+  return $data;
 }
 
 /**
@@ -530,7 +530,7 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone) {
 
   //either we found a stale milestone or no milestone reply exists.  post an update now.
   $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $reply)));
-  
+
   //now lets check tags, removing existing milestones and adding ours.
   $topic = $client->api('topic')->call('topic', array('id' => $id));
   $keywords = (isset($topic->keywords)) ? explode(',', $topic->keywords) : array();

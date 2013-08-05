@@ -6,7 +6,7 @@
  * Returns liquid template for json payload of the desk.com vars we want
  */
 function desk_liquid_template() {
-//just hardcode it for now
+  //just hardcode it for now
   $string_vars = array(
     "customer_name" => "{{customer.name}}",
     "case_id" => "{{case.id}}",
@@ -42,7 +42,7 @@ function desk_liquid_url_template() {
   //generates ['customer_name' => '{{customer.name}}']
   $merged = array();
   foreach (desk_liquid_vars() as $k => $v) {
-   $merged[] = "$k=$v"; 
+    $merged[] = "$k=$v"; 
   }
   //return http_build_query($ret); //escaped the curly braces and broke liquid
   return implode('&', $merged);
@@ -62,7 +62,7 @@ function desk_liquid_vars() {
     "browser_version" => "{{case.interactions | map: 'browser_version' | first}}",
     "case_body" => "{{case.interactions | map: 'body' | first | replace: '\"' \"'\" | append: '\"' | prepend: '\"' }}",
   );
-  
+
   return $ret;
 }
 
