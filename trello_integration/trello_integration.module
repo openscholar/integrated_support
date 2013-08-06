@@ -1,0 +1,96 @@
+<?php 
+
+/**
+ * @file trello_integration.module
+ */
+
+/**
+ * Implements hook_menu
+ */
+function trello_integration_menu() {
+  return array(
+    'trello_roadmap' => array(
+      'title' => 'Trello Roadmap',
+      //'file' => '/getsatisfaction_integration.roadmap.inc',
+      'page callback' => 'trello_integration_roadmap',
+      'access arguments' => array('access content'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_libraries_info
+ *
+ * Provides Trello.php from  https://bitbucket.org/mattzuba/php-trello
+ */
+function trello_integration_libraries_info() {
+  return array(
+    'php-trello' => array(
+      'name' => 'PHP Trello API',
+      'files' => array('php' => array('Trello/Trello.php')),
+      'version' => 'master',
+    ),
+  );
+}
+
+/**
+ * @function trello_integration_client
+ * 
+ * Returns client object for accessing trello.
+ */
+function trello_integration_client() {
+  static $gh_client;
+  if (!empty($gh_client)) {
+    return $gh_client;
+  }
+
+  libraries_load('php-trello');
+
+  $key = variable_get('trello_integration_key');
+  $secret = variable_get('trello_integration_secret');
+  $token = variable_get('trello_integration_token');
+
+  if (!$key || !($secret || $token)) {
+    throw new Exception('Trello isn\'t configured.');
+  }
+
+  $trello = ($token) ?  new \Trello\Trello($key, NULL, $token) : new \Trello\Trello($key, $secret);
+  return $trello;
+}
+
+/**
+ * @function trello_integration_create_card()
+ * 
+ * Creates a trello card on the specified list
+ */
+function trello_integration_create_card($list, $name, $desc = NULL, $pos = 'bottom', $due = NULL, $labels = array(), $members = array()) {
+  $card = array(
+    'idList' => $list,
+    'name' => $name,
+    'desc' => $desc,
+    'due' => $due,
+    'labels' => array_intersect($labels, array('green', 'yellow', 'orange', 'red', 'purple', 'blue')),
+    'idMembers' => $members, 
+  );
+
+  $trello = trello_integration_client();
+  $trello->post('cards', array_filter($card));
+}
+
+/**
+ * @function trello_integration_roadmap
+ * 
+ * Displays a roadmap based on cards from trello.
+ */
+function trello_integration_roadmap() {
+  $trello = trello_integration_client();
+  $board = '1xNAf1dj'; 
+
+  $lists = $trello->boards->get("$board/lists");
+  dpm($lists);
+  foreach ($lists as $list) {
+    dpm($list);
+  }
+
+  return '';
+}

@@ -1,0 +1,8 @@
+name = Trello Integration
+description = Provides Trello Integration
+core = 7.x
+package = Integrated Support
+php = 5.2.4
+dependencies[] = features
+dependencies[] = integrated_support
+configure = admin/config/trello_support/getsatisfaction
