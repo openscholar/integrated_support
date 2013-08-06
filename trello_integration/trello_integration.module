@@ -29,6 +29,7 @@ function trello_integration_libraries_info() {
       'name' => 'PHP Trello API',
       'files' => array('php' => array('Trello/Trello.php')),
       'version' => 'master',
+      'callbacks' => array('pre-load' => array('_trello_integration_include_crud')),
     ),
   );
 }
@@ -58,24 +59,6 @@ function trello_integration_client() {
   return $trello;
 }
 
-/**
- * @function trello_integration_create_card()
- * 
- * Creates a trello card on the specified list
- */
-function trello_integration_create_card($list, $name, $desc = NULL, $pos = 'bottom', $due = NULL, $labels = array(), $members = array()) {
-  $card = array(
-    'idList' => $list,
-    'name' => $name,
-    'desc' => $desc,
-    'due' => $due,
-    'labels' => array_intersect($labels, array('green', 'yellow', 'orange', 'red', 'purple', 'blue')),
-    'idMembers' => $members, 
-  );
-
-  $trello = trello_integration_client();
-  $trello->post('cards', array_filter($card));
-}
 
 /**
  * @function trello_integration_roadmap
@@ -85,12 +68,34 @@ function trello_integration_create_card($list, $name, $desc = NULL, $pos = 'bott
 function trello_integration_roadmap() {
   $trello = trello_integration_client();
   $board = '1xNAf1dj'; 
+  $lists = array();
 
-  $lists = $trello->boards->get("$board/lists");
-  dpm($lists);
-  foreach ($lists as $list) {
-    dpm($list);
+  foreach (trello_integration_lists($board) as $list) {
+    if ($list->name == 'Inbox') {
+      //inbox won't be shown.  it's for sorting.  but here's some dpms for reference.
+      dpm($list);
+      dpm(trello_integration_cards($list->id));
+      //continue;
+    }  
+    
+    $cards = trello_integration_cards($list->id);
+    $lists[] = array(   
+      '#items' => array_map(create_function('$o', 'return $o->name;'), $cards),
+      '#title' => $list->name,
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#attributes' => array(), 
+    );
   }
 
-  return '';
+  return $lists;
+}
+
+/**
+ * @function _trello_integration_include_crud
+ * 
+ * Callback function for loading trello library, loads trello crud php 
+ */
+function _trello_integration_include_crud() {
+  require_once(drupal_get_path('module', 'trello_integration') . '/trello_integration.crud.inc'); 
 }

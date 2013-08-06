@@ -53,7 +53,7 @@ function github_integration_libraries_info() {
     'composer' => array(
       'name' => 'Composer Libs',
       'files' => array('php' => array('vendor/autoload.php')),
-      'version' => 'master',
+      'version' => 'master',        
     ),
   );
 }
