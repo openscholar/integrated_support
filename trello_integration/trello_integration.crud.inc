@@ -31,3 +31,25 @@ function trello_integration_cards($list) {
   $trello = trello_integration_client();
   return $trello->lists->get("$list/cards");
 }
+
+function trello_integration_webhook($id, $callback_url, $description = '') {
+  $trello = trello_integration_client();
+  $webhook = array(
+    'idModel' => $id,
+    'callbackUrl' => $callback_url,
+    'description' => $description,    
+  );
+  return $trello->post('webhooks', array_filter($webhook));
+}
+
+function trello_integration_card_comments($card) {
+  $trello = trello_integration_client();
+  
+  //we can bail out in advance if whole card is provided
+  if (is_object($card) && !$card->badges->comments) {
+    return NULL;
+  }
+  
+  $card_id = (is_object($card)) ? $card->id : $card;
+  return $trello->cards->get($card->id . '/actions');
+}

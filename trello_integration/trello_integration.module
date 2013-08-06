@@ -79,6 +79,13 @@ function trello_integration_roadmap() {
     }  
     
     $cards = trello_integration_cards($list->id);
+    
+    foreach ($cards as $card) {
+      if ($card->badges->comments) {
+        dpm(trello_integration_card_comments($card));
+      }
+    }
+    
     $lists[] = array(   
       '#items' => array_map(create_function('$o', 'return $o->name;'), $cards),
       '#title' => $list->name,
@@ -89,6 +96,18 @@ function trello_integration_roadmap() {
   }
 
   return $lists;
+}
+
+
+//wrapper for webhook.  creates a webhook to a specific service here.
+function trello_integration_integrated_support_webhook($trello_id, $service, $service_id, $description = '') {
+  if (!in_array($service, module_implements('integrated_support_info'))) {
+    return;
+  }
+  global $base_url;
+
+  $callback_url = $base_url . '/integrated_support/trello_integration/' . $service_id;
+  trello_integration_webhook($trello_id, $callback_url, $description);
 }
 
 /**
