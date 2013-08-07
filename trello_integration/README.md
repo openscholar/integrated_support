@@ -67,9 +67,11 @@ Even GH milestone changes?
 How would I get the date of the next release if we only mark things as "next"?  Is next good enough?
 
 Should cards have link status comments?  ie "This card controls desk/321".  If yes, could removing them remove the link?
+  Removing comment -> disabling webhook won't work.  Card doesn't send a webhook when comment is edited or deleted.  I tried adding a webhook to the comment, and that went through, but it never fired.
 
 Trello cards have a due date.  Use it?  Or is it redundant/mutually exclusive with the "next" label of the list.
 
 When I fetch a card can I see its webhooks?  Does this help in any way?
 
 Does this obviate sending from one service to another?  If not, what ends up in trello?
+

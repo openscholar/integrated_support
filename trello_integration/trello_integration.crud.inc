@@ -32,14 +32,34 @@ function trello_integration_cards($list) {
   return $trello->lists->get("$list/cards");
 }
 
-function trello_integration_webhook($id, $callback_url, $description = '') {
+
+function trello_integration_webhooks() {
   $trello = trello_integration_client();
+  $token = variable_get('trello_integration_token');
+  return $trello->get('tokens/' . $token . '/webhooks');
+}
+
+function trello_integration_delete_webhook($id) {
+  trello_integration_client()->delete('webhooks/' . $id);
+}
+  
+function trello_integration_create_webhook($id, $callback_url, $description = '') {
+  $trello = trello_integration_client();
+  $token = variable_get('trello_integration_token');
+  $key = variable_get('trello_integration_key');
   $webhook = array(
     'idModel' => $id,
-    'callbackUrl' => $callback_url,
+    'callbackURL' => $callback_url,
     'description' => $description,    
   );
-  return $trello->post('webhooks', array_filter($webhook));
+  
+  $post = $trello->post('webhooks', array_filter($webhook));
+  if (!$post) {
+    //'not a valid url' refers to the callbackURL.
+    drupal_set_message(t('Error creating webhook to "@url": @e', array('@url' => $callback_url, '@e' => $trello->error())), 'error');
+  }
+  
+  return $post;
 }
 
 function trello_integration_card_comments($card) {
@@ -52,4 +72,9 @@ function trello_integration_card_comments($card) {
   
   $card_id = (is_object($card)) ? $card->id : $card;
   return $trello->cards->get($card->id . '/actions');
+}
+
+function trello_integration_card($id) {
+  $trello = trello_integration_client();
+  return $trello->cards->get($id);
 }
