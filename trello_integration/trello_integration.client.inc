@@ -28,99 +28,31 @@ class OSTrello extends Trello {
   
   public function __construct($consumer_key, $shared_secret = null, $token = null, $oauth_secret = null) {
     parent::__construct($consumer_key, $shared_secret, $token, $oauth_secret);
+    
+    /**
+     * This array describes the structure of Trello's rest URLs.  Top level items correspond to URLs.  They often take
+     * and id parameter.  Their children can similarly be targetted.
+     * 
+     * So, to query a specific card, you'd use $trello->cards($id).  CRUD can be done there, or a subquery from the cards 
+     * can be made: $trello->cards($id)->actions($comment_id)
+     */
     $models = array(
-      'actions' => array(
-        'board' => array(),
-        'card' => array(),
-        'list' => array(),
-        'member' => array(),
-        'memberCreator' => array(),
-        'organization' => array(),
-      ),
-      
-      'boards' => array(
-        'cards' => array(),
-        'lists' => array(),
-        'members' => array(),
-        'membersInvited' => array(),
-        'memberships' => array(),
-        'organization' => array(),
-        'labelNames' => array(),
-        'myPrefs' => array(),
-        'prefs' => array(),
-        'powerUps' => array(),
-      ),
-        
-      'cards' => array(
-        'field' => array(),
-        'attachments' => array(),
-        'board' => array(),
-        'list' => array(),
-        'actions' => array(
-          'comments' => array(),    
-        ),
-        'checklist' => array(
-          'checkItem' => array(),    
-        ),
-        'checklists' => array(),
-        'idMembers' => array(),
-        'labels' => array(),
-        'membersVoted' => array(),    
-      ),
-        
-      'checklists' => array(
-        'field' => array(),
-        'board' => array(),
-        'cards' => array(),
-        'checkItems' => array(),    
-      ),
-        
-      'lists' => array(
-        'field' => array(),
-        'board' => array(),
-        'cards' => array(),
-      ),
-        
-      'members' => array(
-        'field' => array(),
-        'board' => array(),
-        'cards' => array(),          
-        'notifications' => array(),
-        'organizations' => array(),
-        'organizationsInvited' => array(),
-        'prefs' => array(),
-      ),
-
-      'notifications' => array(
-        'field' => array(),
-        'board' => array(),
-        'cards' => array(),
-        'member' => array(),
-        'memberCreator' => array(),
-        'organization' => array(),
-      ),
-        
-      'organizations' => array(
-        'field' => array(),
-        'attachments' => array(),
-        'boards' => array(),
-        'members' => array(),
-        'membersInvited' => array(),
-        'memberships' => array(),
-        'prefs' => array(),
-      ),
-      'search' => array(
-        'members' => array(),    
-      ),
-      'tokens' => array(
-        'member' => array(),
-        'webhooks' => array(),
-      ),
-      'webhooks' => array(
-        'field' => array(),    
-      ),
+      'actions' => array('board', 'card', 'list', 'member', 'memberCreator', 'organization'),
+      'boards' => array('cards','lists','members', 'membersInvited', 'memberships', 'organization', 'labelNames', 'myPrefs', 'prefs', 'powerUps'),
+      'cards' => array('field', 'attachments', 'board', 'list', 'actions' => array('comments'), 'checklist' => array('checkItem'), 'checklists', 'idMembers', 'labels', 'membersVoted',),  
+      'checklists' => array('field', 'board', 'cards', 'checkItems'),
+      'lists' => array('field', 'board','cards'),
+      'members' => array('field', 'board', 'cards', 'notifications', 'organizations', 'organizationsInvited', 'prefs'),
+      'notifications' => array('field', 'board', 'cards', 'member', 'memberCreator', 'organization'),
+      'organizations' => array('field', 'attachments', 'boards', 'members', 'membersInvited', 'memberships', 'prefs'),
+      'search' => array('members'),
+      'tokens' => array('member','webhooks'),
+      'webhooks' => array('field'),  
     );
-    foreach ($models as $url => $children) {
+
+    foreach ($models as $key => $value) {
+      $url = (is_array($value)) ? $key : $value;
+      $children = (is_array($value)) ? $value : array();
       $this->models[$url] = new Model($this, $url, $children);
     }
   }
@@ -148,13 +80,17 @@ class Model {
   private $args;
   private $parent;
   
-  function __construct(OSTrello $client, $url, $children, $parent = NULL) {
+  function __construct(OSTrello $client, $url, $children = array(), $parent = NULL) {
     $this->client = $client;
     $this->url = $url;
     $this->parent = $parent;
     
-    foreach ($children as $child => $grandchildren) {
-      $this->models[$child] = new Model($client, $child, $grandchildren, $this);
+    foreach ($children as $key => $value) {
+      $url = (is_array($value)) ? $key : $value;
+      $grandchildren = (is_array($value)) ? $value : array();
+      $this->models[$url] = new Model($client, $url, $grandchildren, $this);
+      
+      //$this->models[$child] = new Model($client, $child, $grandchildren, $this);
     }
   }
   
