@@ -2,6 +2,27 @@
 
 use Trello\Trello;
 
+/**
+ * @class OSTrello
+ *
+ * Extends php-trello's Trello class with helper fuctions.  Use these instead of raw URLs.
+ * 
+ * Examples:
+ *   // Get all lists on a board
+ *   $trello->boards($board_id)->lists()->get();
+ *   
+ *   // Create a new card (other params include desc, due, labels, idMembers)
+ *   $card = array('idList' => $list_id, 'name' => 'My card\'s title')
+ *   $trello->cards()->create($card);
+ *   
+ *   // Update labels on a card (overwrites current labels, does not append)
+ *   $trello->cards($card_id)->labels()->update('red,green,blue');
+ *   
+ *   //Loop over all webhooks and delete them
+ *   foreach ($trello->tokens($token)->webhooks()->get() as $hook) {
+ *     $trello->webhooks($hook->id)->delete();
+ *   }
+ */
 class OSTrello extends Trello {
   private $models;
   
