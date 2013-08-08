@@ -222,6 +222,9 @@ function getsatisfaction_integration_admin_tickets_submit(&$form, &$state) {
  * Page callback removes a getsatisfactio service map
  */
 function getsatisfaction_integration_admin_tickets_delete($ajax, $gs_id, $service, $service_id) {
+  watchdog('getsatisfaction', 'User [@ip] deleted mapping between getsatisfaction @gs and @service @sid', 
+    array('@ip' => ip_address(), '@gs' => $gs_id, '@service' => $service, '@sid' => $service_id), WATCHDOG_INFO);
+  
   $deleted = db_delete('getsatisfaction_service_map')
     ->condition('id', $gs_id)
     ->condition('external_service', $service)
