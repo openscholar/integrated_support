@@ -22,6 +22,18 @@ Webhooks
 
 What else is there?  Text, description, labels, members, checklist, due date, file attachment...
 
+Things that trigger a webhook:
+ * Edit description
+ * Add comment
+ * Change labels
+ * Assign member
+ * Add checklist
+ * Move card between lists (includes listAfter and listBefore)
+ 
+Things that don't:
+  * Edit comment (requested)
+  * Delete comment (requested)
+
 **How do issues get added**
 
 1. Getsatisfaction: 
