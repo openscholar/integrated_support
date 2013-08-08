@@ -88,61 +88,53 @@ function trello_integration_roadmap() {
   //dpm($trello->cards()->create($card));
   
   $card_id = '520253a438a1ab8d64002f25';
-  //dpm($trello->cards($card_id)->get());
-  $trello->cards($card_id)->labels()->update(implode(',', $colors));
+  dpm($trello->cards($card_id)->get());
+//   $trello->cards($card_id)->labels()->update(implode(',', $colors));
   
   $token = variable_get('trello_integration_token');
-  $hooks = $trello->tokens($token)->webhooks()->get();
+  dpm($trello->tokens($token)->webhooks()->get());
   
-  if ($hooks) {
-    $hook_id = $hooks[0]->id;
-    $trello->webhooks($hook_id)->delete();
-  }
+ 
   // webhooks live in tokens.  need a ->all for shortcuts?
   
 //  $m = $trello->tokens('token_id')->member('member_id')->get();
-//   $board = '1xNAf1dj'; 
-//   $lists = array();
+  $board = '1xNAf1dj'; 
+  $lists = array();
 
-//   foreach (trello_integration_lists($board) as $list) {
-//     if ($list->name == 'Inbox') {
-//       //inbox won't be shown.  it's for sorting.  but here's some dpms for reference.
-//       dpm($list);
-//       dpm(trello_integration_cards($list->id));
-//       //continue;
-//     }  
+  foreach ($trello->boards($board)->lists()->get() as $list) {
+    if ($list->name == 'Inbox') {
+      //inbox won't be shown.  it's for sorting.  but here's some dpms for reference.
+      dpm($list);
+      dpm(trello_integration_cards($list->id));
+      //continue;
+    }  
     
-//     $cards = trello_integration_cards($list->id);
+    $cards = trello_integration_cards($list->id);
     
-//     foreach ($cards as $card) {
-//       if ($card->badges->comments) {
-//         dpm(trello_integration_card_comments($card));
-//       }
-//     }
+    foreach ($cards as $card) {
+      if ($card->badges->comments) {
+        dpm(trello_integration_card_comments($card));
+      }
+    }
     
-//     $lists[] = array(   
-//       '#items' => array_map(create_function('$o', 'return $o->name;'), $cards),
-//       '#title' => $list->name,
-//       '#theme' => 'item_list',
-//       '#type' => 'ul',
-//       '#attributes' => array(), 
-//     );
-//   }
+    $lists[] = array(   
+      '#items' => array_map(create_function('$o', 'return $o->name;'), $cards),
+      '#title' => $list->name,
+      '#theme' => 'item_list',
+      '#type' => 'ul',
+      '#attributes' => array(), 
+    );
+  }
 
   
   //just playing with webhooks
   //$card_id = '520253a438a1ab8d64002f25';
   //$url = 'http://requestb.in/xn4kigxn';
   
-//   $card_id = '4fad2e29cae4d3903801a244'; //card's comment
-//   $out = trello_integration_create_webhook($card_id, $url, 'req bin');
-  //dpm($out);
-  //$card = trello_integration_card($card_id);
-  
-  //dpm($card);
-  
-//  dpm(trello_integration_webhooks());
-$lists = array();
+  //trello_integration_integrated_support_webhook($card_id, 'my_service', 'ms_id', 'some text');
+  //   $card_id = '4fad2e29cae4d3903801a244'; //card's comment
+
+
   return $lists;
 }
 
@@ -150,12 +142,21 @@ $lists = array();
 //wrapper for webhook.  creates a webhook to a specific service here.
 function trello_integration_integrated_support_webhook($trello_id, $service, $service_id, $description = '') {
   if (!in_array($service, module_implements('integrated_support_info'))) {
-    return;
+    //return;
   }
-  global $base_url;
-
-  $callback_url = $base_url . '/integrated_support/trello_integration/' . $service_id;
-  trello_integration_create_webhook($trello_id, $callback_url, $description);
+  
+  //global $base_url;
+  $base_url = 'http://140.247.184.89/trello_callback.php?q=' ; //just for catching dev pushes
+  $callback_url = "$base_url/integrated_support/trello/$service/$service_id";
+  $trello = trello_integration_client();
+  
+  return $trello->webhooks()->create(array(
+    'idModel' => $trello_id,
+    'callbackURL' => check_url(check_plain($callback_url)),
+    'description' => $description,
+  ));
+  
+  //trello_integration_create_webhook($trello_id, $callback_url, $description);
 }
 
 /**
