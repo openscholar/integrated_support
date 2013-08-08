@@ -119,14 +119,6 @@ class OSTrello extends Trello {
   }
 }
 
-//how to do: $client->boards()->members->get
-// GET /1/boards/[board_id]/members
-// GET /1/boards/[board_id]/members/[filter]
-// GET /1/boards/[board_id]/members/[idMember]/cards
-//
-// longest:
-// /1/cards/[card id or shortlink]/checklist/[idChecklist]/checkItem/[idCheckItem]/convertToCard
-// $client->cards($id)->checklist(id)->checkItem(id)->convertToCard
 
 class Model {
   private $client;
@@ -146,7 +138,6 @@ class Model {
   }
   
   public function __call($method, $arguments) {  
-    //call one of our models as a method
     if (isset($this->models[$method])) {
       return $this->models[$method]->args($arguments);
     } 
@@ -170,9 +161,17 @@ class Model {
     $url = $this->url();
     return $this->client->post($url, $params);
   }
-  function update($id, $params) {}
-  function delete($id, $params) {}
+
+  function update($id, $params = array()) {
+    if (empty($params)) {
+      $params = array('value' => $id);
+      $id = NULL;
+    }
+    
+    $url = $this->url() . $id;
+    return $this->client->put($url, $params);
+  }
+  function delete($id = NULL) {
+    return $this->client->delete($this->url() . $id);
+  }
 }
-
-
-

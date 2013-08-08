@@ -69,9 +69,13 @@ function trello_integration_client() {
 function trello_integration_roadmap() {
   $trello = trello_integration_client();
   $list = '51ffe8d552d1cc2e7f0007f3';
+  
+  $colors = array('red', 'green', 'blue', 'yellow', 'purple', 'orange'); 
+  shuffle($colors);
+  $colors = array_slice($colors, 0, rand(1, count($colors)));
 //   $hook = $trello->webhook()->get('face');
-   $board = $trello->boards('1xNAf1dj')->lists()->get();
-dpm($board);
+//    $board = $trello->boards('1xNAf1dj')->lists()->get();
+// dpm($board);
 
   $card = array(
     'idList' => $list,
@@ -81,7 +85,21 @@ dpm($board);
     'labels' => NULL,
     'idMembers' => NULL,
   );
-  dpm($trello->cards()->create($card));
+  //dpm($trello->cards()->create($card));
+  
+  $card_id = '520253a438a1ab8d64002f25';
+  //dpm($trello->cards($card_id)->get());
+  $trello->cards($card_id)->labels()->update(implode(',', $colors));
+  
+  $token = variable_get('trello_integration_token');
+  $hooks = $trello->tokens($token)->webhooks()->get();
+  
+  if ($hooks) {
+    $hook_id = $hooks[0]->id;
+    $trello->webhooks($hook_id)->delete();
+  }
+  // webhooks live in tokens.  need a ->all for shortcuts?
+  
 //  $m = $trello->tokens('token_id')->member('member_id')->get();
 //   $board = '1xNAf1dj'; 
 //   $lists = array();
