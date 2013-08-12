@@ -79,7 +79,6 @@ function trello_integration_roadmap() {
   $colors = array('red', 'green', 'blue', 'yellow', 'purple', 'orange'); 
   shuffle($colors);
   $colors = array_slice($colors, 0, rand(1, count($colors)));
-//   $hook = $trello->webhook()->get('face');
 //    $board = $trello->boards('1xNAf1dj')->lists()->get();
 // dpm($board);
 
@@ -109,17 +108,15 @@ function trello_integration_roadmap() {
 
   foreach ($trello->boards($board)->lists()->get() as $list) {
     if ($list->name == 'Inbox') {
-      //inbox won't be shown.  it's for sorting.  but here's some dpms for reference.
       dpm($list);
-      dpm(trello_integration_cards($list->id));
-      //continue;
+      dpm($trello->lists($list->id)->cards()->get());
     }  
     
-    $cards = trello_integration_cards($list->id);
+    $cards = $trello->lists($list->id)->cards()->get();
     
     foreach ($cards as $card) {
       if ($card->badges->comments) {
-        dpm(trello_integration_card_comments($card));
+        dpm($trello->cards($card->id)->actions()->comments()->get());
       }
     }
     
@@ -131,15 +128,6 @@ function trello_integration_roadmap() {
       '#attributes' => array(), 
     );
   }
-
-  
-  //just playing with webhooks
-  //$card_id = '520253a438a1ab8d64002f25';
-  //$url = 'http://requestb.in/xn4kigxn';
-  
-  //trello_integration_integrated_support_webhook($card_id, 'my_service', 'ms_id', 'some text');
-  //   $card_id = '4fad2e29cae4d3903801a244'; //card's comment
-
 
   return $lists;
 }
