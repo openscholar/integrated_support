@@ -15,6 +15,13 @@ function trello_integration_menu() {
       'page callback' => 'trello_integration_roadmap',
       'access arguments' => array('access content'),
     ),
+    'trello_callback/%/%' => array( //service, id
+      'title' => 'Trello callbacks',
+      'type' => MENU_CALLBACK,    
+      'page callback' => 'trello_integration_callback',
+      'page arguments' => array(1,2),
+      'access arguments' => array('access content'),
+    ),
   );
 }
 
@@ -29,7 +36,6 @@ function trello_integration_libraries_info() {
       'name' => 'PHP Trello API',
       'files' => array('php' => array('Trello/Trello.php')),
       'version' => 'master',
-      'callbacks' => array('pre-load' => array('_trello_integration_include_crud')),
     ),
   );
 }
@@ -142,12 +148,12 @@ function trello_integration_roadmap() {
 //wrapper for webhook.  creates a webhook to a specific service here.
 function trello_integration_integrated_support_webhook($trello_id, $service, $service_id, $description = '') {
   if (!in_array($service, module_implements('integrated_support_info'))) {
-    //return;
+    return;
   }
   
   //global $base_url;
-  $base_url = 'http://140.247.184.89/trello_callback.php?q=' ; //just for catching dev pushes
-  $callback_url = "$base_url/integrated_support/trello/$service/$service_id";
+  $base_url = 'http://140.247.184.89';
+  $callback_url = "$base_url/trello_callback/$service/$service_id";
   $trello = trello_integration_client();
   
   return $trello->webhooks()->create(array(
@@ -159,11 +165,7 @@ function trello_integration_integrated_support_webhook($trello_id, $service, $se
   //trello_integration_create_webhook($trello_id, $callback_url, $description);
 }
 
-/**
- * @function _trello_integration_include_crud
- * 
- * Callback function for loading trello library, loads trello crud php 
- */
-function _trello_integration_include_crud() {
-  require_once(drupal_get_path('module', 'trello_integration') . '/trello_integration.crud.inc'); 
+function trello_integration_callback($service, $id) {
+  $payload = json_decode(@file_get_contents('php://input'));
+  watchdog('trello', 'Trello recieved a webhook for "@id" on "@service": @hook', array('@id' => $id, '@service' => $service, '@hook' => serialize($payload)));
 }
