@@ -127,7 +127,7 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
       foreach ($ids as $id) {
         $return[] = getsatisfaction_integration_update_topic_status($id, $status, @$payload['milestone'], @$payload['labels']);
         if ($payload['milestone']) {
-          _getsatisfaction_integration_update_topic_milestone($id, $payload['milestone']);
+          _getsatisfaction_integration_update_topic_milestone($id, $payload['milestone'], $payload['id']);
         }
       }
 
@@ -276,7 +276,7 @@ function getsatisfaction_integration_cron() {
  * Notifies a topic about a milestone change.
  * Only do this if there is no milestone status or the status is a change
  */
-function _getsatisfaction_integration_update_topic_milestone($id, $milestone) {
+function _getsatisfaction_integration_update_topic_milestone($id, $milestone, $gh_id) {
   if (empty($milestone)) {
     return;
   }
@@ -302,10 +302,19 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone) {
       }
     }
   }
-
-  watchdog('getsatisfaction', 'topic @id needs milestone update: "@milestone"', array('@id' => $id, '@milestone' => $milestone));
+  
+  //get the titles for roadmap notifications.
+  $result = db_select('getsatisfaction_service_map', 'gs')
+    ->condition('id', $id)
+    ->condition('external_service', 'github_integration')
+    ->condition('external_id', $gh_id)
+    ->fields('gs', array('title', 'external_title'))
+    ->execute();
+  $row = $result->fetchObject();
 
   //either we found a stale milestone or no milestone reply exists.  post an update now.
+  watchdog('getsatisfaction', 'topic @id needs milestone update: "@milestone"', array('@id' => $id, '@milestone' => $milestone));
+  _getsatisfaction_integration_roadmap_notification('update', $row->title, $row->external_title, $milestone);
   $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $reply)));
 
   //now lets check tags, removing existing milestones and adding ours.
@@ -316,6 +325,59 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone) {
     $keywords[] = $milestone;
     $client->api('topic')->call('update', array('id' => $id, 'topic' => array('keywords' => implode(',', $keywords))));
   }
+}
+
+/**
+ * @function _getsatisfaction_integration_roadmap_notification
+ * 
+ * Notifies users of changes to our roadmap
+ * 
+ * @param string $type
+ *   add, delete, or update
+ *   
+ * @param string $gs_topic
+ *   Title of getsatisfaction topic
+ *   
+ * @param string $gh_issue
+ *   Title of github issue
+ *   
+ * @param string $milestone
+ *   milestone name.  Only used in update.
+ */
+function _getsatisfaction_integration_roadmap_notification($type, $gs_topic, $gh_issue, $milestone = NULL) {
+  $recipients = variable_get('getsatisfaction_integration_roadmap_notification_recipients', '');
+  $recipients = explode(',', $recipients);
+  $recipients = array_map('trim', $recipients);
+  
+  switch ($type) {
+    case 'add':
+      $params = array(
+        'body' => t('"@topic" has been mapped to "@issue"', array('@topic' => $gs_topic, '@issue' => $gh_issue)),
+        'subject' => t('[OS Roadmap] "@topic" has been added.', array('@topic' => $gs_topic)),
+      );
+      break;
+      
+    case 'delete':
+      $params = array(
+        'body' => t('"@topic" has been removed from the roadmap.  It was previously mapped to "@issue"', array('@topic' => $gs_topic, '@issue' => $gh_issue)),
+        'subject' => t('[OS Roadmap] "@topic" has been removed.', array('@topic' => $gs_topic)),
+      );
+      break;
+      
+    case 'update':
+      $params = array(
+        'body' => t('"@topic" has had its milestone changed to "@ms".', array('@topic' => $gs_topic, '@ms' => $milestone)),
+        'subject' => t('[OS Roadmap] "@topic" has changed milestone.', array('@topic' => $gs_topic)),
+      );
+      break;
+      
+    default:
+      return;
+  }
+  
+  foreach ($recipients as $to) {
+    drupal_mail('getsatisfaction_integration', 'roadmap', $to, LANGUAGE_NONE, $params);
+  } 
 }
 
 function _getsatisfaction_integration_milestone_message($milestone) {

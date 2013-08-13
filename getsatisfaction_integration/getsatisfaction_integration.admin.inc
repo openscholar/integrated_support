@@ -49,6 +49,12 @@ function getsatisfaction_integration_admin() {
         '#default_value' => variable_get('getsatisfaction_integration_cron', FALSE),
         '#description' => t('When a topic is marked pending, if it isn\'t linked to a github issue, this cron job will create an issue and link it automatically.'),
       ),
+      'getsatisfaction_integration_roadmap_notification_recipients' => array(
+        '#type' => 'textfield',
+        '#title' => 'Roadmap change notification',
+        '#default_value' => variable_get('getsatisfaction_integration_roadmap_notification_recipients', ''),
+        '#description' => t('Comma separated list of email addresses will recieve notifications when the Roadmap changes.'),    
+      )
     );
   }
 
@@ -214,6 +220,8 @@ function getsatisfaction_integration_admin_tickets_submit(&$form, &$state) {
     $comment = array('body' => 'This issue has been linked to a GetSatisfaction topic.  ' . $state['values']['at_sfn']);
     $client->api('issue')->comments()->create(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $record['external_id'], $comment);
   }
+  
+  _getsatisfaction_integration_roadmap_notification('add', $record['title'], $record['external_title']);
 }
 
 /**
@@ -224,6 +232,17 @@ function getsatisfaction_integration_admin_tickets_submit(&$form, &$state) {
 function getsatisfaction_integration_admin_tickets_delete($ajax, $gs_id, $service, $service_id) {
   watchdog('getsatisfaction', 'User [@ip] deleted mapping between getsatisfaction @gs and @service @sid', 
     array('@ip' => ip_address(), '@gs' => $gs_id, '@service' => $service, '@sid' => $service_id), WATCHDOG_INFO);
+  
+
+  //get the titles for notifications
+  $result = db_select('getsatisfaction_service_map', 'gs')
+    ->condition('id', $gs_id)
+    ->condition('external_service', $service)
+    ->condition('external_id', $service_id)
+    ->fields('gs', array('external_title', 'title'))
+    ->execute();
+  $row = $result->fetchObject();
+  _getsatisfaction_integration_roadmap_notification('delete', $row->title, $row->external_title);
   
   $deleted = db_delete('getsatisfaction_service_map')
     ->condition('id', $gs_id)
