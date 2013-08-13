@@ -351,24 +351,18 @@ function _getsatisfaction_integration_roadmap_notification($type, $gs_topic, $gh
   
   switch ($type) {
     case 'add':
-      $params = array(
-        'body' => t('"@topic" has been mapped to "@issue"', array('@topic' => $gs_topic, '@issue' => $gh_issue)),
-        'subject' => t('[OS Roadmap] "@topic" has been added.', array('@topic' => $gs_topic)),
-      );
+      $body = t('"@topic" has been mapped to "@issue"', array('@topic' => $gs_topic, '@issue' => $gh_issue));
+      $subject = t('[OS Roadmap] "@topic" has been added.', array('@topic' => $gs_topic));
       break;
       
     case 'delete':
-      $params = array(
-        'body' => t('"@topic" has been removed from the roadmap.  It was previously mapped to "@issue"', array('@topic' => $gs_topic, '@issue' => $gh_issue)),
-        'subject' => t('[OS Roadmap] "@topic" has been removed.', array('@topic' => $gs_topic)),
-      );
+      $body = t('"@topic" has been removed from the roadmap.  It was previously mapped to "@issue"', array('@topic' => $gs_topic, '@issue' => $gh_issue));
+      $subject = t('[OS Roadmap] "@topic" has been removed.', array('@topic' => $gs_topic));     
       break;
       
     case 'update':
-      $params = array(
-        'body' => t('"@topic" has had its milestone changed to "@ms".', array('@topic' => $gs_topic, '@ms' => $milestone)),
-        'subject' => t('[OS Roadmap] "@topic" has changed milestone.', array('@topic' => $gs_topic)),
-      );
+      $body = t('"@topic" has had its milestone changed to "@ms".', array('@topic' => $gs_topic, '@ms' => $milestone));
+      $subject = t('[OS Roadmap] "@topic" has changed milestone.', array('@topic' => $gs_topic));
       break;
       
     default:
@@ -376,7 +370,7 @@ function _getsatisfaction_integration_roadmap_notification($type, $gs_topic, $gh
   }
   
   foreach ($recipients as $to) {
-    drupal_mail('getsatisfaction_integration', 'roadmap', $to, LANGUAGE_NONE, $params);
+    mail($to, $subject, $body);
   } 
 }
 
