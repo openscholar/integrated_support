@@ -369,8 +369,10 @@ function _getsatisfaction_integration_roadmap_notification($type, $gs_topic, $gh
       return;
   }
   
+  $headers = array('From: ' . variable_get('site_mail'));
+  
   foreach ($recipients as $to) {
-    mail($to, $subject, $body);
+    mail($to, $subject, $body, implode("\r\n", $headers));
   } 
 }
 
