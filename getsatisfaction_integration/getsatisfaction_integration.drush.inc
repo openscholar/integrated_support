@@ -49,7 +49,7 @@ function drush_getsatisfaction_integration_github_to_getsatisfaction() {
   try { 
     $response = $github->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $params);
   } catch (Exception $e) {
-    drush_set_error('Github is being a bitch, yo.  @code, @msg', array('@code' => $e->getCode(), '@msg' => $e->getMessage()));
+    drush_set_error('Github is not responding: @msg', array('@code' => $e->getCode(), '@msg' => $e->getMessage()));
     return;
   }
 
@@ -66,7 +66,8 @@ function _drush_getsatisfaction_integration_issue_to_topic($issue) {
   $style = drush_get_option('style','question');
   $remove_labels = drush_get_option('remove-labels', '0');
 
-  $topic = getsatisfaction_integration_create_topic($issue['title'], $issue['body'], $style);
+  $body = (isset($issue['body_html'])) ? $issue['body_html'] : $issue['body'];
+  $topic = getsatisfaction_integration_create_topic($issue['title'], $body, $style);
   if ($topic) {
     //topic created.  link it to the GH issue.
     $state = array('values' => array(

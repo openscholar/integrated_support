@@ -122,6 +122,11 @@ function github_integration_client($auth = TRUE) {
   //$cache = new Github\HttpClient\CachedHttpClient(array('cache_dir' => __DIR__ . '/.github-api-cache'));
   $cache = new Github\HttpClient\CachedHttpClient(array('cache_dir' => $cache_dir));
   $gh_client = new Github\Client($cache);
+  
+  //we want body_html, not body
+  $gh_client->setHeaders(array( 
+    sprintf('Accept: application/vnd.github.%s.html+json', $gh_client->getOptions['api_version'])
+  ));
 
   if ($auth) {
     try {
