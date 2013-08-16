@@ -41,6 +41,12 @@ function getsatisfaction_integration_schema() {
         'length' => 255,
         'not null' => TRUE,
       ),
+      'milestone' => array(
+        'description' => 'Name of milestone',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+      ),
     ),
   );
 
@@ -112,4 +118,13 @@ function getsatisfaction_integration_schema() {
   );
 
   return $schema;
+}
+
+/**
+ * Add milestone field to roadmap table.
+ */
+function getsatisfaction_integration_update_7000() {
+  $schema = getsatisfaction_integration_schema();
+  $field = $schema['getsatisfaction_service_map']['fields']['milestone'];
+  db_add_field('getsatisfaction_service_map', 'milestone', $field);
 }

@@ -276,5 +276,4 @@ function _getsatisfaction_integration_item_by_id($service, $id) {
   } catch (Exception $e) {
     return False;
   }
-
 }

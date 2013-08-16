@@ -65,3 +65,32 @@ function github_integration_admin() {
 
   return system_settings_form($form);
 }
+
+
+/**
+ * @function github_integration_milestone_refresh()
+ *
+ * Github milestone changes aren't pushed automatically.  This does a pull to refresh our
+ * stored milestones and does notifications if needed.
+ */
+function github_integration_milestone_refresh() {
+  //getsatisfaction
+  if (module_exists('getsatisfaction_integration') && db_field_exists('getsatisfaction_service_map', 'roadmap')) {
+
+    $results = db_select('getsatisfaction_service_map', 'gs')
+      ->condition('external_service', 'github_integration')
+      ->fields('gs')
+      ->execute();
+  
+    while ($row = $results->fetchObject()) {
+      $issue = github_integration_issue($row->external_id);
+      _getsatisfaction_integration_update_topic_milestone($row->id, $issue['milestone'], $row->external_id, FALSE);
+    }
+  }
+  
+  //desk
+  if (module_exists('desk_integration')) {
+    
+  }
+  //waht about desk?  maybe this whole thing should live in github_integration?
+}
