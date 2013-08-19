@@ -125,7 +125,7 @@ function github_integration_client($auth = TRUE) {
   
   //we want body_html, not body
   $gh_client->setHeaders(array( 
-    sprintf('Accept: application/vnd.github.%s.html+json', $gh_client->getOptions['api_version'])
+    sprintf('Accept: application/vnd.github.%s.html+json', $gh_client->getOption('api_version'))
   ));
 
   if ($auth) {
@@ -649,7 +649,7 @@ function _github_intergation_update_issue_table($issue) {
     'labels' =>     serialize($issue['labels']),
     'comments' =>   $issue['comments'],
     'state' =>      $issue['state'],
-    'body' =>       $issue['body'],
+    'body' =>       (isset($issue['body_html'])) ? $issue['body_html'] : $issue['body'],
     'closed' =>     ($issue['closed_at']) ? strtotime($issue['closed_at']) : NULL,
     'created' =>    ($issue['created_at']) ? strtotime($issue['created_at']) : NULL,
     'updated' =>    ($issue['updated_at']) ? strtotime($issue['updated_at']) : NULL,

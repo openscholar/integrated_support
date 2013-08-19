@@ -96,5 +96,9 @@ function _drush_getsatisfaction_integration_issue_clear_labels($issue) {
   $remove = array_filter(explode(',', drush_get_option('labels', '')));
   $replace = array_diff($labels, $remove);
 
-  $github->api('issue')->labels()->replace(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $issue['number'], $replace);
+  try {
+    $github->api('issue')->labels()->replace(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $issue['number'], $replace);
+  } catch (Exception $e) {
+    watchdog('getsatisfaction', 'could not remove label from issue @id', array('@id' => $issue['number']));
+  }
 }
