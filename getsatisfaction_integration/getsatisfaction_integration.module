@@ -302,13 +302,17 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone, $g
   $milestone_titles = array_map(create_function('$a', 'return $a["title"];'), github_integration_milestones());
   
   //update our record
-  $update = db_update('getsatisfaction_service_update')
+  $update = db_update('getsatisfaction_service_map')
     ->fields(array('milestone' => $milestone));
   foreach ($row as $key => $value) {
     $update->condition($key, $value);
   }
   $updated = $update->execute();
 
+  if (!$notify) {
+    return;
+  }
+  
   //update getsatisfaction
   watchdog('getsatisfaction', 'topic @id needs milestone update: "@milestone"', array('@id' => $id, '@milestone' => $milestone));
   _getsatisfaction_integration_roadmap_notification('update', $row->title, $row->external_title, $milestone);

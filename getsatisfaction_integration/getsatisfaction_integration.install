@@ -135,6 +135,6 @@ function getsatisfaction_integration_update_7000() {
   
   while ($row = $results->fetchObject()) {
     $issue = github_integration_issue($row->external_id);
-    _getsatisfaction_integration_update_topic_milestone($row->id, $issue['milestone'], $row->external_id);
+    _getsatisfaction_integration_update_topic_milestone($row->id, $issue['milestone'], $row->external_id, FALSE);
   }
 }

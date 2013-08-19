@@ -84,13 +84,28 @@ function github_integration_milestone_refresh() {
   
     while ($row = $results->fetchObject()) {
       $issue = github_integration_issue($row->external_id);
-      _getsatisfaction_integration_update_topic_milestone($row->id, $issue['milestone'], $row->external_id, FALSE);
+      _getsatisfaction_integration_update_topic_milestone($row->id, $issue['milestone'], $row->external_id);
     }
   }
   
   //desk
   if (module_exists('desk_integration')) {
+    $desk = desk_integration_client();
     
+    $page = 1;
+    while ($page) {
+      $search = $desk->api('case')->call('search', array('page' => $page, 'case_custom_github_issue_id' => '>0'));
+      
+      foreach ($search->_embedded->entries as $case) {
+        $issue = github_integration_issue($case->custom_fields->github_issue_id); //lets hope this really is cached...
+        list(,,,,$id) = explode('/', $case->_links->self->href);
+
+        if ($case->custom_fields->github_milestone != $issue['milestone']) {
+          $desk->api('case')->call('update', array('id' => $id, 'custom_fields' => array('github_milestone' => $issue['milestone'])));
+        }
+      }
+
+      $page = (isset($replies->_links->self->next)) ? $page + 1 : FALSE;
+    }
   }
-  //waht about desk?  maybe this whole thing should live in github_integration?
 }
