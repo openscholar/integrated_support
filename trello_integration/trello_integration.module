@@ -113,6 +113,7 @@ function trello_integration_roadmap() {
     }  
     
     $cards = $trello->lists($list->id)->cards()->get();
+  //  $cards = trello_integration_cards($list->id);
     
     foreach ($cards as $card) {
       if ($card->badges->comments) {

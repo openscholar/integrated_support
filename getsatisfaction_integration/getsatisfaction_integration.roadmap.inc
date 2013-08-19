@@ -10,13 +10,23 @@ function getsatisfaction_integration_roadmap_page() {
     '#prefix' => '<h2 class="roadmap">Roadmap</h2>',    
   );
 
-  //admins get a link to the ticekt mapping form
+  //admins get extra links
   if (user_access('administer site configuration')) {
+    //add tickets
+    $items = array(
+      l('Add tickets', 'admin/config/integrated_support/getsatisfaction/tickets',array('attributes' => array('class' => array('add_new')))),
+    );
+    
+    //refresh github milestones
+    if (module_exists('github_integration')) {   
+      $items[] = l('Refresh milestones', 'admin/config/integrated_support/github/refresh', array('attributes' => array()));
+    }  
+    
     $ret[] = array(
-      '#text' => 'Add tickets',
-      '#path' => 'admin/config/integrated_support/getsatisfaction/tickets',
-      '#theme' => 'link',
-      '#options' => array('attributes' => array('class' => array('add_new'))),
+      '#theme' => 'item_list',
+      '#items' => $items,
+      '#type' => 'ul',
+      '#attributes' => array(),   
     );
   };
 

@@ -74,8 +74,9 @@ function github_integration_admin() {
  * stored milestones and does notifications if needed.
  */
 function github_integration_milestone_refresh() {
+  $count = 0;
   //getsatisfaction
-  if (module_exists('getsatisfaction_integration') && db_field_exists('getsatisfaction_service_map', 'roadmap')) {
+  if (module_exists('getsatisfaction_integration') && db_field_exists('getsatisfaction_service_map', 'milestone')) {
 
     $results = db_select('getsatisfaction_service_map', 'gs')
       ->condition('external_service', 'github_integration')
@@ -84,7 +85,8 @@ function github_integration_milestone_refresh() {
   
     while ($row = $results->fetchObject()) {
       $issue = github_integration_issue($row->external_id);
-      _getsatisfaction_integration_update_topic_milestone($row->id, $issue['milestone'], $row->external_id);
+      $done = _getsatisfaction_integration_update_topic_milestone($row->id, $issue['milestone'], $row->external_id);
+      $count += (int) $done;
     }
   }
   
@@ -100,12 +102,15 @@ function github_integration_milestone_refresh() {
         $issue = github_integration_issue($case->custom_fields->github_issue_id); //lets hope this really is cached...
         list(,,,,$id) = explode('/', $case->_links->self->href);
 
-        if ($case->custom_fields->github_milestone != $issue['milestone']) {
+        if (($case->custom_fields->github_milestone != $issue['milestone']) && ($case->status != 'closed')) {
           $desk->api('case')->call('update', array('id' => $id, 'custom_fields' => array('github_milestone' => $issue['milestone'])));
+          $count++;
         }
       }
 
       $page = (isset($replies->_links->self->next)) ? $page + 1 : FALSE;
     }
   }
+  
+  return t('Updated @count items.', array('@count' => $count));
 }

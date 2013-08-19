@@ -15,6 +15,13 @@ function github_integration_menu() {
       'type' => MENU_LOCAL_TASK,
       'access arguments' => array('administer site configuration')
     ),
+    'admin/config/integrated_support/github/refresh' => array(
+      'title' => 'Github Issue Refresh',
+      'file' => '/github_integration.admin.inc',
+      'page callback' => 'github_integration_milestone_refresh',
+      'type' => MENU_LOCAL_TASK,
+      'access arguments' => array('administer site configuration')
+    ),
     'alert' => array(
       'title' => 'Service Alerts',
       'page callback' => 'github_integration_alert_page',
