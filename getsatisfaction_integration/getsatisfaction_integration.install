@@ -121,10 +121,20 @@ function getsatisfaction_integration_schema() {
 }
 
 /**
- * Add milestone field to roadmap table.
+ * Add milestone field to roadmap table, fills table.
  */
 function getsatisfaction_integration_update_7000() {
   $schema = getsatisfaction_integration_schema();
   $field = $schema['getsatisfaction_service_map']['fields']['milestone'];
   db_add_field('getsatisfaction_service_map', 'milestone', $field);
+  
+  $results = db_select('getsatisfaction_service_map', 'gs')
+    ->condition('external_service', 'github_integration')
+    ->fields('gs')
+    ->execute();
+  
+  while ($row = $results->fetchObject()) {
+    $issue = github_integration_issue($row->external_id);
+    _getsatisfaction_integration_update_topic_milestone($row->id, $issue['milestone'], $row->external_id);
+  }
 }
