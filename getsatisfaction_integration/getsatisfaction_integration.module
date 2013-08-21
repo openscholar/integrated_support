@@ -217,6 +217,26 @@ function getsatisfaction_integration_topic($id) {
 }
 
 /**
+ * @function getsatisfaction_integration_search()
+ * 
+ * Fetches all GS topics matching search params
+ */
+function getsatisfaction_integration_search($params = array()) {
+  $client = getsatisfaction_integration_client();
+  $query = array_merge($params, array('company' => variable_get('getsatisfaction_company')));
+  $query['page'] = 1;
+  $return = array();
+  
+  while ($query['page']) {
+    $results = $client->api('topic')->call('company_topic', $query);
+    $return = array_merge($return, $results->data);
+    $query['page'] = ($results->total > count($return)) ? $query['page'] + 1 : FALSE;
+  }
+  
+  return $return;
+}
+
+/**
  * @function getsatisfaction_integration_topics_to_github
  *
  * Checks getsatisfaction for pending tickets that don't have an issue.  Makes a GH issue from them.

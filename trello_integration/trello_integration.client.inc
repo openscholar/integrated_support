@@ -107,7 +107,8 @@ class Model {
   
   private function url() {
     $url = ($this->parent) ? $this->parent->url() . '/' : '';
-    return $url . $this->url . '/' . implode('', $this->args);
+    $url .= $this->url;
+    return ($this->args) ? $url . '/' . implode('', $this->args) : $url; 
   }
   
   function get($id = NULL, $params = array()) {

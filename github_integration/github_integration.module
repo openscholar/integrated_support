@@ -538,12 +538,12 @@ function github_integration_alert_page() {
 
 
 /**
- * @function _github_integration_github_issue
+ * @function github_integration_issue
  *
  * Fetch a github issue by id.
  */
 function github_integration_issue($id) {
-  $gh = github_integration_client(); //authed req is better.  100x the rate limit.  when it works again, remove this false
+  $gh = github_integration_client(); 
   try {
     $issue = $gh->api('issue')->show(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $id);
   } catch (Exception $e) {
@@ -567,7 +567,30 @@ function github_integration_issue($id) {
   );
 }
 
-
+/**
+ * @function github_integration_search
+ *
+ * Fetch a github issue by search params.
+ */
+function github_integration_search($params) {
+  $gh = github_integration_client(); 
+  $params['page'] = 1;
+  $params['per_page'] = 25;
+  
+  $issues = array();
+  try {
+    while ($params['page']) {
+      $result = $gh->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $params);
+      $issues = array_merge($issues, $result);
+      $params['page'] = (count($result) == $params['per_page']) ? $params['page'] + 1 : FALSE; //stupid but it works.
+    }
+  } catch (Exception $e) {
+    watchdog('github', 'Error searching github: @error.  Message: @msg', array('@error' => $e->getCode(), '@msg' => $e->getMessage()), WATCHDOG_ERROR);
+    return FALSE;
+  }
+  
+  return $issues;
+}
 /**
  * @function github_integration_issues
  * 
