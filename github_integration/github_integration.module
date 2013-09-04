@@ -472,9 +472,6 @@ function github_create_issue($issue) {
   return $issue;
 }
 
-function github_template_body($opts = array()) {
-}
-
 /**
  * @function github_integration_alert_page
  *
