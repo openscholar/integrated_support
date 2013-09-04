@@ -235,7 +235,7 @@ function trello_integration_ticket_sync() {
   $trello = trello_integration_client();
   $board = variable_get('trello_integration_intake');
   if (!$board) {
-    return; //intake board is not enalbed.  
+    return; //intake board is not enabled.  
   }
   list(,,,,$board_id) = explode('/', $board); 
   

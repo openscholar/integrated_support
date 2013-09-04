@@ -258,13 +258,15 @@ function _getsatisfaction_integration_newer_issues($id, $params = array()) {
       $result = array_filter($result->data, function($i) use ($id) {return ($id < $i->id);});
       $return = array_merge($return, $result);
       
-      return $return;
-      $query['page'] = (count($result) < $params['limit']) ? $query['page'] + 1 : FALSE;
+      error_log(t("@r results out of @l limit\n", array('@r' => count($result), '@l' => $params['limit'])));
+      $params['page'] = (count($result) < $params['limit']) ? FALSE : $params['page'] + 1;
     }
   } catch (Exception $e) {
     watchdog('getsatisfaction', 'Error searching getsatisfaction: @error.  Message: @msg', array('@error' => $e->getCode(), '@msg' => $e->getMessage()), WATCHDOG_ERROR);
     return FALSE;
   }
+  
+  $return = array_reduce($return, function($ret, $i) {$ret[$i->id] = $i; return $ret;}); //use id as array key
   return $return;
 }
 
