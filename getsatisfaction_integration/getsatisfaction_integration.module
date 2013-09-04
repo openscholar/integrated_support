@@ -237,6 +237,38 @@ function getsatisfaction_integration_search($params = array()) {
 }
 
 /**
+ * @function _getsatisfaction_integration_newest_issues
+ *
+ * Fetches GS topics newer than $id.  This is pretty much a copy of _search above, but with some logic
+ * to bail out if we've passed the id we're looking for.
+ */
+function _getsatisfaction_integration_newer_issues($id, $params = array()) {
+  $gs = getsatisfaction_integration_client();
+  $return = array();
+  $params = array_merge($params, array(
+    'page' => 1,
+    'limit' => 30,
+    'sort' => 'recently_created',
+    'company' => variable_get('getsatisfaction_company'),
+  ));
+  
+  try {
+    while ($params['page']) {
+      $result = $gs->api('topic')->call('company_topic', $params);
+      $result = array_filter($result->data, function($i) use ($id) {return ($id < $i->id);});
+      $return = array_merge($return, $result);
+      
+      return $return;
+      $query['page'] = (count($result) < $params['limit']) ? $query['page'] + 1 : FALSE;
+    }
+  } catch (Exception $e) {
+    watchdog('getsatisfaction', 'Error searching getsatisfaction: @error.  Message: @msg', array('@error' => $e->getCode(), '@msg' => $e->getMessage()), WATCHDOG_ERROR);
+    return FALSE;
+  }
+  return $return;
+}
+
+/**
  * @function getsatisfaction_integration_topics_to_github
  *
  * Checks getsatisfaction for pending tickets that don't have an issue.  Makes a GH issue from them.

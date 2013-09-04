@@ -218,8 +218,6 @@ function trello_integration_integrated_support_webhook($trello_id, $service, $se
     'callbackURL' => check_url(check_plain($callback_url)),
     'description' => $description,
   ));
-  
-  //trello_integration_create_webhook($trello_id, $callback_url, $description);
 }
 
 function trello_integration_callback($service, $id) {
@@ -235,6 +233,11 @@ function trello_integration_callback($service, $id) {
 function trello_integration_ticket_sync() {
   $imported = variable_get('trello_integration_cards_imported', array());
   $trello = trello_integration_client();
+  $board = variable_get('trello_integration_intake');
+  if (!$board) {
+    return; //intake board is not enalbed.  
+  }
+  list(,,,,$board_id) = explode('/', $board); 
   
   //Each list is generated from service matching array full of search criteria
   $imports = array(      
@@ -251,7 +254,7 @@ function trello_integration_ticket_sync() {
       
       foreach ($results as $ticket) {
         //extract relevant info.  don't post duplicates.
-        $card = _trello_integration_prepare_card($service, $ticket, $list_name);
+        $card = _trello_integration_prepare_card($board_id, $service, $ticket, $list_name);
         if (isset($imported[$service]) && in_array($card['id'], $imported[$service])) {
           continue;
         }
@@ -262,8 +265,11 @@ function trello_integration_ticket_sync() {
         unset($card['id']);
         
         //create ticket and comment on it with link to original source.
-        $card = $trello->cards()->create($card);
-        $trello->cards( $card->id )->actions()->comments()->create(array('text' => $link));
+        $new = $trello->cards()->create($card);
+        $trello->cards($new->id)->actions()->comments()->create(array('text' => $link));
+        
+        //webhook
+        $wh = trello_integration_integrated_support_webhook($new->id, $service, $card['id']);
       }
     }
   }
@@ -284,7 +290,8 @@ function trello_integration_cron() {
  * 
  * Given a service and a ticket from that service, return an array of items to send to trello
  */
-function _trello_integration_prepare_card($service, $ticket, $list_name) {
+function _trello_integration_prepare_card($board_id, $service, $ticket, $list_name) {
+  
   switch ($service) {
     case 'github':
       $return = array(
@@ -308,7 +315,7 @@ function _trello_integration_prepare_card($service, $ticket, $list_name) {
       return NULL;
   }
   
-  $list = _trello_integration_get_lists($list_name);
+  $list = _trello_integration_get_lists($board_id, $list_name);
   $return['idList'] = $list->id;
   
   return $return;
@@ -319,10 +326,9 @@ function _trello_integration_prepare_card($service, $ticket, $list_name) {
  * 
  * Gets trello list(s) by name
  */
-function _trello_integration_get_lists($name = NULL) {
+function _trello_integration_get_lists($board_id, $name = NULL) {
   static $trello_lists;
   if (empty($trello_lists)) {
-    $board_id = variable_get('trello_integration_board');
     $trello = trello_integration_client();
     $trello_lists = array();
     foreach ($trello->boards($board_id)->lists()->get() as $list) {
