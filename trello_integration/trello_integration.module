@@ -249,27 +249,20 @@ function trello_integration_ticket_sync() {
   foreach ($imports as $list_name => $import) {
     foreach ($import as $service => $params) {
       //get matching tickets
-      $search = $service . '_integration_search';
-      $results = (function_exists($search)) ? $search($params) : array();
+      $search = '_' . $service . '_integration_newer_issues';
+      $last_id = (isset($imported[$list_name])) ? $imported[$list_name] : 0;
+      $results = (function_exists($search)) ? $search($last_id, $params) : array();
+      if (!$results) {
+        continue;
+      }
+      $imported[$list_name] = max(array_keys($results));
       
       foreach ($results as $ticket) {
         //extract relevant info.  don't post duplicates.
         $card = _trello_integration_prepare_card($board_id, $service, $ticket, $list_name);
-        if (isset($imported[$service]) && in_array($card['id'], $imported[$service])) {
-          continue;
+        if (($new = $trello->cards()->create($card)) != FALSE) {
+          $wh = trello_integration_integrated_support_webhook($new->id, $service, $card['id']);
         }
-
-        $imported[$service][] = $card['id'];
-        $link = $card['link'];
-        unset($card['link']);
-        unset($card['id']);
-        
-        //create ticket and comment on it with link to original source.
-        $new = $trello->cards()->create($card);
-        $trello->cards($new->id)->actions()->comments()->create(array('text' => $link));
-        
-        //webhook
-        $wh = trello_integration_integrated_support_webhook($new->id, $service, $card['id']);
       }
     }
   }
@@ -295,19 +288,17 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $list_na
   switch ($service) {
     case 'github':
       $return = array(
-        'id' => $ticket['number'],
         'name' => $ticket['title'],
-        'desc' => $ticket['body_html'],
-        'link' => $ticket['html_url'],
+        'desc' => $ticket['html_url'] . "\n\n" . $ticket['body_html'],
+        'id' => $ticket['number'],
       );
       break;
       
     case 'getsatisfaction':
       $return = array(
-        'id' => $ticket->id,
         'name' => $ticket->subject,
-        'desc' => $ticket->content,
-        'link' => $ticket->at_sfn,
+        'desc' => $ticket->at_sfn . "\n\n" . $ticket->content,
+        'id' => $ticket->id,
       );
       break;
       
