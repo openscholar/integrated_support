@@ -597,7 +597,17 @@ function github_integration_search($params = array()) {
 }
 
 function github_integration_issues_by_label($label) {
+  static $labels;
+  if (empty($labels)) {
+    $labels = array();  
+  }
   
+  if (empty($labels[$label])) {
+    $issues = github_integration_search(array('labels' => $label));
+    $labels[$label] = array_map(function($a) {return $a['number'];}, $issues);
+  }
+  
+  return $labels[$label];
 }
 
 /**
