@@ -162,81 +162,51 @@ function trello_integration_client() {
  */
 function trello_integration_roadmap($milestone = NULL) {
   $trello = trello_integration_client();
-  $list = '51ffe8d552d1cc2e7f0007f3';
-  
-//  dpm($trello->boards('52277bb46eaf6aad2f00013a')->get());
-//   $colors = array('red', 'green', 'blue', 'yellow', 'purple', 'orange'); 
-//   shuffle($colors);
-//   $colors = array_slice($colors, 0, rand(1, count($colors)));
-//    $board = $trello->boards('1xNAf1dj')->lists()->get();
-// dpm($board);
-
-//   $card = array(
-//     'idList' => $list,
-//     'name' => 'new api key',
-//     'desc' => NULL,
-//     'due' => NULL,
-//     'labels' => NULL,
-//     'idMembers' => NULL,
-//   );
-//   //dpm($trello->cards()->create($card));
-  
-//   $card_id = '520253a438a1ab8d64002f25';
-//   dpm($trello->cards($card_id)->get());
-//   $trello->cards($card_id)->labels()->update(implode(',', $colors));
-  
-//   $token = variable_get('trello_integration_token');
-//   dpm($trello->tokens($token)->webhooks()->get());
-  
- 
-  // webhooks live in tokens.  need a ->all for shortcuts?
-  
-//  $m = $trello->tokens('token_id')->member('member_id')->get();
   $board = variable_get('trello_integration_roadmap');
   if (!$board) {
     return;
   }
   list(,,,,$board_id) = explode('/', $board);
    
+  //get all the lists
   $lists = $trello->boards($board_id)->lists()->get();
   $milestone_urls = array_reduce($lists, function($ret, $l) {
     $ret[urlencode($l->name)] = $l;
     return $ret;
   }, array());
   
-  
+  //use the list specified, or link them to all the lists.
   if ($milestone && isset($milestone_urls[$milestone])) {
     $list = $milestone_urls[$milestone];
-    return trello_integration_roadmap_table($list->name, $list->id);
+    $table = trello_integration_roadmap_table($list->name, $list->id);
+    
+    //get lists before and after current.
+    $prev = $next = NULL;
+    while ($current = array_shift($milestone_urls)) {
+      if ($list == $current) {
+        $next = array_shift($milestone_urls);
+        break;
+      }  
+      $prev = $current;
+    }
+    
+    $return = array(
+      'table' => $table,
+      'links' => array(
+        'prev' => array(
+          '#markup' => ($prev) ? l($prev->name, 'trello_roadmap/' . urlencode($prev->name), array('attributes' => array('class' => array('prev-milestone')))) : '',  
+        ),
+        'next' => array(
+          '#markup' => ($next) ? l($next->name, 'trello_roadmap/' . urlencode($next->name), array('attributes' => array('class' => array('next-milestone')))) : '',
+        ),
+        '#attached' => array('css' => array(drupal_get_path('module', 'trello_integration') . '/trello_integration.roadmap.css')), 
+      )  
+    );
+  } else { 
+    $return = trello_integration_roadmap_page($lists);
   }
-  return trello_integration_roadmap_page($lists);
-  
-  
-//   foreach ($trello->boards($board_id)->lists()->get() as $list) {
-//     if ($list->name == 'Inbox') {
-//       dpm($list);
-//       dpm($trello->lists($list->id)->cards()->get());
-//     }  
-    
-//     $cards = $trello->lists($list->id)->cards()->get();
-//   //  $cards = trello_integration_cards($list->id);
-    
-//     foreach ($cards as $card) {
-//       if ($card->badges->comments) {
-//         dpm($trello->cards($card->id)->actions()->comments()->get());
-//       }
-//     }
-    
-//     $lists[] = array(   
-//       '#items' => array_map(create_function('$o', 'return $o->name;'), $cards),
-//       '#title' => $list->name,
-//       '#theme' => 'item_list',
-//       '#type' => 'ul',
-//       '#attributes' => array(), 
-//     );
-//   }
 
-  
+  return $return;
 }
 
 
