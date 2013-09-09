@@ -49,7 +49,9 @@ function trello_integration_libraries_info() {
 }
 
 /**
- * Implements hook_preprocess_hook
+ * @function trello_integration_roadmap_page
+ * 
+ * Page shows roadmaps in tables
  */
 function trello_integration_roadmap_page($lists) {
   $trello = trello_integration_client();
@@ -63,7 +65,9 @@ function trello_integration_roadmap_page($lists) {
 }
 
 /**
- * Implements hook_preprocess_hook
+ * @function trello_integration_roadmap_page_table
+ * 
+ * Renders one milestone from the roadmap as a table
  */
 function trello_integration_roadmap_table($name, $cards) {
   $data = array_map('trello_integration_roadmap_table_row', $cards);
@@ -90,7 +94,9 @@ function trello_integration_roadmap_table($name, $cards) {
 }
 
 /**
- * Implements hook_preprocess_hook
+ * @function trello_integration_roadmap_page_table_row
+ * 
+ * Renders a trello card into a table row for a milestone table
  */
 function trello_integration_roadmap_table_row($card) {
   $class = 'style ' . strtolower(array_reduce($card->labels, function($val, $lbl) {return $val . ' style-' . $lbl->name;}, ''));
@@ -348,7 +354,7 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $list_na
     case 'getsatisfaction':
       $return = array(
         'name' => $ticket->subject,
-        'desc' => $ticket->at_sfn . "\n\n" . $ticket->content,
+        'desc' => $ticket->at_sfn . "\n\n" . _trello_integration_html_to_markdown($ticket->content),
         'id' => $ticket->id,
       );
       break;
@@ -362,6 +368,68 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $list_na
   $return['labels'] = $list_name;
   
   return $return;
+}
+
+/**
+ * @function _trello_integration_html_to_markdown()
+ * 
+ * Trello uses markdown.  GetSatisfaction uses html.  Convert html during ticket import.
+ * Considered using a library, but GS uses such a small subset of HTML that this seemed easier.
+ * 
+ * @param string $html
+ *   $html to convert
+ * @param array $assets
+ *   Assets to attach to the card will be added to this array.
+ *   
+ * Returns markdown
+ */
+function _trello_integration_html_to_markdown($html) {
+  $regexes = array();
+  
+  //link
+  $regexes['|<a.*?href=[\'"](.*?)[\'"].*?>(.*?)</a>|'] =  '[$2]($1)';
+  
+  //image
+  $regexes['|<img.*?src=[\'"](.*?)[\'"].*?>|'] = '![img]($1)';
+  
+  //bold
+  $regexes['|<strong>(.*?)</strong>|'] = '**$1**';
+  $regexes['|<b>(.*?)</b>|'] = '**$1**';
+  
+  //newline
+  $regexes['|<br>|'] = "\n";
+  $regexes['|<br ?/>|'] = "\n";
+  
+  //italics
+  $regexes['|<em>(.*?)</em>|'] = '*$1*';
+  $regexes['|<i>(.*?)</i>|'] = '*$1*';
+  
+  //underline does not exist in markdown
+  $regexes['|<u>(.*?)</u>|'] = '$1';
+  
+  //strikeout
+  $regexes['|<s>(.*?)</s>|'] = '~~$1~~';
+  $regexes['|<strike>(.*?)</strike>|'] = '~~$1~~';
+  
+  //paragraph
+  $regexes['|<p>(.*?)</p>|'] = "\n\n" . '$1' . "\n\n";
+  
+  //lists (making them all ul for simplicity's sake)
+  $regexes['|</?ul>|'] = '';
+  $regexes['|</?ol>|'] = '';
+  $regexes['|<li>(.*?)</li>|'] = '* $1';
+  
+  //code
+  $regexes['|<code>(.*?)</code>|'] = '```$1```';
+  
+  //blockquote
+  $regexes['|<blockquote>(.*?)</blockquote>|'] = '> $1';
+  
+  foreach ($regexes as $pattern => $replacement) {
+    $html = preg_replace($pattern, $replacement, $html);
+  }
+  
+  return $html;
 }
 
 /**
