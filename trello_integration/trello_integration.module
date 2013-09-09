@@ -288,6 +288,7 @@ function trello_integration_callback($service, $id) {
  * Copies cards from getsatsifaction and github into trello
  */
 function trello_integration_ticket_sync() {
+  github_integration_client(TRUE, FALSE); //set cached github client to use markdown before search function initializes it with html
   $imported = variable_get('trello_integration_cards_imported', array());
   $trello = trello_integration_client();
   $board = variable_get('trello_integration_intake');
@@ -344,9 +345,10 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $list_na
   
   switch ($service) {
     case 'github':
+      $body = (isset($ticket['body'])) ? $ticket['body'] : $ticket['body_html'];
       $return = array(
         'name' => $ticket['title'],
-        'desc' => $ticket['html_url'] . "\n\n" . $ticket['body_html'],
+        'desc' => $ticket['html_url'] . "\n\n" . _trello_integration_html_to_markdown($body),
         'id' => $ticket['number'],
       );
       break;
@@ -413,6 +415,7 @@ function _trello_integration_html_to_markdown($html) {
   
   //paragraph
   $regexes['|<p>(.*?)</p>|'] = "\n\n" . '$1' . "\n\n";
+  $regexes['|</?p>|'] = "\n";
   
   //lists (making them all ul for simplicity's sake)
   $regexes['|</?ul>|'] = '';

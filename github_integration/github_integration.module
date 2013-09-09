@@ -113,14 +113,19 @@ function github_integration_integrated_support_status() {
  * @function github_client()
  *
  * Returns object for poking github
+ * 
+ * @param bool $auth
+ *   Use our auth token.  [default: TRUE]
+ *   
+ * @param bool $body_html
+ *   Fetch issue body as html rather than markdown [default: TRUE]
  */
-function github_integration_client($auth = TRUE) {
+function github_integration_client($auth = TRUE, $body_html = TRUE) {
   static $gh_client;
   if (!empty($gh_client)) {
     return $gh_client;
   }
 
-  //libraries_load('php-github-api');
   libraries_load('composer');
   $cache_dir = variable_get('github_cache_dir', '/tmp/github-api-cache');
   if (!is_dir($cache_dir)) {
@@ -131,9 +136,11 @@ function github_integration_client($auth = TRUE) {
   $gh_client = new Github\Client($cache);
   
   //we want body_html, not body
-  $gh_client->setHeaders(array( 
-    sprintf('Accept: application/vnd.github.%s.html+json', $gh_client->getOption('api_version'))
-  ));
+  if ($body_html) {
+    $gh_client->setHeaders(array( 
+      sprintf('Accept: application/vnd.github.%s.html+json', $gh_client->getOption('api_version'))
+    ));
+  }
 
   if ($auth) {
     try {
@@ -587,6 +594,10 @@ function github_integration_search($params = array()) {
   }
   
   return $issues;
+}
+
+function github_integration_issues_by_label($label) {
+  
 }
 
 /**
