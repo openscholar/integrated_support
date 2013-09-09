@@ -55,13 +55,19 @@ function trello_integration_libraries_info() {
  */
 function trello_integration_roadmap_page($lists) {
   $trello = trello_integration_client();
-  
+
   foreach($lists as $list) {
-    $cards = $trello->lists($list->id)->cards()->get();
-    $milestones[] = trello_integration_roadmap_table($list->name, $cards);
+    $data[] = l($list->name, 'trello_roadmap/'. urlencode($list->name));
   }
   
-  return $milestones;
+  return array(
+    '#theme' => 'item_list',
+    '#items' => $data,
+    '#type' => 'ul',
+    '#attributes' => array(
+      '#class' => array('roadmap'),  
+    )  
+  );
 }
 
 /**
@@ -69,7 +75,10 @@ function trello_integration_roadmap_page($lists) {
  * 
  * Renders one milestone from the roadmap as a table
  */
-function trello_integration_roadmap_table($name, $cards) {
+function trello_integration_roadmap_table($name, $list_id) {
+  $trello = trello_integration_client();
+  $cards = $trello->lists($list_id)->cards()->get();
+  
   $data = array_map('trello_integration_roadmap_table_row', $cards);
   $header = array(
     array('data' => 'Topic', 'width' =>'75%'),
@@ -102,12 +111,18 @@ function trello_integration_roadmap_table_row($card) {
   $class = 'style ' . strtolower(array_reduce($card->labels, function($val, $lbl) {return $val . ' style-' . $lbl->name;}, ''));
   list($link) = explode("\n", $card->desc);
   
+  
   if (filter_var($link, FILTER_VALIDATE_URL)) {
-    list(,,,,,,$id) = explode('/', $link);
+    if (strpos($link, 'github')) {
+      list(,,,,,,$id) = explode('/', $link);
+    }
+    $title = "<span class='${class}'><a href='$link'>$card->name</a></span>"; 
+  } else {
+    $title = "<span class='${class}'>$card->name</span>";
   } 
 
   return array(
-    "<span class='${class}'>$card->name</span>",
+    $title,
     format_interval(time() - strtotime($card->dateLastActivity), 1),
     (isset($id)) ? _trello_integration_github_state($id) : '',
   );  
@@ -145,11 +160,11 @@ function trello_integration_client() {
  * 
  * Displays a roadmap based on cards from trello.
  */
-function trello_integration_roadmap() {
+function trello_integration_roadmap($milestone = NULL) {
   $trello = trello_integration_client();
   $list = '51ffe8d552d1cc2e7f0007f3';
   
-  dpm($trello->boards('52277bb46eaf6aad2f00013a')->get());
+//  dpm($trello->boards('52277bb46eaf6aad2f00013a')->get());
 //   $colors = array('red', 'green', 'blue', 'yellow', 'purple', 'orange'); 
 //   shuffle($colors);
 //   $colors = array_slice($colors, 0, rand(1, count($colors)));
@@ -184,6 +199,16 @@ function trello_integration_roadmap() {
   list(,,,,$board_id) = explode('/', $board);
    
   $lists = $trello->boards($board_id)->lists()->get();
+  $milestone_urls = array_reduce($lists, function($ret, $l) {
+    $ret[urlencode($l->name)] = $l;
+    return $ret;
+  }, array());
+  
+  
+  if ($milestone && isset($milestone_urls[$milestone])) {
+    $list = $milestone_urls[$milestone];
+    return trello_integration_roadmap_table($list->name, $list->id);
+  }
   return trello_integration_roadmap_page($lists);
   
   
