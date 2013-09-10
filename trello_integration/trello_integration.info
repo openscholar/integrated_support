@@ -5,4 +5,4 @@ package = Integrated Support
 php = 5.2.4
 dependencies[] = features
 dependencies[] = integrated_support
-configure = admin/config/trello_support/getsatisfaction
+configure = admin/config/integrated_support/trello

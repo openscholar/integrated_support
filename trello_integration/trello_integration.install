@@ -1,0 +1,17 @@
+<?php
+
+function trello_integration_install() {
+  //Each list is generated from service matching array full of search criteria
+  variable_set('trello_integration_import', array(
+    'Features' => array('getsatisfaction' => array('style' => 'idea')),
+    'Bugs' => array('getsatisfaction' => array('style' => 'problem')),
+    'Engineering' => array('github' => array()),
+  ));
+  
+  //Trello assigns labels by color, not by text.
+  variable_set('trello_integration_colors', array(
+    'Features' => 'green',
+    'Bugs' => 'red',
+    'Engineering' => 'blue',
+  ));
+}
