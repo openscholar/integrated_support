@@ -69,7 +69,28 @@ function trello_integration_admin() {
       '#description' => t('URL of the trello board to use for importing cards from external services.'),
       '#default_value' => variable_get('trello_integration_intake'),
     );
+    
+    $form['trello_integration_push_labels'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Push labels now.'),
+      '#default_value' => FALSE,
+      '#description' => t('Trello\'s API only allows me to set a label by color, not by title.  Selecting this checkbox and clicking save will push the labels defined by the `trello_integration_colors` variable so they can be applied correctly.'),
+    );
+    
+    $form['#submit'][] = 'trello_integration_admin_submit';
   }
     
   return system_settings_form($form);
+}
+
+function trello_integration_admin_submit($form, &$state, $a=NULL) {
+  if ($state['values']['trello_integration_push_labels']) {
+    $trello = trello_integration_client();
+    $roadmap = variable_get('trello_integration_roadmap');
+    list(,,,,$board) = explode('/', $roadmap);
+    
+    foreach (variable_get('trello_integration_colors') as $label => $color) {
+      $trello->boards($board)->labelNames($color)->update($label);
+    }
+  }
 }
