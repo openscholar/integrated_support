@@ -228,37 +228,41 @@ function trello_integration_callback($service, $id) {
   $json = @file_get_contents('php://input');
   $payload = json_decode($json);
   $gh = github_integration_client();
+  $trello = trello_integration_client();
   watchdog('trello', "Trello recieved a @type webhook for \"@id\" on \"@service\":<br />@hook", array('@id' => $id, '@service' => $service, '@hook' => $json, '@type' => $payload->action->type));
   
-  $trello = trello_integration_client();
-  
   switch ($payload->action->type) {
-//     case 'moveCardFromBoard':
-//       break;
-      
     case 'moveCardToBoard':
       //check that we're on intake and roadmap
       $source = $trello->boards($payload->action->data->boardSource->id)->get();
       $dest   = $trello->boards($payload->action->data->board->id)->get();
-      
-      if ($source->url == variable_get('trello_integration_intake') && $dest->url == variable_get('trello_integration_roadmap')) {
-        
-        //apply label depending on the type of the ticket
-        if ($color = _trello_integration_get_card_label($service, $id)) {
-          $trello->cards($payload->model->id)->labels()->update($color);
-        }
-        
-        //get milestone ids keyed by title
-        if ($service == 'github') {
-          _trello_integration_callback_list_changed($payload->model->idList, $id);
-        }        
-      } 
+      if ($source->url != variable_get('trello_integration_intake') || $dest->url != variable_get('trello_integration_roadmap')) {
+        return; 
+      }
 
+      //apply label depending on the type of the ticket
+      if ($color = _trello_integration_get_card_label($service, $id)) {
+        $trello->cards($payload->model->id)->labels()->update($color);
+      }
       
-      //maybe apply roadmap, user
+      //update milestone
+      if ($service == 'github') {
+        _trello_integration_callback_list_changed($payload->model->idList, $id);
+      }        
+     
       break;
       
     case 'addMemberToCard':
+      //find the user mentioned
+      $trello_user = $payload->action->member->username;
+      $users = variable_get('trello_integration_github_users', array());
+      $issue = ($service == 'github') ? github_integration_issue($id) : NULL;
+            
+      //if we have a matching user and the ticket isn't assigned, assign it.
+      if ($issue && !$issue['user'] && isset($users[$trello_user])) {
+        watchdog('trello', 'Assigning ticket @id to @user', array('@id' => $id, '@user' => $users[$trello_user]));
+        $gh->api('issue')->update(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $id, array('assignee' => $users[$trello_user],));
+      }
       break;
       
     case 'updateCard':
@@ -267,7 +271,7 @@ function trello_integration_callback($service, $id) {
       }
       
       $board = $trello->boards($payload->model->idBoard)->get();
-      if ($service == 'github' && $board->url == variable_get('trello_integration_roadmap')) {
+      if ($service == 'github' && $board->url == variable_get('trello_integration_roadmap')) {        
         _trello_integration_callback_list_changed($payload->model->idList, $id);
       }
       
