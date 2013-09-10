@@ -113,14 +113,19 @@ function github_integration_integrated_support_status() {
  * @function github_client()
  *
  * Returns object for poking github
+ * 
+ * @param bool $auth
+ *   Use our auth token.  [default: TRUE]
+ *   
+ * @param bool $body_html
+ *   Fetch issue body as html rather than markdown [default: TRUE]
  */
-function github_integration_client($auth = TRUE) {
+function github_integration_client($auth = TRUE, $body_html = TRUE) {
   static $gh_client;
   if (!empty($gh_client)) {
     return $gh_client;
   }
 
-  //libraries_load('php-github-api');
   libraries_load('composer');
   $cache_dir = variable_get('github_cache_dir', '/tmp/github-api-cache');
   if (!is_dir($cache_dir)) {
@@ -131,9 +136,11 @@ function github_integration_client($auth = TRUE) {
   $gh_client = new Github\Client($cache);
   
   //we want body_html, not body
-  $gh_client->setHeaders(array( 
-    sprintf('Accept: application/vnd.github.%s.html+json', $gh_client->getOption('api_version'))
-  ));
+  if ($body_html) {
+    $gh_client->setHeaders(array( 
+      sprintf('Accept: application/vnd.github.%s.html+json', $gh_client->getOption('api_version'))
+    ));
+  }
 
   if ($auth) {
     try {
@@ -472,9 +479,6 @@ function github_create_issue($issue) {
   return $issue;
 }
 
-function github_template_body($opts = array()) {
-}
-
 /**
  * @function github_integration_alert_page
  *
@@ -572,7 +576,7 @@ function github_integration_issue($id) {
  *
  * Fetch a github issue by search params.
  */
-function github_integration_search($params) {
+function github_integration_search($params = array()) {
   $gh = github_integration_client(); 
   $params['page'] = 1;
   $params['per_page'] = 25;
@@ -589,6 +593,52 @@ function github_integration_search($params) {
     return FALSE;
   }
   
+  return $issues;
+}
+
+function github_integration_issues_by_label($label) {
+  static $labels;
+  if (empty($labels)) {
+    $labels = array();  
+  }
+  
+  if (empty($labels[$label])) {
+    $issues = github_integration_search(array('labels' => $label));
+    $labels[$label] = array_map(function($a) {return $a['number'];}, $issues);
+  }
+  
+  return $labels[$label];
+}
+
+/**
+ * @function _github_integration_newest_issues
+ * 
+ * Fetches GH issues newer than $id.  This is pretty much a copy of _search above, but with some logic
+ * to bail out if we've passed the id we're looking for.
+ */
+function _github_integration_newer_issues($id, $params = array()) {
+  $gh = github_integration_client();
+  $params = array_merge($params, array(
+    'page' => 1,
+    'per_page' => 25,
+    'sort' => 'created',
+    'direction' => 'desc'
+  ));
+  
+  $issues = array();
+  try {
+    while ($params['page']) {
+      $result = $gh->api('issue')->all(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $params);
+      $result = array_filter($result, function($i) use ($id) {return ($id < $i['number']);});
+      $issues = array_merge($issues, $result);
+      $params['page'] = (count($result) == $params['per_page']) ? $params['page'] + 1 : FALSE; //stupid but it works.
+    }
+  } catch (Exception $e) {
+    watchdog('github', 'Error searching github: @error.  Message: @msg', array('@error' => $e->getCode(), '@msg' => $e->getMessage()), WATCHDOG_ERROR);
+    return FALSE;
+  }
+  
+  $issues = array_reduce($issues, function($ret, $i) {$ret[$i['number']] = $i; return $ret;}); //use id as array key
   return $issues;
 }
 /**
