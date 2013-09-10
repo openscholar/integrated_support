@@ -212,8 +212,7 @@ function trello_integration_roadmap($milestone = NULL) {
 
 //wrapper for webhook.  creates a webhook to a specific service here.
 function trello_integration_integrated_support_webhook($trello_id, $service, $service_id, $description = '') {
-  //global $base_url;
-  $base_url = 'http://140.247.184.89';
+  global $base_url;
   $callback_url = "$base_url/trello_callback/$service/$service_id";
   $trello = trello_integration_client();
   

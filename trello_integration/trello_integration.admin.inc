@@ -55,19 +55,19 @@ function trello_integration_admin() {
   if ($token) {
     $form['auth']['#title'] = 'Trello Authorized';
     $form['auth']['#collapsed'] = TRUE;  
+
+    $form['trello_integration_intake'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Intake Board'),
+      '#description' => t('URL of the trello board to use for importing cards from external services.'),
+      '#default_value' => variable_get('trello_integration_intake'),
+    );
     
     $form['trello_integration_roadmap'] = array(
       '#type' => 'textfield',
       '#title' => t('Roadmap Board'),
       '#description' => t('URL of the trello board to use as a roadmap.'),
       '#default_value' => variable_get('trello_integration_roadmap'),
-    );
-    
-    $form['trello_integration_intake'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Intake Board'),
-      '#description' => t('URL of the trello board to use for importing cards from external services.'),
-      '#default_value' => variable_get('trello_integration_intake'),
     );
     
     $form['trello_integration_push_labels'] = array(
