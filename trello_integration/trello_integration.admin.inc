@@ -91,6 +91,7 @@ function trello_integration_admin_submit($form, &$state, $a=NULL) {
     
     foreach (variable_get('trello_integration_colors') as $label => $color) {
       $trello->boards($board)->labelNames($color)->update($label);
+      drupal_set_message(t('Set @color to @label', array('@color' => $color, '@label' => $label)));
     }
   }
 }
