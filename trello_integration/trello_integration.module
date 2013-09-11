@@ -349,7 +349,7 @@ function trello_integration_ticket_sync() {
       foreach ($results as $ticket) {
         //extract relevant info.  don't post duplicates.
         $card = _trello_integration_prepare_card($board_id, $service, $ticket, $list_name);
-        if (($new = $trello->cards()->create($card)) != FALSE) {
+        if ($card && ($new = $trello->cards()->create($card)) != FALSE) {
           $wh = trello_integration_integrated_support_webhook($new->id, $service, $card['id']);
         }
       }
@@ -373,9 +373,19 @@ function trello_integration_cron() {
  * Given a service and a ticket from that service, return an array of items to send to trello
  */
 function _trello_integration_prepare_card($board_id, $service, $ticket, $list_name) {
-  
+
   switch ($service) {
     case 'github':
+      $mapped = db_select('getsatisfaction_service_map', 'gs')
+        ->condition('external_id', $ticket['number'])
+        ->condition('external_service', 'github_integration')
+        ->fields('gs')
+        ->range(0, 1)
+        ->execute();
+      if ($mapped->rowCount()) {
+        return NULL; //don't create github cards when mapped.  gs card shoudl already exist.
+      }
+      
       $body = (isset($ticket['body'])) ? $ticket['body'] : $ticket['body_html'];
       $return = array(
         'name' => $ticket['title'],
@@ -385,9 +395,22 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $list_na
       break;
       
     case 'getsatisfaction':
+      //if we have a mapping, get the github link as well.
+      $mapped = db_select('getsatisfaction_service_map', 'gs')
+        ->condition('id', $ticket->id)
+        ->condition('external_service', 'github_integration')
+        ->fields('gs', array('external_id'))
+        ->execute();
+        
+      $links = array($ticket->at_sfn);
+      if ($mapped->rowCount()) {
+        $row = $mapped->fetchCol();
+        $links = array_merge($links, array_map(function($i) {$gh = github_integration_issue($i); return $gh['html_url'];}, $row));
+      }
+
       $return = array(
         'name' => $ticket->subject,
-        'desc' => $ticket->at_sfn . "\n\n" . _trello_integration_html_to_markdown($ticket->content),
+        'desc' => implode("\n", $links) . "\n\n--\n\n" . _trello_integration_html_to_markdown($ticket->content),
         'id' => $ticket->id,
       );
       break;
