@@ -5,7 +5,7 @@ function trello_integration_install() {
   variable_set('trello_integration_import', array(
     'Features' => array('getsatisfaction' => array('style' => 'idea')),
     'Bugs' => array('getsatisfaction' => array('style' => 'problem')),
-    'Engineering' => array('github' => array()),
+    'Engineering' => array('github' => array('labels' => 'tr:eng')),
   ));
   
   //Trello assigns labels by color, not by text.
@@ -14,4 +14,11 @@ function trello_integration_install() {
     'Bugs' => 'red',
     'Engineering' => 'blue',
   ));
+}
+
+/** 
+ * Reset import vars 
+ **/
+function trello_integration_update_7001() {
+  trello_integration_install(); 
 }
