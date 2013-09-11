@@ -255,6 +255,10 @@ function trello_integration_integrated_support_webhook($trello_id, $service, $se
  * Callback URL for trello webhooks
  */
 function trello_integration_callback($service, $id) {
+  //no cache for you!  varnish should never cache this page.
+  drupal_add_http_header('Cache-Control', 'no-store, no-cache, must-revalidate');
+  drupal_add_http_header('Pragma', 'no-cache');
+  
   $json = @file_get_contents('php://input');
   $payload = json_decode($json);
   $gh = github_integration_client();
@@ -307,6 +311,8 @@ function trello_integration_callback($service, $id) {
       
       break;
   }
+
+  return 'ok';
 }
 
 /*
