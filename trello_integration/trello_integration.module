@@ -557,9 +557,10 @@ function _trello_integration_get_card_label($service, $id) {
         if (empty($criteria)) {
           return isset($colors[$label]) ? $colors[$label] : NULL;
         }
-        
+                
         foreach ($criteria as $key => $value) {
-          if (!isset($ticket[$key]) || $ticket[$key] != $value) {
+
+          if (@!isset($ticket[$key]) || $ticket[$key] != $value && !in_array($value, $ticket[$key])) {
             break;
           }
           
