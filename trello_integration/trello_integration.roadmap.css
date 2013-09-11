@@ -1,3 +1,7 @@
 .next-milestone {
 	float: right;
 }
+
+.roadmap .get-status {
+  background: transparent url('/profiles/openscholar/themes/os_basetheme/images/throbber.gif') no-repeat 0 0 ;
+}

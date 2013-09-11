@@ -30,6 +30,12 @@ function trello_integration_menu() {
       'page arguments' => array(1,2),
       'access arguments' => array('access content'),
     ),
+    'trello/get/statuses' => array( 
+      'title' => 'Roadmap statuses',
+      'type' => MENU_CALLBACK,
+      'page callback' => 'trello_integration_ajax_get_statuses',
+      'access arguments' => array('access content'),
+    ),
   );
 }
 
@@ -86,6 +92,14 @@ function trello_integration_roadmap_table($name, $list_id) {
     'Status'
   );
   
+  $cached = cache_get('trello_integration_roadmap_statuses');
+  $cached = ($cached->expire > time()) ? $cached->data : NULL;
+  global $base_url;
+  $js_settings = array(
+    'ajax_path' => $base_url . '/trello/get/statuses',
+    'roadmap_statuses' => $cached,
+  );
+  
   return array(
     '#theme' => 'table',
     '#prefix' => "<div class='milestone'><h2>$name</h2>",
@@ -97,7 +111,14 @@ function trello_integration_roadmap_table($name, $list_id) {
       'border' => '0',
     ),
     '#attached' => array(
-      'css' => array(array('type' => 'file', 'data' => drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration_roadmap.css')),
+      'css' => array(
+        array('type' => 'file', 'data' => drupal_get_path('module', 'trello_integration') . '/trello_integration_roadmap.css'),
+        array('type' => 'file', 'data' => drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration_roadmap.css')
+      ),
+      'js' => array(
+        array('type' => 'file', 'data' => drupal_get_path('module', 'trello_integration') . '/trello_integration_roadmap.js'),
+        array('type' => 'setting', 'data' => array('trello_integration_roadmap' => $js_settings)),  
+      ),
     ),
   );
 }
@@ -124,7 +145,8 @@ function trello_integration_roadmap_table_row($card) {
   return array(
     $title,
     format_interval(time() - strtotime($card->dateLastActivity), 1),
-    (isset($id)) ? _trello_integration_github_state($id) : '',
+    //(isset($id)) ? _trello_integration_github_state($id) : '',
+    '<span class="get-status status-' . $id . '">&nbsp;&nbsp;&nbsp;&nbsp;</span>',
   );  
 }
 
@@ -463,33 +485,6 @@ function _trello_integration_get_lists($board_id, $name = NULL) {
 }
 
 /**
- * @function _trello_integration_github_state($issue)
- * 
- * Determines the state of a github issue
- */
-function _trello_integration_github_state($issue) {
-  //github labels -> roadmap labels mapping.  order matters, higher on list = higher precedence
-  $label_status = variable_get('getsatisfaction_roadmap_status_labels', array(
-    'status: fixed' => 'Done',
-    'status: needs qa' => 'Testing',
-    'status: needs review' => 'Review',
-    'status: in dev' => 'Development',
-    'status: needs spec' => 'Design',
-    'status: pending' => 'Pending',
-  ));
-  
-  foreach ($label_status as $label => $title) {
-    $issues = github_integration_issues_by_label($label);
-    if (in_array($issue, $issues)) {
-      $status = $title;
-      break;
-    }
-  }
-  
-  return (isset($status)) ? $status : '';
-}
-
-/**
  * @function _trello_integration_get_card_label
  * 
  * See if there's a label for this trello card.
@@ -535,4 +530,33 @@ function _trello_integration_get_card_label($service, $id) {
       }
     }
   }
+}
+
+/**
+ * @function trello_integration_ajax_get_statuses
+ * 
+ * Gets list of tickets by status for ajax
+ */
+function trello_integration_ajax_get_statuses() {
+  //github labels -> roadmap labels mapping.  order matters, higher on list = higher precedence
+  $label_status = variable_get('getsatisfaction_roadmap_status_labels', array(
+    'status: fixed' => 'Done',
+    'status: needs qa' => 'Testing',
+    'status: needs review' => 'Review',
+    'status: in dev' => 'Development',
+    'status: needs spec' => 'Design',
+    'status: pending' => 'Pending',
+  ));
+  
+  //get ids of tickets all tickets matching a label status
+  $return = array();
+  foreach ($label_status as $label => $title) {
+    $return[$title] = github_integration_issues_by_label($label);
+  }
+  
+  //cache it
+  cache_set('trello_integration_roadmap_statuses', $return, 'cache', time() + 1800); //30min cache
+  
+  print drupal_json_encode($return);
+  exit;
 }
