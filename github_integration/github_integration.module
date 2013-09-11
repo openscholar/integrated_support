@@ -638,6 +638,7 @@ function _github_integration_newer_issues($id, $params = array()) {
     return FALSE;
   }
   
+  $issues = array_filter($issues, function($i) {return !(strpos($i['html_url'], 'pull'));} ); //filter out PRs
   $issues = array_reduce($issues, function($ret, $i) {$ret[$i['number']] = $i; return $ret;}); //use id as array key
   return $issues;
 }
