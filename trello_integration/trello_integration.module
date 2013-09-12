@@ -61,19 +61,32 @@ function trello_integration_libraries_info() {
  */
 function trello_integration_roadmap_page($lists) {
   $trello = trello_integration_client();
-
-  foreach($lists as $list) {
-    $data[] = l($list->name, 'trello_roadmap/'. urlencode($list->name));
+  $render = array(
+    'current' => array(),
+    'links' => array(
+      '#theme' => 'item_list',
+      '#items' => array(),
+      '#type' => 'ul',
+      '#attributes' => array(
+        'class' => array('roadmap'),
+      ),
+    ),
+    'backlog' => array(),
+  );
+    
+  $printed_current = FALSE; 
+  foreach ($lists as $list) {
+    if ($list->name == 'Backlog') {
+      $render['backlog'] = trello_integration_roadmap_backlog($list->id); 
+    } elseif (!$printed_current) {
+      $render['current'] = trello_integration_roadmap_table($list->name, $list->id);
+      $printed_current = TRUE;
+    } else {
+      $render['links']['#items'] = l($list->name, 'trello_roadmap/'. urlencode($list->name));
+    }
   }
   
-  return array(
-    '#theme' => 'item_list',
-    '#items' => $data,
-    '#type' => 'ul',
-    '#attributes' => array(
-      '#class' => array('roadmap'),  
-    )  
-  );
+  return $render;
 }
 
 /**
@@ -93,7 +106,7 @@ function trello_integration_roadmap_table($name, $list_id) {
   );
   
   $cached = cache_get('trello_integration_roadmap_statuses');
-  $cached = ($cached->expire > time()) ? $cached->data : NULL;
+  $cached = ($cached && $cached->expire > time()) ? $cached->data : NULL;
   global $base_url;
   $js_settings = array(
     'ajax_path' => $base_url . '/trello/get/statuses',
@@ -112,8 +125,10 @@ function trello_integration_roadmap_table($name, $list_id) {
     ),
     '#attached' => array(
       'css' => array(
-        array('type' => 'file', 'data' => drupal_get_path('module', 'trello_integration') . '/trello_integration_roadmap.css'),
-        array('type' => 'file', 'data' => drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration_roadmap.css')
+        drupal_get_path('module', 'trello_integration') . '/trello_integration.roadmap.css',
+        drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration_roadmap.css',
+        //array('type' => 'file', 'data' => drupal_get_path('module', 'trello_integration') . '/trello_integration_roadmap.css'),
+        
       ),
       'js' => array(
         array('type' => 'file', 'data' => drupal_get_path('module', 'trello_integration') . '/trello_integration_roadmap.js'),
@@ -136,6 +151,10 @@ function trello_integration_roadmap_table_row($card) {
   if (filter_var($link, FILTER_VALIDATE_URL)) {
     if (strpos($link, 'github')) {
       list(,,,,,,$id) = explode('/', $link);
+      $status = "status-gh-$id";
+    } else {
+      list(,,,,,$slug) = explode('/', $link);
+      $status = "status-gs-$slug";
     }
     $title = "<span class='${class}'><a href='$link'>$card->name</a></span>"; 
   } else {
@@ -145,9 +164,40 @@ function trello_integration_roadmap_table_row($card) {
   return array(
     $title,
     format_interval(time() - strtotime($card->dateLastActivity), 1),
-    //(isset($id)) ? _trello_integration_github_state($id) : '',
-    '<span class="get-status status-' . $id . '">&nbsp;&nbsp;&nbsp;&nbsp;</span>',
+    '<span class="get-status ' . $status . '">&nbsp;&nbsp;&nbsp;&nbsp;</span>',
   );  
+}
+
+function trello_integration_roadmap_backlog($list_id) {
+  $trello = trello_integration_client();
+  $cards = $trello->lists($list_id)->cards()->get();
+  
+  $list_data = array();
+  foreach ($cards as $card) {
+    list($label) = array_map(function($o) {return $o->name;}, $card->labels); //only use first label.  ambiguities can be fixed in trello.
+    list($link) = explode("\n", $card->desc);
+    $list_data[$label][] = l($card->name, $link);
+  }
+  
+  $render = array(
+    '#title' => 'Backlog',
+    '#prefix' => '<div class="backlog"><h2>Backlog</h2>',
+    '#postfix' => '</div',
+    'lists' => array(),  
+  );
+  foreach ($list_data as $label => $items) {
+    $render['lists'][] = array(
+      '#title' => $label,
+      '#theme' => 'item_list',
+      '#items' => $items,
+      '#type' => 'ul',
+      '#attributes' => array(
+        'class' => array('backlog'),
+      )
+    );
+  }
+  
+  return $render;
 }
 
 /**
@@ -191,7 +241,11 @@ function trello_integration_roadmap($milestone = NULL) {
   list(,,,,$board_id) = explode('/', $board);
    
   //get all the lists
-  $lists = $trello->boards($board_id)->lists()->get();
+  if (($lists = $trello->boards($board_id)->lists()->get()) == FALSE) {
+    watchdog('trello', 'Could not retrieve lists from trello.');
+    return 'Roadmap unavailable';  
+  }
+  
   $milestone_urls = array_reduce($lists, function($ret, $l) {
     $ret[urlencode($l->name)] = $l;
     return $ret;

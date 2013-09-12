@@ -12,7 +12,7 @@ Drupal.behaviors.trello_integration_roadmap = {
     var display_statuses = function(data) {
       for (var status in data) {
         for (var id in data[status]) {
-          $('.roadmap span.get-status.status-'+data[status][id])
+          $('.roadmap span.get-status.status-gh-'+data[status][id])
             .addClass(status.toLowerCase())
             .removeClass('get-status')
             .html(status)
