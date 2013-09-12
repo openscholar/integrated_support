@@ -187,7 +187,6 @@ function getsatisfaction_integration_admin_tickets_validate(&$form, &$state) {
   //Dupe?
   $mapped = db_select('getsatisfaction_service_map', 'gs')
     ->condition('id', $topic->id)
-    ->condition('external_id', $state['values']['external_id'])
     ->condition('external_service', $state['values']['external_service'])
     ->range(0,1)
     ->fields('gs', array('id'))
