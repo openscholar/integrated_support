@@ -20,7 +20,7 @@ function github_integration_highscore_page() {
   //tickets owned: resolved, unresolved.
   $milestones = github_integration_milestones(array('state' => 'closed', 'sort' => 'due_date', 'direction' => 'desc'));
 //  shuffle($milestones);
-  $milestone = current($milestones);
+  //$milestone = current($milestones);
   $params = array('milestone' => $milestone['number'], 'per_page' => 100);
 //unset($params['milestone']);
   //get all users
