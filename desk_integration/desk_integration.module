@@ -347,7 +347,7 @@ function desk_integration_desk_to_bugreport_complete($payload, $responses) {
  * Registers bug report url as a desk.com integration url
  */
 function desk_integration_desk_to_bugreport_setup() {
-  $name = '(testing) Create Bug Report';
+  $name = 'Create Bug Report';
   global $base_url;
 
   //create a service
@@ -404,6 +404,11 @@ function desk_integration_update_cases($case_ids, $github_issue_id, $github_mile
       }
 
       if (isset($msg) && $msg) {
+        $gs_topic = _desk_integration_get_linked_topic($github_issue_id);
+        if ($gs_topic) {
+          $msg .= "\n\nFor more information, please see ${gs_topic}.";
+        }
+        
         $ret[] = _desk_integration_case_reply($id, $msg); 
       }
     }
@@ -478,6 +483,32 @@ function _desk_integration_payload_data() {
   );
 
   return $data;
+}
+
+/**
+ * @function _desk_integration_get_linked_topic($github_issue_id)
+ * 
+ * Gets links to getsatisfaction topic linked to a github issue.
+ */
+function _desk_integration_get_linked_topic($github_issue_id) {
+  if (!(module_exists('getsatisfaction_integration') && module_exists('github_integration'))) {
+    return '';
+  }
+  
+  $topic_id = db_select('getsatisfaction_service_map', 'gs')
+    ->condition('external_service', 'github_integration')
+    ->condition('external_id', $github_issue_id)
+    ->range(0, 1)  
+    ->fields('gs', array('id'))
+    ->execute()
+    ->fetchField();
+  
+  if ($topic_id) {
+    $topic = getsatisfaction_integration_topic($topic_id);
+    return ($topic) ? $topic->at_sfn : '';
+  }
+  
+  return '';
 }
 
 /**
