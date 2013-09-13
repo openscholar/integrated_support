@@ -334,9 +334,7 @@ function trello_integration_callback($service, $id) {
       }
       
       //update milestone
-      if ($service == 'github') {
-        _trello_integration_callback_list_changed($payload->model->idList, $id);
-      }        
+      _trello_integration_callback_list_changed($payload->model->idList, $service, $id);
      
       break;
       
@@ -359,8 +357,8 @@ function trello_integration_callback($service, $id) {
       }
       
       $board = $trello->boards($payload->model->idBoard)->get();
-      if ($service == 'github' && $board->url == variable_get('trello_integration_roadmap')) {        
-        _trello_integration_callback_list_changed($payload->model->idList, $id);
+      if ($board->url == variable_get('trello_integration_roadmap')) {        
+        _trello_integration_callback_list_changed($payload->model->idList, $service, $id);
       }
       
       break;
@@ -370,11 +368,11 @@ function trello_integration_callback($service, $id) {
 }
 
 /*
- * @function _trello_integration_callback_list_changed($list_id, $github_id) 
+ * @function _trello_integration_callback_list_changed($list_id, $service, $github_id) 
  * 
- * Checks if a card's new list is a milestone.  Adjusts github milestone if it is.
+ * Checks if a card's new list is a milestone.  Adjusts github milestone if it is.  Creates GH issue if necessary
  */
-function _trello_integration_callback_list_changed($list_id, $github_id) {
+function _trello_integration_callback_list_changed($list_id, $service, $id) {
   $trello = trello_integration_client();
   $gh = github_integration_client();
   $list = $trello->lists($list_id)->get();
@@ -382,6 +380,8 @@ function _trello_integration_callback_list_changed($list_id, $github_id) {
     $ret[$m['title']] = $m['number'];
     return $ret;
   });
+  
+  $github_id = ($service == 'github') ? $id : _getsatisfaction_integration_linked_issue($id); 
 
   //if the new list is a milestone, move the GH ticket to that milestone
   if (isset($milestones[$list->name])) {

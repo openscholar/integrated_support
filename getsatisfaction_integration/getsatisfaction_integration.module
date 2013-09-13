@@ -475,4 +475,44 @@ function _getsatisfaction_integration_update_topic_table($topic) {
   }
 }
 
+/**
+ * @function _getsatisfaction_integration_linked_issue($id)
+ * 
+ * Given a getsatisfaction topic, return the id of a linked GH issue, creating it if necessary
+ */
+function _getsatisfaction_integration_linked_issue($topic_id) {
+  //check if we already have this issue
+  $topic = getsatisfaction_integration_topic($topic_id); //$topic_id may actually be slug.  need to be certain we're using id.
+  $results = db_select('getsatisfaction_service_map', 'gs')
+    ->condition('id', $topic->id)
+    ->condition('external_service', 'github_integration')
+    ->fields('gs', array('external_id'))
+    ->range(0,1)
+    ->execute();
+    
+  if ($results->rowCount()) {
+    return $results->fetchColumn();
+  }
+  
+  //need a new issue
+  $gh = github_create_issue(array(
+    'title' => $topic->subject,
+    'body' => $topic->content,
+  ));
+  
+  //create map
+  if ($gh && isset($gh['number'])) {
+    $state = array('values' => array(
+      'external_service' => 'github_integration',
+      'external_id' => $gh['number'],
+      'getsatisfaction_url' => $topic->at_sfn,
+    ));
+  
+    require_once(drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration.admin.inc');
+    drupal_form_submit('getsatisfaction_integration_admin_tickets', $state);
+    
+    return $gh['number'];
+  }
+}
+
 
