@@ -147,15 +147,16 @@ function trello_integration_roadmap_table_row($card) {
   $class = 'style ' . strtolower(array_reduce($card->labels, function($val, $lbl) {return $val . ' style-' . $lbl->name;}, ''));
   list($link) = explode("\n", $card->desc);
   
-  
   if (filter_var($link, FILTER_VALIDATE_URL)) {
+    //get the github id so we can display a status.
     if (strpos($link, 'github')) {
       list(,,,,,,$id) = explode('/', $link);
-      $status = "status-gh-$id";
     } else {
       list(,,,,,$slug) = explode('/', $link);
-      $status = "status-gs-$slug";
+      $id = _getsatisfaction_integration_linked_issue($slug);
     }
+    
+    $status = "status-gh-$id";
     $title = "<span class='${class}'><a href='$link'>$card->name</a></span>"; 
   } else {
     $title = "<span class='${class}'>$card->name</span>";
