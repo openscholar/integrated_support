@@ -82,7 +82,7 @@ function trello_integration_roadmap_page($lists) {
       $render['current'] = trello_integration_roadmap_table($list->name, $list->id);
       $printed_current = TRUE;
     } else {
-      $render['links']['#items'] = l($list->name, 'trello_roadmap/'. urlencode($list->name));
+      $render['links']['#items'][] = l($list->name, 'trello_roadmap/'. _trello_integration_milestone_url($list->name));
     }
   }
   
@@ -248,7 +248,7 @@ function trello_integration_roadmap($milestone = NULL) {
   }
   
   $milestone_urls = array_reduce($lists, function($ret, $l) {
-    $ret[urlencode($l->name)] = $l;
+    $ret[_trello_integration_milestone_url($l->name)] = $l;
     return $ret;
   }, array());
   
@@ -271,10 +271,10 @@ function trello_integration_roadmap($milestone = NULL) {
       'table' => $table,
       'links' => array(
         'prev' => array(
-          '#markup' => ($prev) ? l($prev->name, 'trello_roadmap/' . urlencode($prev->name), array('attributes' => array('class' => array('prev-milestone')))) : '',  
+          '#markup' => ($prev) ? l($prev->name, 'trello_roadmap/' . _trello_integration_milestone_url($prev->name), array('attributes' => array('class' => array('prev-milestone')))) : '',  
         ),
         'next' => array(
-          '#markup' => ($next) ? l($next->name, 'trello_roadmap/' . urlencode($next->name), array('attributes' => array('class' => array('next-milestone')))) : '',
+          '#markup' => ($next) ? l($next->name, 'trello_roadmap/' . _trello_integration_milestone_url($next->name), array('attributes' => array('class' => array('next-milestone')))) : '',
         ),
         '#attached' => array('css' => array(drupal_get_path('module', 'trello_integration') . '/trello_integration.roadmap.css')), 
       )  
@@ -653,4 +653,15 @@ function trello_integration_ajax_get_statuses() {
   
   print drupal_json_encode($return);
   exit;
+}
+
+/**
+ * @function _trello_integration_milestone_url
+ * 
+ * Makes milestone title url friendly.  urlencode by itself makes ugly urls.
+ **/
+function _trello_integration_milestone_url($milestone) {
+  $milestone = str_replace(' ', '-', $milestone);
+  $milestone = str_replace(',', '', $milestone);
+  return urlencode($milestone);  
 }
