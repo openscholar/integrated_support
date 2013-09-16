@@ -7,9 +7,12 @@
 Drupal.behaviors.trello_integration_roadmap = { 
   attach: function (context) {
     settings = Drupal.settings.trello_integration_roadmap;
-    console.log(settings)
     
-    //loop over known statuses and their gh ids, applying statuses when foudn.
+    /**
+     * @function display_statuses
+     * 
+     * loop over known statuses and their gh ids, applying statuses when foudn.
+     **/
     var display_statuses = function(data) {
       var id_status = {};
       for (var status in data) {
@@ -17,12 +20,12 @@ Drupal.behaviors.trello_integration_roadmap = {
           id_status[ data[status][i] ] = status;
         }
       }
-      console.log(id_status)
+    
       $('a.get-status').each(function() {
         var $this = $(this);
         var this_id = $this.attr('id').split('-')[2];
         if (id_status[parseInt(this_id)]) {
-          $this.addClass(id_status[this_id])
+          $this.addClass(id_status[this_id].toLowerCase())
             .removeClass('get-status');
         }
       });
@@ -30,7 +33,11 @@ Drupal.behaviors.trello_integration_roadmap = {
       $('.roadmap .get-status').removeClass('get-status'); //clear remaining throbbers
     };
     
-    //add Done text to closed issues
+    /**
+     * @function display_closed
+     * 
+     * Closed tickets have their own ajax call.  Mark them as done as well.
+     */
     var display_closed = function(data) {
       $('a.get-status').each(function() {
         var $this = $(this);
@@ -43,11 +50,11 @@ Drupal.behaviors.trello_integration_roadmap = {
       });
     }
     
-    //use preloaded statuses or fetch and then display them
+    
+    //use statuses if preloaded, otherwise ajax them.
     if (settings.roadmap_statuses) {
       display_statuses(settings.roadmap_statuses);
     } else {
-      //add throbber
       $.getJSON(settings.ajax_path + '/statuses', '', display_statuses);
     }
     
@@ -55,7 +62,6 @@ Drupal.behaviors.trello_integration_roadmap = {
     if (settings.roadmap_closed) {
       display_closed(settings.roadmap_closed);
     } else {
-      //add throbber
       $.getJSON(settings.ajax_path + '/closed/' + settings.milestone, '', display_closed);
     }
   }

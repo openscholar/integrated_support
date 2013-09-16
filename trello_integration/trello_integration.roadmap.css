@@ -41,5 +41,17 @@ ul.milestone > li > a:hover {
 
 ul.milestone > li > a.closed:before {
 	content:'[done] ';
-	background-color: red;
+}
+
+ul.milestone > li > a.closed {
+	background: linear-gradient(to right, #dff, #fff, #fff, #fff); 
+	/*text-decoration: line-through;*/
+}
+
+ul.milestone > li:nth-child(even) > a.closed {
+  background: linear-gradient(to right, #ffd, #fff, #fff, #fff); 
+}
+
+ul.milestone > li:nth-child(5) > a.closed {
+  background: linear-gradient(to right, #fdf, #fff, #fff, #fff); 
 }
