@@ -6,25 +6,40 @@
   background: transparent url('/profiles/openscholar/themes/os_basetheme/images/throbber.gif') no-repeat 0 0 ;
 }
 
-.backlog .item-list {
+.milestone-wrapper {
+	clear: both;
+}
+.milestone-wrapper .item-list {
 	display: block;
   float: left;
-  border: 1px silver solid;
+  /*border: 1px #aaa solid;*/
   margin: 1px;
   padding: 1em;
-  border-radius: 2px;
-
+  border-radius: 4px;
+  height: 40em;
+  overflow-y: scroll;
+  width: 22em;
+  box-shadow: 0px 0px 15px #888888;
+  background-color: white;
 }
 
-ul.backlog > li {
-	width: 24em;
+ul.milestone {
+	list-style-type:none;
 }
 
-ul.backlog > li > a {
+
+ul.milestone > li > a {
 	display: block;
-	padding: 2px;
+	padding: 1em .1em;
+	border-top: 1px #ddd dashed;
+	color: #333;
 }
 
-ul.backlog > li > a:hover {
+ul.milestone > li > a:hover {
 	background-color: #eee;
+}
+
+ul.milestone > li > a.closed:before {
+	content:'[done] ';
+	background-color: red;
 }

@@ -36,6 +36,14 @@ function trello_integration_menu() {
       'page callback' => 'trello_integration_ajax_get_statuses',
       'access arguments' => array('access content'),
     ),
+    'trello/get/closed/%' => array(
+      'title' => 'Closed issues by milestone',
+      'type' => MENU_CALLBACK,
+      'page callback' => 'trello_integration_ajax_get_closed',
+      'access arguments' => array('access content'),
+      'page arguments' => array(3),
+    ),
+    
   );
 }
 
@@ -59,32 +67,40 @@ function trello_integration_libraries_info() {
  * 
  * Page shows roadmaps in tables
  */
-function trello_integration_roadmap_page($lists) {
-  $trello = trello_integration_client();
-  $render = array(
-    'current' => array(),
-    'links' => array(
-      '#theme' => 'item_list',
-      '#items' => array(),
-      '#type' => 'ul',
-      '#attributes' => array(
-        'class' => array('roadmap'),
-      ),
-    ),
-    'backlog' => array(),
-  );
-    
-  $printed_current = FALSE; 
+function trello_integration_roadmap_page($lists) {  
+  $render = array();
   foreach ($lists as $list) {
     if ($list->name == 'Backlog') {
-      $render['backlog'] = trello_integration_roadmap_backlog($list->id); 
-    } elseif (!$printed_current) {
-      $render['current'] = trello_integration_roadmap_table($list->name, $list->id);
-      $printed_current = TRUE;
-    } else {
-      $render['links']['#items'][] = l($list->name, 'trello_roadmap/'. _trello_integration_milestone_url($list->name));
+      continue; 
     }
+    $render['current'] = trello_integration_roadmap_columns($list->name, $list->id);
+    break;
   }
+  
+  //attach javascript, settings, and (maybe) cached status data
+  $cached = cache_get('trello_integration_roadmap_statuses');
+  $cached = ($cached && $cached->expire > time()) ? $cached->data : NULL;
+  
+  global $base_url;
+  $js_settings = array(
+    'ajax_path' => $base_url . '/trello/get',
+    'roadmap_statuses' => $cached,
+    'milestone' => $list->name,
+    //preload milestone?
+  );
+  
+  $render += array(
+    '#attached' => array(
+      'css' => array(
+        drupal_get_path('module', 'trello_integration') . '/trello_integration.roadmap.css',
+        drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration_roadmap.css',
+      ),
+      'js' => array(
+        array('type' => 'file', 'data' => drupal_get_path('module', 'trello_integration') . '/trello_integration_roadmap.js'),
+        array('type' => 'setting', 'data' => array('trello_integration_roadmap' => $js_settings)),
+      ),
+    ),
+  );
   
   return $render;
 }
@@ -169,23 +185,22 @@ function trello_integration_roadmap_table_row($card) {
   );  
 }
 
-function trello_integration_roadmap_backlog($list_id) {
+/**
+ * @function trello_integration_roadmap_columns()
+ * 
+ * Fetch cards in a list, and draw them in a three column layout.
+ */
+function trello_integration_roadmap_columns($list_name, $list_id) {
   $trello = trello_integration_client();
   $cards = $trello->lists($list_id)->cards()->get();
-  
-  $list_data = array();
-  foreach ($cards as $card) {
-    list($label) = array_map(function($o) {return $o->name;}, $card->labels); //only use first label.  ambiguities can be fixed in trello.
-    list($link) = explode("\n", $card->desc);
-    $list_data[$label][] = l($card->name, $link);
-  }
+  $list_data = trello_integration_roadmap_columns_cards_data($cards);
   
   $render = array(
-    '#title' => 'Backlog',
-    '#prefix' => '<div class="backlog"><h2>Backlog</h2>',
-    '#postfix' => '</div',
+    '#prefix' => '<div class="milestone-wrapper"><h2>'.$list_name.'</h2>',
+    '#postfix' => '</div>',
     'lists' => array(),  
   );
+  
   foreach ($list_data as $label => $items) {
     $render['lists'][] = array(
       '#title' => $label,
@@ -193,7 +208,7 @@ function trello_integration_roadmap_backlog($list_id) {
       '#items' => $items,
       '#type' => 'ul',
       '#attributes' => array(
-        'class' => array('backlog'),
+        'class' => array('milestone'),
       )
     );
   }
@@ -201,6 +216,31 @@ function trello_integration_roadmap_backlog($list_id) {
   return $render;
 }
 
+function trello_integration_roadmap_columns_cards_data($cards) {
+  $list_data = array();
+  
+  foreach ($cards as $card) {
+    //choose a list bucket.
+    list($label) = array_map(function($o) {return $o->name;}, $card->labels); //only use first label.  ambiguities can be fixed in trello.
+    
+    //get the status from GH  
+    list($link) = explode("\n", $card->desc);
+    if (filter_var($link, FILTER_VALIDATE_URL)) {
+      if (strpos($link, 'github')) {
+        list(,,,,,,$id) = explode('/', $link);
+      } else {
+        list(,,,,,$slug) = explode('/', $link);
+        $id = _getsatisfaction_integration_linked_issue($slug);
+      }
+    }    
+    $status = (isset($id)) ? "status-gh-$id" : 'status';
+  
+    //build the link
+    $list_data[$label][] = l($card->name, $link, array('attributes' => array('class' => 'get-status ', 'id' => $status)));
+  }
+  
+  return $list_data;
+}
 /**
  * @function trello_integration_client
  * 
@@ -655,6 +695,39 @@ function trello_integration_ajax_get_statuses() {
   exit;
 }
 
+/**
+ * function trello_integration_ajax_get_closed()
+ * 
+ * Ajax call gets list of closed tickets within a milestone
+ */
+function trello_integration_ajax_get_closed($milestone) {
+  //milestones must be searched by number
+  $milestone = urldecode($milestone);
+  $milestones = github_integration_milestones() + github_integration_milestones(array('state' => 'closed'));
+  foreach ($milestones as $ms) {
+    if (_trello_integration_milestone_url($ms['title']) == _trello_integration_milestone_url($milestone)) {
+      $number = $ms['number'];
+      break;
+    }
+  }
+  
+  if (isset($number)) {
+    $key = 'trello_integration_milestone_closed:'.$number;
+    $cached = cache_get($key);
+    
+    if ($cached && $cached->expire > time()) { 
+      print drupal_json_encode($cached->data);
+    } else {
+      $closed = github_integration_search(array('state' => 'closed', 'milestone' => $number));
+      $return = array_map(function($a) {return $a['number'];}, $closed);
+      
+      cache_set('trello_integration_milestone_closed:'.$number, $return, 'cache', time() + 1800); //30min cache
+      print drupal_json_encode($return);
+    }
+  }
+  
+  exit;
+}
 /**
  * @function _trello_integration_milestone_url
  * 
