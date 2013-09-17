@@ -56,7 +56,7 @@ function trello_integration_libraries_info() {
   return array(
     'php-trello' => array(
       'name' => 'PHP Trello API',
-      'files' => array('php' => array('Trello/Trello.php')),
+      'files' => array('php' => array('src/Trello/Trello.php')),
       'version' => 'master',
     ),
   );
@@ -87,7 +87,6 @@ function trello_integration_roadmap_page($list) {
     'roadmap_statuses' => $cached_statuses,
     'roadmap_closed' => $cached_closed,
     'milestone' => $list->name,
-    //preload milestone?
   );
   
   $render += array(
