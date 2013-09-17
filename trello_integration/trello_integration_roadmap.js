@@ -6,6 +6,13 @@
 
 Drupal.behaviors.trello_integration_roadmap = { 
   attach: function (context) {
+    // Tabs
+    $('#tabs').tabs();
+    
+    
+    
+    // Roadmap ajax
+    
     settings = Drupal.settings.trello_integration_roadmap;
     
     /**

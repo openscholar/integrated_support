@@ -197,7 +197,8 @@ function trello_integration_roadmap_columns($list_name, $list_id) {
   
   $render = array(
     '#prefix' => '<div class="milestone-wrapper"><h2>'.$list_name.'</h2>',
-    '#postfix' => '</div>',
+    '#suffix' => '</div milestone-wrapper>',
+    
     'lists' => array(),  
   );
   
@@ -274,6 +275,10 @@ function trello_integration_client() {
  * Displays a roadmap based on cards from trello.
  */
 function trello_integration_roadmap($milestone = NULL) {
+  
+
+  
+  
   $trello = trello_integration_client();
   $board = variable_get('trello_integration_roadmap');
   if (!$board) {
@@ -307,23 +312,62 @@ function trello_integration_roadmap($milestone = NULL) {
   }
 
   //and draw the trello page
-  $return['milestone'] = trello_integration_roadmap_page($list);
+  $tabs['milestone'] = trello_integration_roadmap_page($list);
+  $tabs['milestone']['#prefix'] = '<div id="tabs-1">';
+  $tabs['milestone']['#suffix'] = '</div tabs1>';
+  
+  $tabs['backlog'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div id="tabs-2">Ima backlog!</div>',  
+  );
+  
+  $tabs['archives'] = array(
+    '#type' => 'markup',
+    '#markup' => '<div id="tabs-3">Ima the archives!</div>',
+  );
+
   
   //make a select box for other milestones
   $milestones = array_reduce(github_integration_milestones(array('direction' => 'asc')), function($ret, $a) {
     $ret[ $a['number'] ] = $a['title']; return $ret;
   });
   
-  $return['select'] = array(
-    '#theme' => 'select',
-    '#title' => 'Milestones',
-    '#options' => $milestones, 
-    '#weight' => -10,
-    '#value' => 13, 
-    '#attributes' => array('id' => 'select_current'),
+//   $tabs['select'] = array(
+//     '#theme' => 'select',
+//     '#title' => 'Milestones',
+//     '#options' => $milestones, 
+//     '#weight' => -10,
+//     '#value' => 13, 
+//     '#attributes' => array('id' => 'select_current'),
+//   );
+  
+//   //permalink.  should this be on the main page or each 3col area?
+//   $tabs['permalink'] = array(
+//     '#type' => 'markup',
+//     '#markup' => l('Permalink', 'trello_roadmap/' . _trello_integration_milestone_url($list->name), array('attributes' => array('class' => array('milestone-permalink')))),
+//   );
+  
+  //tabs
+  drupal_add_library ( 'system' , 'ui.tabs' );
+  
+  $markup = <<<EOF
+  <ul>
+    <li><a href="#tabs-1">Current</a></li>
+    <li><a href="#tabs-2">Backlog</a><li>
+    <li><a href="#tabs-3">Archive</a></li>
+  </ul>
+EOF;
+  $return = array(
+    'tabs' => array(
+      '#weight' => -1000,
+      '#prefix' => '<div id="tabs">',
+      '#suffix' => '</div>',
+      'tab-links' => array(
+        '#markup' => $markup,  
+      )
+    ),
   );
-  
-  
+  $return['tabs'] += $tabs;
   return $return;
 }
 

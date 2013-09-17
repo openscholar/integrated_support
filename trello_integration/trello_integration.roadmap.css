@@ -18,7 +18,7 @@
   border-radius: 4px;
   height: 40em;
   overflow-y: scroll;
-  width: 22em;
+  width: 18em;
   box-shadow: 0px 0px 15px #888888;
   background-color: white;
 }
@@ -27,12 +27,16 @@ ul.milestone {
 	list-style-type:none;
 }
 
-
+ul.milestone > li {
+	padding-bottom: 1px;
+}
 ul.milestone > li > a {
 	display: block;
-	padding: 1em .1em;
-	border-top: 1px #ddd dashed;
+	padding: 1em 1px;
+	/*border-top: 1px #ddd dashed;*/
 	color: #333;
+	border-radius: 3px;
+	margin-bottom: 1px;
 }
 
 ul.milestone > li > a:hover {
@@ -44,14 +48,18 @@ ul.milestone > li > a.closed:before {
 }
 
 ul.milestone > li > a.closed {
-	background: linear-gradient(to right, #dff, #fff, #fff, #fff); 
+	/*background: linear-gradient(to right, #dff, #fff, #fff, #fff);*/ 
 	/*text-decoration: line-through;*/
+	border-left: 2px #0a0 solid;
+	
 }
 
 ul.milestone > li:nth-child(even) > a.closed {
-  background: linear-gradient(to right, #ffd, #fff, #fff, #fff); 
+  /*background: linear-gradient(to right, #ffd, #fff, #fff, #fff);*/
+	border-left: 2px #00a solid; 
 }
 
 ul.milestone > li:nth-child(5) > a.closed {
-  background: linear-gradient(to right, #fdf, #fff, #fff, #fff); 
+  /*background: linear-gradient(to right, #fdf, #fff, #fff, #fff);*/
+	border-left: 2px #a00 solid; 
 }
