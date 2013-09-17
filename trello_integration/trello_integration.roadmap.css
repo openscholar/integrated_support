@@ -2,13 +2,20 @@
 	float: right;
 }
 
+/*
 .roadmap .get-status {
   background: transparent url('/profiles/openscholar/themes/os_basetheme/images/throbber.gif') no-repeat 0 0 ;
 }
+*/
 
 .milestone-wrapper {
 	clear: both;
 }
+
+.milestone-permalink {
+	float: right;
+}
+
 .milestone-wrapper .item-list {
 	display: block;
   float: left;

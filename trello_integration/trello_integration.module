@@ -67,7 +67,29 @@ function trello_integration_libraries_info() {
  * 
  * Page shows roadmaps in tables
  */
-function trello_integration_roadmap_page($list) {  
+function trello_integration_roadmap_page($list_name) {  
+  //get the list
+  $trello = trello_integration_client();
+  $board = variable_get('trello_integration_roadmap');
+  list(,,,,$board_id) = explode('/', $board);
+  
+  if (($lists = $trello->boards($board_id)->lists()->get()) == FALSE) {
+    watchdog('trello', 'Could not retrieve lists from trello.');
+    return 'Roadmap unavailable';
+  }
+  
+  foreach ($lists as $l) {
+    if ($l->name == $list_name) {
+      $list = $l;
+      break;
+    }
+  }
+  
+  if (!isset($list)) {
+    return array('Could not find list');
+  }
+  
+  //now render it and attach some javascript
   $render = array(
     'current' => trello_integration_roadmap_columns($list->name, $list->id),
   );
@@ -106,86 +128,6 @@ function trello_integration_roadmap_page($list) {
 }
 
 /**
- * @function trello_integration_roadmap_page_table
- * 
- * Renders one milestone from the roadmap as a table
- */
-// function trello_integration_roadmap_table($name, $list_id) {
-//   $trello = trello_integration_client();
-//   $cards = $trello->lists($list_id)->cards()->get();
-  
-//   $data = array_map('trello_integration_roadmap_table_row', $cards);
-//   $header = array(
-//     array('data' => 'Topic', 'width' =>'75%'),
-//     'Last Update',
-//     'Status'
-//   );
-  
-//   $cached = cache_get('trello_integration_roadmap_statuses');
-//   $cached = ($cached && $cached->expire > time()) ? $cached->data : NULL;
-//   global $base_url;
-//   $js_settings = array(
-//     'ajax_path' => $base_url . '/trello/get/statuses',
-//     'roadmap_statuses' => $cached,
-//   );
-  
-//   return array(
-//     '#theme' => 'table',
-//     '#prefix' => "<div class='milestone'><h2>$name</h2>",
-//     '#suffix' => '</div>',
-//     '#header' => $header,
-//     '#rows' => $data,
-//     '#attributes' => array(
-//       'class' => array('roadmap'),
-//       'border' => '0',
-//     ),
-//     '#attached' => array(
-//       'css' => array(
-//         drupal_get_path('module', 'trello_integration') . '/trello_integration.roadmap.css',
-//         drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration_roadmap.css',
-//         //array('type' => 'file', 'data' => drupal_get_path('module', 'trello_integration') . '/trello_integration_roadmap.css'),
-        
-//       ),
-//       'js' => array(
-//         array('type' => 'file', 'data' => drupal_get_path('module', 'trello_integration') . '/trello_integration_roadmap.js'),
-//         array('type' => 'setting', 'data' => array('trello_integration_roadmap' => $js_settings)),  
-//       ),
-//     ),
-//   );
-// }
-
-/**
- * @function trello_integration_roadmap_page_table_row
- * 
- * Renders a trello card into a table row for a milestone table
- */
-// function trello_integration_roadmap_table_row($card) {
-//   $class = 'style ' . strtolower(array_reduce($card->labels, function($val, $lbl) {return $val . ' style-' . $lbl->name;}, ''));
-//   list($link) = explode("\n", $card->desc);
-  
-//   if (filter_var($link, FILTER_VALIDATE_URL)) {
-//     //get the github id so we can display a status.
-//     if (strpos($link, 'github')) {
-//       list(,,,,,,$id) = explode('/', $link);
-//     } else {
-//       list(,,,,,$slug) = explode('/', $link);
-//       $id = _getsatisfaction_integration_linked_issue($slug);
-//     }
-    
-//     $status = "status-gh-$id";
-//     $title = "<span class='${class}'><a href='$link'>$card->name</a></span>"; 
-//   } else {
-//     $title = "<span class='${class}'>$card->name</span>";
-//   } 
-
-//   return array(
-//     $title,
-//     format_interval(time() - strtotime($card->dateLastActivity), 1),
-//     '<span class="get-status ' . $status . '">&nbsp;&nbsp;&nbsp;&nbsp;</span>',
-//   );  
-// }
-
-/**
  * @function trello_integration_roadmap_columns()
  * 
  * Fetch cards in a list, and draw them in a three column layout.
@@ -196,8 +138,8 @@ function trello_integration_roadmap_columns($list_name, $list_id) {
   $list_data = trello_integration_roadmap_columns_cards_data($cards);
   
   $render = array(
-    '#prefix' => '<div class="milestone-wrapper"><h2>'.$list_name.'</h2>',
-    '#suffix' => '</div milestone-wrapper>',
+    '#prefix' => '<div class="milestone-wrapper">',
+    '#suffix' => '</div>',
     
     'lists' => array(),  
   );
@@ -276,54 +218,56 @@ function trello_integration_client() {
  */
 function trello_integration_roadmap($milestone = NULL) {
   
-
+  //get first open milestone from github.
   
-  
-  $trello = trello_integration_client();
-  $board = variable_get('trello_integration_roadmap');
-  if (!$board) {
-    return;
-  }
-  list(,,,,$board_id) = explode('/', $board);
+//   $trello = trello_integration_client();
+//   $board = variable_get('trello_integration_roadmap');
+//   if (!$board) {
+//     return;
+//   }
+//   list(,,,,$board_id) = explode('/', $board);
    
-  //get all the lists
-  if (($lists = $trello->boards($board_id)->lists()->get()) == FALSE) {
-    watchdog('trello', 'Could not retrieve lists from trello.');
-    return 'Roadmap unavailable';  
-  }
+//   //get all the lists
+//   if (($lists = $trello->boards($board_id)->lists()->get()) == FALSE) {
+//     watchdog('trello', 'Could not retrieve lists from trello.');
+//     return 'Roadmap unavailable';  
+//   }
   
-  $milestone_urls = array_reduce($lists, function($ret, $l) {
-    $ret[_trello_integration_milestone_url($l->name)] = $l;
-    return $ret;
-  }, array());
+//   $milestone_urls = array_reduce($lists, function($ret, $l) {
+//     $ret[_trello_integration_milestone_url($l->name)] = $l;
+//     return $ret;
+//   }, array());
   
     
   
-  //use the list specified, or default to the first non-backlog card
-  if ($milestone && isset($milestone_urls[$milestone])) {
-    $list = $milestone_urls[$milestone];
-  } else {
-    foreach ($lists as $list) {
-      if ($list->name == 'Backlog') {
-        continue;       //skip the backlog
-      }
-      break;
-    }
-  }
+//   //use the list specified, or default to the first non-backlog card
+//   if ($milestone && isset($milestone_urls[$milestone])) {
+//     $list = $milestone_urls[$milestone];
+//   } else {
+//     foreach ($lists as $list) {
+//       if ($list->name == 'Backlog') {
+//         continue;       //skip the backlog
+//       }
+//       break;
+//     }
+//   }
+  $milestone = 'September 16, 2013';
 
   //and draw the trello page
-  $tabs['milestone'] = trello_integration_roadmap_page($list);
+  $tabs['milestone'] = trello_integration_roadmap_page($milestone);
   $tabs['milestone']['#prefix'] = '<div id="tabs-1">';
   $tabs['milestone']['#suffix'] = '</div tabs1>';
   
   $tabs['backlog'] = array(
-    '#type' => 'markup',
-    '#markup' => '<div id="tabs-2">Ima backlog!</div>',  
+    '#prefix' => '<div id="tabs-2">',
+    '#suffix' => '</div>',  
+//     'content' => trello_integration_roadmap_page('Backlog'),  
   );
   
   $tabs['archives'] = array(
     '#type' => 'markup',
     '#markup' => '<div id="tabs-3">Ima the archives!</div>',
+    //select for choosing.  
   );
 
   
@@ -332,20 +276,24 @@ function trello_integration_roadmap($milestone = NULL) {
     $ret[ $a['number'] ] = $a['title']; return $ret;
   });
   
-//   $tabs['select'] = array(
-//     '#theme' => 'select',
-//     '#title' => 'Milestones',
-//     '#options' => $milestones, 
-//     '#weight' => -10,
-//     '#value' => 13, 
-//     '#attributes' => array('id' => 'select_current'),
-//   );
+  //links and such
+  $tabs['milestone']['info'] = array(
+    '#prefix' => '<div id="roadmap-info">',
+    '#suffix' => '</div>',
+    '#weight' => -10,
+    'select' => array(
+      '#theme' => 'select',
+      '#title' => 'Milestones',
+      '#options' => $milestones, 
+      '#value' => @current(array_keys($milestones)), 
+      '#attributes' => array('id' => 'select_current'),
+    ),
+    'permalink' => array(
+      '#type' => 'markup',
+      '#markup' => l('Permalink', 'trello_roadmap/' . _trello_integration_milestone_url($milestone), array('attributes' => array('class' => array('milestone-permalink')))),
+    ),
+  );
   
-//   //permalink.  should this be on the main page or each 3col area?
-//   $tabs['permalink'] = array(
-//     '#type' => 'markup',
-//     '#markup' => l('Permalink', 'trello_roadmap/' . _trello_integration_milestone_url($list->name), array('attributes' => array('class' => array('milestone-permalink')))),
-//   );
   
   //tabs
   drupal_add_library ( 'system' , 'ui.tabs' );
