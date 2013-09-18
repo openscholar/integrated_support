@@ -6,15 +6,17 @@
 
 Drupal.behaviors.trello_integration_roadmap = { 
   attach: function (context) {
-    // Tabs
-    $('#tabs').tabs();
+    settings = Drupal.settings.trello_integration_roadmap;   
     
-    
-    
-    // Roadmap ajax
-    
-    settings = Drupal.settings.trello_integration_roadmap;
-    
+    //attach focus event to milestone selector
+    $select = $('select#select_milestone')
+    $select.change(function() {
+      option = $select.find('option:selected').html();
+      if (settings.milestones[option]) {
+        document.location.href = settings.roadmap_path + settings.milestones[option];
+      }
+    });
+
     /**
      * @function display_statuses
      * 

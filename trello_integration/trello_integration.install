@@ -22,3 +22,19 @@ function trello_integration_install() {
 function trello_integration_update_7001() {
   trello_integration_install(); 
 }
+
+/**
+ * Ensure roadmap label status array is set
+ */
+function trello_integration_update_7002() {
+  $label_status = variable_get('getsatisfaction_roadmap_status_labels', array(
+    'status: pending' => 'Pending',
+    'status: needs spec' => 'Design',
+    'status: in dev' => 'Development',
+    'status: needs review' => 'Review',
+    'status: needs qa' => 'Testing',
+    'status: fixed' => 'Done',  
+  ));
+  
+  variable_set('getsatisfaction_roadmap_status_labels', $label_status);
+}

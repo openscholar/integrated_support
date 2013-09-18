@@ -57,6 +57,7 @@ ul.milestone > li > a.closed:before {
 ul.milestone > li > a.closed {
 	/*background: linear-gradient(to right, #dff, #fff, #fff, #fff);*/ 
 	/*text-decoration: line-through;*/
+	border: 1px #eee solid;
 	border-left: 2px #0a0 solid;
 	
 }
