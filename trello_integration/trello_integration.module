@@ -73,9 +73,9 @@ function trello_integration_roadmap_page($list_name) {
   $board = variable_get('trello_integration_roadmap');
   list(,,,,$board_id) = explode('/', $board);
   
-  if (($lists = $trello->boards($board_id)->lists()->get()) == FALSE) {
+  if (($lists = $trello->boards($board_id)->lists()->get(NULL, array('filter' => 'all'))) == FALSE) {
     watchdog('trello', 'Could not retrieve lists from trello.');
-    return 'Roadmap unavailable';
+    return array('msg' => array('#markup' => 'Roadmap unavailable'));
   }
   
   foreach ($lists as $l) {

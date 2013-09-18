@@ -20,7 +20,6 @@ Drupal.behaviors.trello_integration_roadmap = {
     //attach show/hide events to checkboxes
     $('#roadmap-legend > form > label > input').change(function(e) {
       sel = 'ul.milestone li > a.' + e.target.name.toLowerCase();
-      console.log(sel);
       if (e.target.checked) {
         $(sel).show();
       } else {

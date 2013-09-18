@@ -68,7 +68,7 @@ ul.milestone > li > a {
   padding: .5em;
   margin: .5em;
   border-color: #ccc;
-width: 8em;
+  width: 8em;
 }
 
 #roadmap-legend label.pending,
