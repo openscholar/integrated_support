@@ -16,6 +16,17 @@ Drupal.behaviors.trello_integration_roadmap = {
         document.location.href = settings.roadmap_path + settings.milestones[option];
       }
     });
+    
+    //attach show/hide events to checkboxes
+    $('#roadmap-legend > form > label > input').change(function(e) {
+      sel = 'ul.milestone li > a.' + e.target.name.toLowerCase();
+      console.log(sel);
+      if (e.target.checked) {
+        $(sel).show();
+      } else {
+        $(sel).hide();
+      }
+    })
 
     /**
      * @function display_statuses
@@ -53,7 +64,7 @@ Drupal.behaviors.trello_integration_roadmap = {
         var id = $this.attr('id').split('-')[2];
         
         if ($.inArray(id, data)) {
-          $this.addClass('closed')
+          $this.addClass('done')
             .removeClass('get-status');
         }
       });

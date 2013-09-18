@@ -85,14 +85,12 @@ function trello_integration_roadmap_page($list_name) {
     }
   }
   
+  //error message or rendered columns.  don't return yet - we still need to attach javascript.
   if (!isset($list)) {
-    return array('Could not find list');
+    $render = array('milestone' => array('msg' => array('#markup' => t('Could not find "@name" milestone', array('@name' => $list_name)))));
+  } else {
+    $render = array('milestone' => trello_integration_roadmap_columns($list->name, $list->id));
   }
-  
-  //now render it and attach some javascript
-  $render = array(
-    'milestone' => trello_integration_roadmap_columns($list->name, $list->id),
-  );
   
   //get milestones so we can get cached closed ticket lists
   $milestone_id = _github_integration_milestone_get_id($list->name);
@@ -136,8 +134,10 @@ function trello_integration_roadmap_page($list_name) {
 function trello_integration_roadmap_columns($list_name, $list_id) {
   $trello = trello_integration_client();
   $cards = $trello->lists($list_id)->cards()->get();
+  $use_lists = array('Engineering' => array(), 'Bugs' => array(), 'Features' => array());
   $list_data = trello_integration_roadmap_columns_cards_data($cards);
-  $list_data = array_intersect_key($list_data, array('Engineering' => 0, 'Bugs' => 0, 'Features' => 0));
+  $list_data = array_merge($use_lists, array_intersect_key($list_data, $use_lists));
+  
   
   $render = array(
     '#prefix' => '<div class="milestone-wrapper"><h2>' . $list_name . '</h2>',
@@ -266,9 +266,24 @@ function trello_integration_roadmap($milestone = NULL) {
   });
   $return['#attached']['js'][1]['data']['trello_integration_roadmap']['milestones'] = $milestone_urls;
   
+  
+  //legend.
+  $options = array_values(variable_get('getsatisfaction_roadmap_status_labels'));
+  $checkboxes = array_reduce($options, function($ret, $s) {
+    $ret[$s] = array('#markup' => "<label class='".strtolower($s)."'><input type='checkbox' name='$s' value='$s' checked=>$s</label>");
+    return $ret;
+  });
+  
+  $return['legend'] = array(
+    'options' => $checkboxes,
+    '#prefix' => '<div id=roadmap-legend><form>',
+    '#suffix' => '</form></div>',
+  );
+  
   return $return;
 }
-
+  
+  
 
 /**
  * @function trello_integration_integrated_support_webhook

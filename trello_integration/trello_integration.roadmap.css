@@ -25,7 +25,7 @@
   border-radius: 4px;
   height: 40em;
   overflow-y: scroll;
-  width: 18em;
+  width: 22em;
   box-shadow: 0px 0px 15px #888888;
   background-color: white;
 }
@@ -50,24 +50,57 @@ ul.milestone > li > a:hover {
 	background-color: #eee;
 }
 
+/*
 ul.milestone > li > a.closed:before {
 	content:'[done] ';
 }
+*/
 
-ul.milestone > li > a.closed {
-	/*background: linear-gradient(to right, #dff, #fff, #fff, #fff);*/ 
-	/*text-decoration: line-through;*/
+#roadmap-legend label,
+ul.milestone > li > a {
+	background: linear-gradient(to top, #f5f5f5, #fff, #fff, #fff);
 	border: 1px #eee solid;
-	border-left: 2px #0a0 solid;
-	
 }
 
-ul.milestone > li:nth-child(even) > a.closed {
-  /*background: linear-gradient(to right, #ffd, #fff, #fff, #fff);*/
-	border-left: 2px #00a solid; 
+#roadmap-legend label {
+  float: left;
+  display: block;
+  padding: .5em;
+  margin: .5em;
+  border-color: #ccc;
+width: 8em;
 }
 
-ul.milestone > li:nth-child(5) > a.closed {
-  /*background: linear-gradient(to right, #fdf, #fff, #fff, #fff);*/
-	border-left: 2px #a00 solid; 
+#roadmap-legend label.pending,
+ul.milestone > li > a.pending {
+	border-left: 2px #ccc solid;
+}
+
+#roadmap-legend label.design,
+ul.milestone > li > a.design {
+  border-left: 2px #aaa solid;
+}
+
+#roadmap-legend label.development,
+ul.milestone > li > a.development {
+  border-left: 2px #f00 solid;
+}
+
+#roadmap-legend label.review,
+ul.milestone > li > a.review {
+  border-left: 2px #f50 solid;
+}
+
+#roadmap-legend label.testing,
+ul.milestone > li > a.testing {
+  border-left: 2px #ff0 solid;
+}
+
+#roadmap-legend label.done,
+ul.milestone > li > a.done {
+  border-left: 2px #00a solid;
+}
+
+.roadmap-legend {
+	clear: both;
 }
