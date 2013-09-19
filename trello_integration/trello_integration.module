@@ -134,11 +134,10 @@ function trello_integration_roadmap_page($list_name) {
 function trello_integration_roadmap_columns($list_name, $list_id) {
   $trello = trello_integration_client();
   $cards = $trello->lists($list_id)->cards()->get();
-  $use_lists = array('Engineering' => array(), 'Bugs' => array(), 'Features' => array());
+  $use_lists = array('Engineering' => array(), 'Bugs' => array(), 'Features' => array(), 'Hotfix' => array());
   $list_data = trello_integration_roadmap_columns_cards_data($cards);
   $list_data = array_merge($use_lists, array_intersect_key($list_data, $use_lists));
-  
-  
+    
   $render = array(
     '#prefix' => '<div class="milestone-wrapper"><h2>' . $list_name . '</h2>',
     '#suffix' => '</div>',    
@@ -171,7 +170,7 @@ function trello_integration_roadmap_columns_cards_data($cards) {
   
   foreach ($cards as $card) {
     //choose a list bucket.
-    list($label) = array_map(function($o) {return $o->name;}, $card->labels); //only use first label.  ambiguities can be fixed in trello.
+    @list($label) = array_map(function($o) {return $o->name;}, $card->labels); //only use first label.  ambiguities can be fixed in trello.
     
     //get the status from GH  
     list($link) = explode("\n", $card->desc);
