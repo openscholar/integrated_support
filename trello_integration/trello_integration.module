@@ -242,23 +242,29 @@ function trello_integration_roadmap($milestone = NULL) {
 
   //links and such
   $return['milestone']['info'] = array(
+    '#weight' => -10,
     '#prefix' => '<div id="roadmap-info">',
     '#suffix' => '</div>',
-    '#weight' => -10,
-    'select' => array(
-      '#theme' => 'select',
-      '#title' => 'Milestones',
-      '#options' => array(
-        'none' => '-- Select a milestone --',
-        'Milestones' => $milestones,
-        'Backlog' => array('Backlog'),
-        'Release Notes Archive' => $archives,
-      ), 
-      '#value' => 'none', 
-      '#attributes' => array('id' => 'select_milestone'),
-    ),
+    'links' => array(
+      'select' => array(
+        '#theme' => 'select',
+        '#title' => 'Milestones',
+        '#options' => array(
+          'none' => '-- Select a milestone --',
+          'Milestones' => $milestones,
+          'Release Notes Archive' => $archives,
+        ), 
+        '#value' => 'none', 
+        '#attributes' => array('id' => 'select_milestone'),
+      ),
+    )   
   );
-
+  
+  if ($milestone != 'backlog') {
+    $return['milestone']['info']['backlog'] = array(
+      '#markup' => l('View Backlog', 'roadmap2/backlog', array('attributes' => array('class' => array('backlog-link')))),
+    );
+  } 
   //precalculate url formatting so we don't have to maintain php and js copies of same funciton
   $milestone_urls = array_reduce($milestones + $archives + array('Backlog'), function ($ret, $ms) {
     $ret[$ms] = _trello_integration_milestone_url($ms); return $ret;
