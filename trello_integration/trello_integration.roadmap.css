@@ -1,106 +1,176 @@
-.next-milestone {
-	float: right;
+.page-trello-roadmap #columns {
+width:90% !important;
 }
 
-/*
+.milestone-wrapper h3 {
+     background: none repeat scroll 0px 0px #999999;
+     color: #FFFFFF;
+     font-weight: normal;
+     margin-bottom: 5px;
+     padding: 8px 10px;
+}
+
 .roadmap .get-status {
   background: transparent url('/profiles/openscholar/themes/os_basetheme/images/throbber.gif') no-repeat 0 0 ;
 }
-*/
+
+#roadmap-legend {
+     float: right;
+}
+
+.next-milestone {
+     float: right;
+}
 
 .milestone-wrapper {
-	clear: both;
+     clear: both;
 }
 
 .milestone-permalink {
-	float: right;
+     float: right;
 }
 
 .milestone-wrapper .item-list {
-	display: block;
-  float: left;
-  /*border: 1px #aaa solid;*/
-  margin: 1px;
-  padding: 1em;
-  border-radius: 4px;
-  height: 40em;
-  overflow-y: scroll;
-  width: 22em;
-  box-shadow: 0px 0px 15px #888888;
-  background-color: white;
+     background-color: white;
+     display: block;
+     float: left;
+     height: 40em;
+     margin: 1px;
+     overflow-y: scroll;
+     padding: 0px 0.5em;
+     width: 23%;
 }
 
 ul.milestone {
-	list-style-type:none;
+     list-style-type: none;
 }
 
 ul.milestone > li {
-	padding-bottom: 1px;
+     padding-bottom: 1px;
 }
+
 ul.milestone > li > a {
-	display: block;
-	padding: 1em 1px;
-	/*border-top: 1px #ddd dashed;*/
-	color: #333;
-	border-radius: 3px;
-	margin-bottom: 1px;
+     background: none repeat scroll 0% 0% #F9F9F9;
+     color: #333333;
+     display: block;
+     margin-bottom: 4px;
+     padding: 1em 7px;
 }
 
 ul.milestone > li > a:hover {
-	background-color: #eee;
+     background-color: #EEEEEE;
 }
 
-/*
-ul.milestone > li > a.closed:before {
-	content:'[done] ';
-}
-*/
-
-#roadmap-legend label,
-ul.milestone > li > a {
-	background: linear-gradient(to top, #f5f5f5, #fff, #fff, #fff);
-	border: 1px #eee solid;
+#roadmap-legend label, ul.milestone > li > a {
+     border: 1px solid #EEEEEE;
 }
 
 #roadmap-legend label {
-  float: left;
-  display: block;
-  padding: .5em;
-  margin: .5em;
-  border-color: #ccc;
-  width: 8em;
+    
 }
 
-#roadmap-legend label.pending,
 ul.milestone > li > a.pending {
-	border-left: 2px #ccc solid;
+     border-left: 2px solid #CCCCCC;
 }
 
-#roadmap-legend label.design,
 ul.milestone > li > a.design {
-  border-left: 2px #aaa solid;
+     border-left: 2px solid #AAAAAA;
 }
 
-#roadmap-legend label.development,
 ul.milestone > li > a.development {
-  border-left: 2px #f00 solid;
+     border-left: 2px solid #FF0000;
 }
 
-#roadmap-legend label.review,
 ul.milestone > li > a.review {
-  border-left: 2px #f50 solid;
+     border-left: 2px solid #FF5500;
 }
 
-#roadmap-legend label.testing,
 ul.milestone > li > a.testing {
-  border-left: 2px #ff0 solid;
+     border-left: 2px solid #FFFF00;
 }
 
-#roadmap-legend label.done,
 ul.milestone > li > a.done {
-  border-left: 2px #00a solid;
+     border-left: 2px solid #0000AA;
 }
 
 .roadmap-legend {
-	clear: both;
+     clear: both;
+}
+
+#roadmap-legend label {
+     float: left;
+     margin-left: 20px;
+     width: 100px;
+}
+
+#roadmap-legend label span {
+     display: block;
+     font-weight: normal;
+     padding: 5px;
+     text-align: center;
+}
+
+#roadmap-legend label input {
+     position: absolute;
+     top: -20px;
+}
+
+#roadmap-legend label span, #roadmap-legend input:checked + span {
+     background: -moz-linear-gradient(center top , #F9F9F9 5%, #E9E9E9 100%) repeat scroll 0% 0% #F9F9F9;
+     -webkit-border-radius: 4px;
+-moz-border-radius: 4px;
+border-radius: 4px;
+     color: #666666;
+     display: inline-block;
+     font-family: Arial;
+     font-size: 14px;
+     font-style: normal;
+     font-weight: normal;
+     height: 18px;
+     line-height: 18px;
+     text-align: center;
+     text-decoration: none;
+     text-indent: 0px;
+     text-shadow: 1px 1px 0px #FFFFFF;
+     width: 95px;
+}
+
+#roadmap-legend label.pending input:not(:checked) + span, #roadmap-legend label.pending input:checked:hover + span {
+     background: none repeat scroll 0% 0% #808080;
+     color: #FFFFFF;
+     text-shadow: none;
+}
+
+#roadmap-legend label.design input:not(:checked) + span, #roadmap-legend label.design input:checked:hover + span {
+     background: none repeat scroll 0% 0% #FFA500;
+     color: #FFFFFF;
+     text-shadow: none;
+}
+
+#roadmap-legend label.development input:not(:checked) + span, #roadmap-legend label.development input:checked:hover + span {
+     background: none repeat scroll 0% 0% #52854C;
+     color: #FFFFFF;
+     text-shadow: none;
+}
+
+#roadmap-legend label.review input:not(:checked) + span, #roadmap-legend label.review input:checked:hover + span {
+     background: none repeat scroll 0% 0% #0EA793;
+     color: #FFFFFF;
+     text-shadow: none;
+}
+
+#roadmap-legend label.testing input:not(:checked) + span, #roadmap-legend label.testing input:checked:hover + span {
+     background: none repeat scroll 0% 0% #9CA812;
+     color: #FFFFFF;
+     text-shadow: none;
+}
+
+#roadmap-legend label.done input:not(:checked) + span, #roadmap-legend label.done input:checked:hover + span {
+     background: none repeat scroll 0% 0% #215990;
+     color: #FFFFFF;
+     text-shadow: none;
+}
+
+#select_milestone {
+     padding: 6px;
 }
