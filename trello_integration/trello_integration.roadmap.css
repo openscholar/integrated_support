@@ -2,6 +2,11 @@
 width:90% !important;
 }
 
+.page-roadmap2 #main-content {
+    padding-top: 0;
+
+}
+
 .page-roadmap2 #content-column h1#page-title {
     color: #333333;
     font-size: 22px;
@@ -46,8 +51,8 @@ width:90% !important;
      display: block;
      float: left;
      height: 50em;
-     margin: 1px 1px 30px;
-     overflow-y: scroll;
+     margin: 10px 1px 35px;
+     overflow: auto;
      padding: 0px 0.5em;
      width: 23%;
 }
@@ -141,7 +146,7 @@ ul.milestone > li > a.pending {
      border-left: 2px solid #808080;
 }
 
-#roadmap-legend label.pending input:checked + span, #roadmap-legend label.pending input:checked:hover + span {
+#roadmap-legend label.pending input:checked + span, #roadmap-legend label.pending input:not(:checked):hover + span {
      background: none repeat scroll 0% 0% #808080;
      color: #FFFFFF;
      text-shadow: none;
@@ -152,7 +157,7 @@ ul.milestone > li > a.design {
      border-left: 2px solid #FFA500;
 }
 
-#roadmap-legend label.design input:checked + span, #roadmap-legend label.design input:checked:hover + span {
+#roadmap-legend label.design input:checked + span, #roadmap-legend label.design input:not(:checked):hover + span {
      background: none repeat scroll 0% 0% #FFA500;
      color: #FFFFFF;
      text-shadow: none;
@@ -163,7 +168,7 @@ ul.milestone > li > a.development {
      border-left: 2px solid #52854C;
 }
 
-#roadmap-legend label.development input:checked + span, #roadmap-legend label.development input:checked:hover + span {
+#roadmap-legend label.development input:checked + span, #roadmap-legend label.development input:not(:checked):hover + span {
      background: none repeat scroll 0% 0% #52854C;
      color: #FFFFFF;
      text-shadow: none;
@@ -174,7 +179,7 @@ ul.milestone > li > a.review {
      border-left: 2px solid #0EA793;
 }
 
-#roadmap-legend label.review input:checked + span, #roadmap-legend label.review input:checked:hover + span {
+#roadmap-legend label.review input:checked + span, #roadmap-legend label.review input:not(:checked):hover + span {
      background: none repeat scroll 0% 0% #0EA793;
      color: #FFFFFF;
      text-shadow: none;
@@ -185,7 +190,7 @@ ul.milestone > li > a.testing {
      border-left: 2px solid #9CA812;
 }
 
-#roadmap-legend label.testing input:checked + span, #roadmap-legend label.testing input:checked:hover + span {
+#roadmap-legend label.testing input:checked + span, #roadmap-legend label.testing input:not(:checked):hover + span {
      background: none repeat scroll 0% 0% #9CA812;
      color: #FFFFFF;
      text-shadow: none;
@@ -196,7 +201,7 @@ ul.milestone > li > a.done {
      border-left: 2px solid #215990;
 }
 
-#roadmap-legend label.done input:checked + span, #roadmap-legend label.done input:checked:hover + span {
+#roadmap-legend label.done input:checked + span, #roadmap-legend label.done input:not(:checked):hover + span {
      background: none repeat scroll 0% 0% #215990;
      color: #FFFFFF;
      text-shadow: none;
