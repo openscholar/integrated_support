@@ -278,6 +278,7 @@ function trello_integration_roadmap($milestone = NULL) {
     'options' => $checkboxes,
     '#prefix' => '<div id=roadmap-legend><form>',
     '#suffix' => '</form></div>',
+    '#weight' => -100,
   );
   
   return $return;
