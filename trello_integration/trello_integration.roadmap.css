@@ -2,10 +2,6 @@
 width:90% !important;
 }
 
-.page-roadmap2 #main-content {
-    padding-top: 0;
-
-}
 
 .page-roadmap2 #content-column h1#page-title {
     color: #333333;
@@ -13,7 +9,7 @@ width:90% !important;
     font-weight: normal;
     left: 0;
     position: absolute;
-    top: -20px;
+    top: -20px !important;
 }
 
 .milestone-wrapper h3 {
@@ -86,6 +82,10 @@ ul.milestone > li > a {
      display: block;
      margin-bottom: 4px;
      padding: 1em 7px;
+    font-size: 13px;
+    text-decoration: none;
+     
+     
 }
 
 ul.milestone > li > a:hover {
