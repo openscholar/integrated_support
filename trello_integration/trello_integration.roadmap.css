@@ -91,34 +91,6 @@ ul.milestone > li > a:hover {
      border: 1px solid #EEEEEE;
 }
 
-#roadmap-legend label {
-    
-}
-
-ul.milestone > li > a.pending {
-     border-left: 2px solid #CCCCCC;
-}
-
-ul.milestone > li > a.design {
-     border-left: 2px solid #AAAAAA;
-}
-
-ul.milestone > li > a.development {
-     border-left: 2px solid #FF0000;
-}
-
-ul.milestone > li > a.review {
-     border-left: 2px solid #FF5500;
-}
-
-ul.milestone > li > a.testing {
-     border-left: 2px solid #FFFF00;
-}
-
-ul.milestone > li > a.done {
-     border-left: 2px solid #0000AA;
-}
-
 .roadmap-legend {
      clear: both;
 }
@@ -164,10 +136,20 @@ border-radius: 4px;
      width: 95px;
 }
 
+
+ul.milestone > li > a.pending {
+     border-left: 2px solid #808080;
+}
+
 #roadmap-legend label.pending input:checked + span, #roadmap-legend label.pending input:checked:hover + span {
      background: none repeat scroll 0% 0% #808080;
      color: #FFFFFF;
      text-shadow: none;
+}
+
+
+ul.milestone > li > a.design {
+     border-left: 2px solid #FFA500;
 }
 
 #roadmap-legend label.design input:checked + span, #roadmap-legend label.design input:checked:hover + span {
@@ -176,10 +158,20 @@ border-radius: 4px;
      text-shadow: none;
 }
 
+
+ul.milestone > li > a.development {
+     border-left: 2px solid #52854C;
+}
+
 #roadmap-legend label.development input:checked + span, #roadmap-legend label.development input:checked:hover + span {
      background: none repeat scroll 0% 0% #52854C;
      color: #FFFFFF;
      text-shadow: none;
+}
+
+
+ul.milestone > li > a.review {
+     border-left: 2px solid #0EA793;
 }
 
 #roadmap-legend label.review input:checked + span, #roadmap-legend label.review input:checked:hover + span {
@@ -188,10 +180,20 @@ border-radius: 4px;
      text-shadow: none;
 }
 
+
+ul.milestone > li > a.testing {
+     border-left: 2px solid #9CA812;
+}
+
 #roadmap-legend label.testing input:checked + span, #roadmap-legend label.testing input:checked:hover + span {
      background: none repeat scroll 0% 0% #9CA812;
      color: #FFFFFF;
      text-shadow: none;
+}
+
+
+ul.milestone > li > a.done {
+     border-left: 2px solid #215990;
 }
 
 #roadmap-legend label.done input:checked + span, #roadmap-legend label.done input:checked:hover + span {

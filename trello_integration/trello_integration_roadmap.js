@@ -19,6 +19,20 @@ Drupal.behaviors.trello_integration_roadmap = {
     
     //attach show/hide events to checkboxes
     $('#roadmap-legend > form > label > input').change(function(e) {
+      
+      //If this is the first item disabled, make it the only one enabled as though you entered a taxonomy term list.
+      $unchecked = $('#roadmap-legend > form > label > input:not(:checked)');
+      if ($unchecked.length == 1 && $unchecked.attr('name') == e.target.name) {
+        $('#roadmap-legend > form > label > input:checked').each(function(){
+          //uncheck the remain ones
+          $(this).click();
+          sel = 'ul.milestone li > a.' + $(this).attr('name').toLowerCase();
+          $(sel).hide();
+        })
+        
+        $unchecked.click(); //renable the clicked one.
+      }
+      
       sel = 'ul.milestone li > a.' + e.target.name.toLowerCase();
       if (e.target.checked) {
         $(sel).show();
