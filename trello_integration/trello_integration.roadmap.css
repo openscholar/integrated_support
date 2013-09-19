@@ -135,37 +135,37 @@ border-radius: 4px;
      width: 95px;
 }
 
-#roadmap-legend label.pending input:not(:checked) + span, #roadmap-legend label.pending input:checked:hover + span {
+#roadmap-legend label.pending input:checked + span, #roadmap-legend label.pending input:checked:hover + span {
      background: none repeat scroll 0% 0% #808080;
      color: #FFFFFF;
      text-shadow: none;
 }
 
-#roadmap-legend label.design input:not(:checked) + span, #roadmap-legend label.design input:checked:hover + span {
+#roadmap-legend label.design input:checked + span, #roadmap-legend label.design input:checked:hover + span {
      background: none repeat scroll 0% 0% #FFA500;
      color: #FFFFFF;
      text-shadow: none;
 }
 
-#roadmap-legend label.development input:not(:checked) + span, #roadmap-legend label.development input:checked:hover + span {
+#roadmap-legend label.development input:checked + span, #roadmap-legend label.development input:checked:hover + span {
      background: none repeat scroll 0% 0% #52854C;
      color: #FFFFFF;
      text-shadow: none;
 }
 
-#roadmap-legend label.review input:not(:checked) + span, #roadmap-legend label.review input:checked:hover + span {
+#roadmap-legend label.review input:checked + span, #roadmap-legend label.review input:checked:hover + span {
      background: none repeat scroll 0% 0% #0EA793;
      color: #FFFFFF;
      text-shadow: none;
 }
 
-#roadmap-legend label.testing input:not(:checked) + span, #roadmap-legend label.testing input:checked:hover + span {
+#roadmap-legend label.testing input:checked + span, #roadmap-legend label.testing input:checked:hover + span {
      background: none repeat scroll 0% 0% #9CA812;
      color: #FFFFFF;
      text-shadow: none;
 }
 
-#roadmap-legend label.done input:not(:checked) + span, #roadmap-legend label.done input:checked:hover + span {
+#roadmap-legend label.done input:checked + span, #roadmap-legend label.done input:checked:hover + span {
      background: none repeat scroll 0% 0% #215990;
      color: #FFFFFF;
      text-shadow: none;
