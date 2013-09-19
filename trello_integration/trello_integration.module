@@ -441,7 +441,8 @@ function trello_integration_cron() {
  * Given a service and a ticket from that service, return an array of items to send to trello
  */
 function _trello_integration_prepare_card($board_id, $service, $ticket, $list_name) {
-
+  $list = _trello_integration_get_lists($board_id, $list_name);
+  
   switch ($service) {
     case 'github':
       $mapped = db_select('getsatisfaction_service_map', 'gs')
@@ -460,6 +461,18 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $list_na
         'desc' => $ticket['html_url'] . "\n\n" . _trello_integration_html_to_markdown($body),
         'id' => $ticket['number'],
       );
+      
+      //do we have a milestone?  if so, find and use that list instead.
+      if ($ticket['milestone']) {
+        $roadmap = variable_get('trello_integration_roadmap');
+        list(,,,,$roadmap_id) = explode('/', $roadmap);
+        $milestone_list = _trello_integration_get_lists($roadmap_id, $ticket['milestone']['title']);
+        
+        if ($milestone_list) {
+          $board_id = $roadmap_id;
+          $list = $milestone_list;
+        }
+      }
       break;
       
     case 'getsatisfaction':
@@ -487,9 +500,9 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $list_na
       return NULL;
   }
   
-  $list = _trello_integration_get_lists($board_id, $list_name);
+  $colors = variable_get('trello_integration_colors', array());
   $return['idList'] = $list->id;
-  $return['labels'] = $list_name;
+  $return['labels'] = (isset($colors[$list_name])) ? $colors[$list_name] : NULL; 
   
   return $return;
 }
@@ -564,15 +577,20 @@ function _trello_integration_html_to_markdown($html) {
  */
 function _trello_integration_get_lists($board_id, $name = NULL) {
   static $trello_lists;
-  if (empty($trello_lists)) {
+  if (empty($trello_lists) || empty($trello_lists[$board_id])) {
     $trello = trello_integration_client();
-    $trello_lists = array();
-    foreach ($trello->boards($board_id)->lists()->get() as $list) {
-      $trello_lists[$list->name] = $list;
+    $trello_lists[$board_id] = array();
+            
+    foreach ($trello->boards($board_id)->lists()->get(NULL, array('filter' => 'all')) as $list) {
+      $trello_lists[$board_id][$list->name] = $list;
     }
   }
   
-  return ($name) ? $trello_lists[$name] : $trello_lists;
+  if ($name) {
+    return isset($trello_lists[$board_id][$name]) ? $trello_lists[$board_id][$name] : NULL;
+  }
+  
+  return $trello_lists[$board_id];
 }
 
 /**

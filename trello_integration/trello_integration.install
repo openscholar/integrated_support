@@ -1,11 +1,24 @@
 <?php
 
+/**
+ * Impelemnts hook_install
+ */
 function trello_integration_install() {
+  _trello_integration_variable_set();
+}
+
+/**
+ * @function _trello_integration_variable_set
+ * 
+ * Resets trello integration variables.
+ */
+function _trello_integration_variable_set() {
   //Each list is generated from service matching array full of search criteria
   variable_set('trello_integration_import', array(
     'Features' => array('getsatisfaction' => array('style' => 'idea')),
     'Bugs' => array('getsatisfaction' => array('style' => 'problem')),
     'Engineering' => array('github' => array('labels' => 'tr:eng')),
+    'Hotfix' => array('github' => array('labels' => 'Hotfix')),
   ));
   
   //Trello assigns labels by color, not by text.
@@ -13,6 +26,7 @@ function trello_integration_install() {
     'Features' => 'green',
     'Bugs' => 'red',
     'Engineering' => 'blue',
+    'Hotfix' => 'orange',
   ));
 }
 
@@ -20,7 +34,7 @@ function trello_integration_install() {
  * Reset import vars 
  **/
 function trello_integration_update_7001() {
-  trello_integration_install(); 
+  _trello_integration_variable_set();
 }
 
 /**
@@ -37,4 +51,11 @@ function trello_integration_update_7002() {
   ));
   
   variable_set('getsatisfaction_roadmap_status_labels', $label_status);
+}
+
+/**
+ * Reset import vars
+ **/
+function trello_integration_update_7003() {
+  _trello_integration_variable_set();
 }
