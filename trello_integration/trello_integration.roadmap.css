@@ -52,9 +52,19 @@ width:90% !important;
      width: 23%;
 }
 
-.milestone-wrapper .item-list:first-of-type {
-     padding-left: 0;
- 
+
+.milestone-wrapper .item-list:nth-of-type(2) {
+     padding-left: 0px;
+}
+
+.milestone-wrapper .item-list:nth-of-type(5) {
+     background: #F9F9F9;
+}
+
+.milestone-wrapper .item-list:nth-of-type(5) h3 {
+     background: #F9F9F9;
+     color: #444;
+border:1px solid #d7d7d7;
 }
 
 ul.milestone {
