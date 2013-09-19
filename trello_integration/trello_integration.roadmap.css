@@ -1,5 +1,14 @@
-.page-trello-roadmap #columns {
+.page-roadmap2 #columns {
 width:90% !important;
+}
+
+.page-roadmap2 #content-column h1#page-title {
+    color: #333333;
+    font-size: 22px;
+    font-weight: normal;
+    left: 0;
+    position: absolute;
+    top: -20px;
 }
 
 .milestone-wrapper h3 {
@@ -7,6 +16,7 @@ width:90% !important;
      color: #FFFFFF;
      font-weight: normal;
      margin-bottom: 5px;
+     margin-top: 0;
      padding: 8px 10px;
 }
 
@@ -16,6 +26,7 @@ width:90% !important;
 
 #roadmap-legend {
      float: right;
+     margin-right: 5%;
 }
 
 .next-milestone {
@@ -34,11 +45,16 @@ width:90% !important;
      background-color: white;
      display: block;
      float: left;
-     height: 40em;
-     margin: 1px;
+     height: 50em;
+     margin: 1px 1px 30px;
      overflow-y: scroll;
      padding: 0px 0.5em;
      width: 23%;
+}
+
+.milestone-wrapper .item-list:first-of-type {
+     padding-left: 0;
+ 
 }
 
 ul.milestone {
@@ -112,11 +128,14 @@ ul.milestone > li > a.done {
 
 #roadmap-legend label input {
      position: absolute;
-     top: -20px;
+      display: none;
 }
 
 #roadmap-legend label span, #roadmap-legend input:checked + span {
-     background: -moz-linear-gradient(center top , #F9F9F9 5%, #E9E9E9 100%) repeat scroll 0% 0% #F9F9F9;
+	background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #f9f9f9), color-stop(1, #e9e9e9) );
+	background:-moz-linear-gradient( center top, #f9f9f9 5%, #e9e9e9 100% );
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#f9f9f9', endColorstr='#e9e9e9');
+	background-color:#f9f9f9;
      -webkit-border-radius: 4px;
 -moz-border-radius: 4px;
 border-radius: 4px;
