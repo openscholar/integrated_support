@@ -75,7 +75,7 @@ ul.primary li a.active {
      margin: 10px 1px 35px;
      overflow: auto;
      padding: 0px 0.5em;
-     width: 23%;
+    width: 230px;
 }
 
 
@@ -112,7 +112,7 @@ ul.ticket-list > li {
 }
 
 ul.ticket-list > li > a {
-     background: none repeat scroll 0% 0% #F9F9F9;
+     background: #F5F5F5;
      color: #333333;
      display: block;
      margin-bottom: 4px;
