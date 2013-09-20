@@ -91,39 +91,35 @@ function trello_integration_roadmap_page($list_name) {
   $board = variable_get('trello_integration_roadmap');
   list(,,,,$board_id) = explode('/', $board);
   
-  if ($list_name == 'backlog') {
-    //sandbox has a different structure, so treat it differently.  labels come from lists, not cols.
-    $render = array('milestone' => trello_integration_roadmap_backlog());
-  } else {
-    //get the roadmap board's list  
-    if (($lists = $trello->boards($board_id)->lists()->get(NULL, array('filter' => 'all'))) == FALSE) {
-      watchdog('trello', 'Could not retrieve lists from trello.');
-      return array('msg' => array('#markup' => 'Roadmap unavailable'));
-    }
-  
-    foreach ($lists as $l) {
-      if ($l->name == $list_name || _trello_integration_milestone_url($l->name) == $list_name) {
-        $list = $l;
-        break;
-      }
-    }
-  
-    //error message or rendered columns.  don't return yet - we still need to attach javascript.
-    if (!isset($list)) {
-      $render = array('milestone' => array('msg' => array('#markup' => t('Could not find "@name" milestone', array('@name' => $list_name)))));
-    } else {
-      $render = array('milestone' => trello_integration_roadmap_columns($list->name, $list->id));
-    }
-  
-    //get milestones so we can get cached closed ticket lists
-    $milestone_id = _github_integration_milestone_get_id($list->name);
-    $cached_closed = cache_get('trello_integration_milestone_closed:' . $milestone_id);
-    $cached_closed = ($cached_closed && $cached_closed->expire > time()) ? $cached_closed->data : NULL;
-  
-    //attach javascript, settings, and (maybe) cached status data
-    $cached_statuses = cache_get('trello_integration_roadmap_statuses');
-    $cached_statuses = ($cached_statuses && $cached_statuses->expire > time()) ? $cached_statuses->data : NULL;
+  //get the roadmap board's list  
+  if (($lists = $trello->boards($board_id)->lists()->get(NULL, array('filter' => 'all'))) == FALSE) {
+    watchdog('trello', 'Could not retrieve lists from trello.');
+    return array('msg' => array('#markup' => 'Roadmap unavailable'));
   }
+
+  foreach ($lists as $l) {
+    if ($l->name == $list_name || _trello_integration_milestone_url($l->name) == $list_name) {
+      $list = $l;
+      break;
+    }
+  }
+
+  //error message or rendered columns.  don't return yet - we still need to attach javascript.
+  if (!isset($list)) {
+    $render = array('milestone' => array('msg' => array('#markup' => t('Could not find "@name" milestone', array('@name' => $list_name)))));
+  } else {
+    $render = array('milestone' => trello_integration_roadmap_columns($list->name, $list->id));
+  }
+
+  //get milestones so we can get cached closed ticket lists
+  $milestone_id = _github_integration_milestone_get_id($list->name);
+  $cached_closed = cache_get('trello_integration_milestone_closed:' . $milestone_id);
+  $cached_closed = ($cached_closed && $cached_closed->expire > time()) ? $cached_closed->data : NULL;
+
+  //attach javascript, settings, and (maybe) cached status data
+  $cached_statuses = cache_get('trello_integration_roadmap_statuses');
+  $cached_statuses = ($cached_statuses && $cached_statuses->expire > time()) ? $cached_statuses->data : NULL;
+
   
   global $base_url;
   $js_settings = array(
@@ -151,45 +147,6 @@ function trello_integration_roadmap_page($list_name) {
 }
 
 /**
- * @function trello_integration_roadmap_backlog()
- * 
- * The backlog is split over several lists.  Use all of them.
- */
-function trello_integration_roadmap_backlog() {
-  $trello = trello_integration_client();
-  $board = variable_get('trello_integration_intake');
-  list(,,,,$board_id) = explode('/', $board);
-  
-  $render = array(
-    '#prefix' => '<div class="milestone-wrapper">',//<h2>Backlog</h2>',
-    '#suffix' => '</div>',
-    'lists' => array(),
-  );
-  
-  foreach (array('Projects', 'Features', 'Bugs', 'Engineering') as $name) {
-    $list = _trello_integration_get_lists($board_id, $name);
-    $cards = $trello->lists($list->id)->cards()->get();
-    $data = trello_integration_roadmap_columns_cards_data($cards, 'Backlog');
-    $list_data[$name] = array_reduce($data, function($ret, $a) {return array_merge($ret, $a);}, array()); //
-  }
-  
-
-  foreach ($list_data as $label => $items) {
-    $render['lists'][] = array(
-      '#title' => $label,
-      '#theme' => 'item_list',
-      '#items' => $items,
-      '#type' => 'ul',
-      '#attributes' => array(
-        'class' => array('ticket-list'),
-      )
-    );
-  }
-  
-  return $render;
-}
-
-/**
  * @function trello_integration_roadmap_columns()
  * 
  * Fetch cards in a list, and draw them in a three column layout.
@@ -197,10 +154,23 @@ function trello_integration_roadmap_backlog() {
 function trello_integration_roadmap_columns($list_name, $list_id) {
   $trello = trello_integration_client();
   $cards = $trello->lists($list_id)->cards()->get();
-  $use_lists = array('Features' => array(), 'Bugs' => array(), 'Engineering' => array(), 'Hotfix' => array()); 
+  $use_lists = array('Features' => array(), 'Bugs' => array(), 'Engineering' => array(), 'Hotfix' => array());
   
   $list_data = trello_integration_roadmap_columns_cards_data($cards, $list_name);
   $list_data = array_merge($use_lists, array_intersect_key($list_data, $use_lists));
+  
+  //drop hotfix and prepend proejcts
+  if ($list_name == 'Backlog') {
+    unset($list_data['Hotfix']);
+    $roadmap = variable_get('trello_integration_roadmap');
+    list(,,,,$roadmap_id) = explode('/', $roadmap);
+    $projects_list = _trello_integration_get_lists($roadmap_id, 'Projects');
+  
+    $cards = $trello->lists($projects_list->id)->cards()->get();
+    $projects = trello_integration_roadmap_columns_cards_data($cards, $list_name);
+    $projects = array_reduce($projects, function($ret, $a) {return array_merge($ret, $a);}, array());
+    $list_data = array_merge(array('Projects' => $projects), $list_data);
+  }
     
   $render = array(
     '#prefix' => '<div class="milestone-wrapper">',//<h2>' . $list_name . '</h2>',
@@ -342,13 +312,15 @@ function trello_integration_roadmap($milestone = NULL) {
     return $ret;
   });
   
-  $return['legend'] = array(
-    'options' => $checkboxes,
-    '#prefix' => '<div id=roadmap-legend><form>',
-    '#suffix' => '</form></div>',
-    '#weight' => -100,
-  );
-  
+  if ($milestone != 'backlog') {
+    $return['legend'] = array(
+      'options' => $checkboxes,
+      '#prefix' => '<div id=roadmap-legend><form>',
+      '#suffix' => '</form></div>',
+      '#weight' => -100,
+    );
+  }
+    
   return $return;
 }
   
