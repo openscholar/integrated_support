@@ -150,7 +150,7 @@ function trello_integration_roadmap_page($list_name) {
 function trello_integration_roadmap_columns($list_name, $list_id) {
   $trello = trello_integration_client();
   $cards = $trello->lists($list_id)->cards()->get();
-  $use_lists = array('Engineering' => array(), 'Bugs' => array(), 'Features' => array(), 'Hotfix' => array());
+  $use_lists = array('Features' => array(), 'Bugs' => array(), 'Engineering' => array(), 'Hotfix' => array());
   $list_data = trello_integration_roadmap_columns_cards_data($cards);
   $list_data = array_merge($use_lists, array_intersect_key($list_data, $use_lists));
     
