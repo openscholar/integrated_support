@@ -111,6 +111,7 @@ ul.ticket-list > li {
      padding-bottom: 1px;
 }
 
+ul.ticket-list > li > span,
 ul.ticket-list > li > a {
      background: #F5F5F5;
      color: #333333;
