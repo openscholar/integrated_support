@@ -15,6 +15,22 @@ function trello_integration_menu() {
       'page callback' => 'trello_integration_roadmap',
       'access arguments' => array('access content'),
     ),
+    'roadmap2/%' => array(
+      'title' => 'Current Release',
+      //'file' => '/getsatisfaction_integration.roadmap.inc',
+      'page callback' => 'trello_integration_roadmap',
+      'access arguments' => array('access content'),
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10,
+    ),
+    'roadmap2/backlog' => array(
+      'title' => 'Backlog',
+      //'file' => '/getsatisfaction_integration.roadmap.inc',
+      'page callback' => 'trello_integration_roadmap',
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+    ),
+    
     'admin/config/integrated_support/trello' => array(        
       'title' => 'Trello',
       'file' => '/trello_integration.admin.inc',
