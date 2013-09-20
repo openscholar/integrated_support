@@ -181,7 +181,7 @@ function trello_integration_roadmap_backlog() {
       '#items' => $items,
       '#type' => 'ul',
       '#attributes' => array(
-        'class' => array('milestone'),
+        'class' => array('ticket-list'),
       )
     );
   }
@@ -244,13 +244,17 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
       } else {
         @list(,,,,,$slug) = explode('/', $link);
         $id = (isset($slug) && $list_name != 'Backlog') ? _getsatisfaction_integration_linked_issue($slug) : NULL;
-      }
+      } 
+    } else {
+      $link = NULL;
     }    
     
     $status = (isset($id) && $list_name != 'Backlog') ? "status-gh-$id" : 'status';
   
     //build the link
-    $list_data[$label][] = l($card->name, $link, array('attributes' => array('class' => 'get-status ', 'id' => $status)));
+    $list_data[$label][] = ($link) 
+      ? l($card->name, $link, array('attributes' => array('class' => 'get-status ', 'id' => $status)))
+      : "<span class=get-status $status>$card->name</span>";
   }
   
   return $list_data;
