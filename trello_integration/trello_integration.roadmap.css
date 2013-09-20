@@ -1,8 +1,3 @@
-.page-roadmap2 #columns {
-width:90% !important;
-}
-
-
 .page-roadmap2 #content-column h1#page-title {
     color: #333333;
     font-size: 22px;
@@ -29,7 +24,13 @@ width:90% !important;
      float: right;
     left: 320px;
     position: absolute;
+    top: 50px;
+}
+
+@-moz-document url-prefix() {
+#roadmap-legend {
     top: 58px;
+}
 }
 
 .next-milestone {
@@ -65,9 +66,19 @@ width:90% !important;
 }
 
 .milestone-wrapper .item-list:nth-of-type(5) h3 {
-     background: #F9F9F9;
+     background: url("http://openscholar.harvard.edu/sites/osops.openscholar.harvard.edu/modules/integrated_support/getsatisfaction_integration/images/warning.png") no-repeat scroll 0 center #F9F9F9;
      color: #444;
-     border:1px solid #d7d7d7;
+     padding-left:30px;
+}
+
+.page-roadmap2-backlog .milestone-wrapper .item-list:nth-of-type(5) {
+     background: #F9F9F9;
+}
+
+.page-roadmap2-backlog .milestone-wrapper .item-list:nth-of-type(5) h3 {
+     background: #999999;
+     color: #FFF;
+     padding-left:10px;
 }
 
 ul.milestone {
@@ -139,7 +150,7 @@ ul.milestone > li > a:hover {
      color: #666666;
      display: inline-block;
      font-family: Arial;
-     font-size: 13px;
+     font-size: 12px;
      font-style: normal;
      font-weight: normal;
      height: 16px;
@@ -148,7 +159,7 @@ ul.milestone > li > a:hover {
      text-decoration: none;
      text-indent: 0px;
      text-shadow: 1px 1px 0px #FFFFFF;
-     width: 90px;
+     width: 80px;
 }
 
 
@@ -156,7 +167,8 @@ ul.milestone > li > a.pending {
      border-left: 2px solid #808080;
 }
 
-#roadmap-legend label.pending input:checked + span, #roadmap-legend label.pending input:not(:checked):hover + span {
+#roadmap-legend label.pending input:checked + span, 
+#roadmap-legend label.pending input:not(:checked):hover + span {
      background: none repeat scroll 0% 0% #808080;
      color: #FFFFFF;
      text-shadow: none;
@@ -167,7 +179,8 @@ ul.milestone > li > a.design {
      border-left: 2px solid #FFA500;
 }
 
-#roadmap-legend label.design input:checked + span, #roadmap-legend label.design input:not(:checked):hover + span {
+#roadmap-legend label.design input:checked + span, 
+#roadmap-legend label.design input:not(:checked):hover + span {
      background: none repeat scroll 0% 0% #FFA500;
      color: #FFFFFF;
      text-shadow: none;
@@ -178,7 +191,8 @@ ul.milestone > li > a.development {
      border-left: 2px solid #52854C;
 }
 
-#roadmap-legend label.development input:checked + span, #roadmap-legend label.development input:not(:checked):hover + span {
+#roadmap-legend label.development input:checked + span, 
+#roadmap-legend label.development input:not(:checked):hover + span {
      background: none repeat scroll 0% 0% #52854C;
      color: #FFFFFF;
      text-shadow: none;
@@ -189,7 +203,8 @@ ul.milestone > li > a.review {
      border-left: 2px solid #0EA793;
 }
 
-#roadmap-legend label.review input:checked + span, #roadmap-legend label.review input:not(:checked):hover + span {
+#roadmap-legend label.review input:checked + span, 
+#roadmap-legend label.review input:not(:checked):hover + span {
      background: none repeat scroll 0% 0% #0EA793;
      color: #FFFFFF;
      text-shadow: none;
@@ -200,7 +215,8 @@ ul.milestone > li > a.testing {
      border-left: 2px solid #9CA812;
 }
 
-#roadmap-legend label.testing input:checked + span, #roadmap-legend label.testing input:not(:checked):hover + span {
+#roadmap-legend label.testing input:checked + span, 
+#roadmap-legend label.testing input:not(:checked):hover + span {
      background: none repeat scroll 0% 0% #9CA812;
      color: #FFFFFF;
      text-shadow: none;
@@ -211,7 +227,8 @@ ul.milestone > li > a.done {
      border-left: 3px solid #215990;
 }
 
-#roadmap-legend label.done input:checked + span, #roadmap-legend label.done input:not(:checked):hover + span {
+#roadmap-legend label.done input:checked + span, 
+#roadmap-legend label.done input:not(:checked):hover + span {
      background: none repeat scroll 0% 0% #215990;
      color: #FFFFFF;
      text-shadow: none;
