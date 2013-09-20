@@ -197,7 +197,7 @@ ul.milestone > li > a.pending {
 }
 
 
-ul.milestone > li > a.design {
+ul.ticket-list > li > a.design {
      border-left: 2px solid #FFA500;
 }
 
@@ -209,7 +209,7 @@ ul.milestone > li > a.design {
 }
 
 
-ul.milestone > li > a.development {
+ul.ticket-list > li > a.development {
      border-left: 2px solid #52854C;
 }
 
@@ -221,7 +221,7 @@ ul.milestone > li > a.development {
 }
 
 
-ul.milestone > li > a.review {
+ul.ticket-list > li > a.review {
      border-left: 2px solid #0EA793;
 }
 
@@ -233,7 +233,7 @@ ul.milestone > li > a.review {
 }
 
 
-ul.milestone > li > a.testing {
+ul.ticket-list > li > a.testing {
      border-left: 2px solid #9CA812;
 }
 
@@ -245,7 +245,7 @@ ul.milestone > li > a.testing {
 }
 
 
-ul.milestone > li > a.done {
+ul.ticket-list > li > a.done {
      border-left: 3px solid #215990;
 }
 
