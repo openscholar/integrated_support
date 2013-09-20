@@ -103,15 +103,15 @@ ul.primary li a.active {
      padding-left:10px;
 }
 
-ul.milestone {
+ul.ticket-list {
      list-style-type: none;
 }
 
-ul.milestone > li {
+ul.ticket-list > li {
      padding-bottom: 1px;
 }
 
-ul.milestone > li > a {
+ul.ticket-list > li > a {
      background: none repeat scroll 0% 0% #F9F9F9;
      color: #333333;
      display: block;
@@ -123,7 +123,7 @@ ul.milestone > li > a {
      
 }
 
-ul.milestone > li > a:hover {
+ul.ticket-list > li > a:hover {
      background-color: #EEEEEE;
 }
 
@@ -258,4 +258,5 @@ ul.ticket-list > li > a.done {
 
 #select_milestone {
      padding: 6px;
+     margin: -15px 0 5px;
 }
