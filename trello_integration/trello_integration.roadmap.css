@@ -23,9 +23,6 @@
 
 #roadmap-legend {
      float: right;
-    left: 320px;
-    position: absolute;
-    top: 50px;
 }
 
 @-moz-document url-prefix() {
