@@ -266,7 +266,7 @@ function trello_integration_roadmap($milestone = NULL) {
         '#theme' => 'select',
         '#title' => 'Milestones',
         '#options' => array(
-          'none' => '-- Select a milestone --',
+          'none' => '-- Select a release --',
           'Milestones' => $milestones,
           'Release Notes Archive' => $archives,
         ), 
