@@ -93,7 +93,7 @@ function trello_integration_roadmap_page($list_name) {
   
   if ($list_name == 'backlog') {
     //sandbox has a different structure, so treat it differently.  labels come from lists, not cols.
-    $render = trello_integration_roadmap_backlog();
+    $render = array('milestone' => trello_integration_roadmap_backlog());
   } else {
     //get the roadmap board's list  
     if (($lists = $trello->boards($board_id)->lists()->get(NULL, array('filter' => 'all'))) == FALSE) {
@@ -161,7 +161,7 @@ function trello_integration_roadmap_backlog() {
   list(,,,,$board_id) = explode('/', $board);
   
   $render = array(
-    '#prefix' => '<div class="milestone-wrapper"><h2>Backlog</h2>',
+    '#prefix' => '<div class="milestone-wrapper">',//<h2>Backlog</h2>',
     '#suffix' => '</div>',
     'lists' => array(),
   );
