@@ -14,6 +14,7 @@
      margin-bottom: 5px;
      margin-top: 0;
      padding: 8px 10px;
+     font-size: 14px;
 }
 
 .roadmap .get-status {
@@ -43,6 +44,30 @@
 
 .milestone-permalink {
      float: right;
+}
+
+/* TABS */
+ul.tabs.primary {
+    margin: 0;
+    padding: 10px 0 0.3em !important;
+}
+
+ul.primary li a {
+    background-color: #999999 !important;
+    border-color: #CCCCCC !important;
+    border-radius: 4px 4px 0 0;
+    color: #FFFFFF;
+    margin-right: 0.08em;
+    padding: 5px 15px !important;
+}
+
+
+ul.primary li a.active {
+     background-color: #FFFFFF ! important;
+     border-bottom-style: none;
+     border-bottom-width: medium;
+     color: #215990;
+   
 }
 
 .milestone-wrapper .item-list {
