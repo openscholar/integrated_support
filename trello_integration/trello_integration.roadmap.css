@@ -46,7 +46,7 @@
 /* TABS */
 ul.tabs.primary {
     margin: 0;
-    padding: 10px 0 0.3em !important;
+    padding: 10px 0 0.6em !important;
 }
 
 ul.primary li a {
@@ -55,7 +55,7 @@ ul.primary li a {
     border-radius: 4px 4px 0 0;
     color: #FFFFFF;
     margin-right: 0.08em;
-    padding: 5px 15px !important;
+    padding: 8px 18px !important;
 }
 
 
@@ -261,4 +261,9 @@ ul.ticket-list > li > a.done {
 #select_milestone {
      padding: 6px;
      margin: -15px 0 5px;
+}
+
+.page-roadmap2-backlog #select_milestone {
+    margin: 18px 0 5px;
+ 
 }
