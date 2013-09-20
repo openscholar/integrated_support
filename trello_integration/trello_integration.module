@@ -19,6 +19,7 @@ function trello_integration_menu() {
       'title' => 'Current Release',
       //'file' => '/getsatisfaction_integration.roadmap.inc',
       'page callback' => 'trello_integration_roadmap',
+      'page arguments' => array(1),
       'access arguments' => array('access content'),
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'weight' => -10,
@@ -27,6 +28,7 @@ function trello_integration_menu() {
       'title' => 'Backlog',
       //'file' => '/getsatisfaction_integration.roadmap.inc',
       'page callback' => 'trello_integration_roadmap',
+      'page arguments' => array('backlog'),
       'access arguments' => array('access content'),
       'type' => MENU_LOCAL_TASK,
     ),
@@ -89,41 +91,47 @@ function trello_integration_roadmap_page($list_name) {
   $board = variable_get('trello_integration_roadmap');
   list(,,,,$board_id) = explode('/', $board);
   
-  if (($lists = $trello->boards($board_id)->lists()->get(NULL, array('filter' => 'all'))) == FALSE) {
-    watchdog('trello', 'Could not retrieve lists from trello.');
-    return array('msg' => array('#markup' => 'Roadmap unavailable'));
-  }
-  
-  foreach ($lists as $l) {
-    if ($l->name == $list_name || _trello_integration_milestone_url($l->name) == $list_name) {
-      $list = $l;
-      break;
-    }
-  }
-  
-  //error message or rendered columns.  don't return yet - we still need to attach javascript.
-  if (!isset($list)) {
-    $render = array('milestone' => array('msg' => array('#markup' => t('Could not find "@name" milestone', array('@name' => $list_name)))));
+  if ($list_name == 'backlog') {
+    //sandbox has a different structure, so treat it differently.  labels come from lists, not cols.
+    $render = trello_integration_roadmap_backlog();
   } else {
-    $render = array('milestone' => trello_integration_roadmap_columns($list->name, $list->id));
+    //get the roadmap board's list  
+    if (($lists = $trello->boards($board_id)->lists()->get(NULL, array('filter' => 'all'))) == FALSE) {
+      watchdog('trello', 'Could not retrieve lists from trello.');
+      return array('msg' => array('#markup' => 'Roadmap unavailable'));
+    }
+  
+    foreach ($lists as $l) {
+      if ($l->name == $list_name || _trello_integration_milestone_url($l->name) == $list_name) {
+        $list = $l;
+        break;
+      }
+    }
+  
+    //error message or rendered columns.  don't return yet - we still need to attach javascript.
+    if (!isset($list)) {
+      $render = array('milestone' => array('msg' => array('#markup' => t('Could not find "@name" milestone', array('@name' => $list_name)))));
+    } else {
+      $render = array('milestone' => trello_integration_roadmap_columns($list->name, $list->id));
+    }
+  
+    //get milestones so we can get cached closed ticket lists
+    $milestone_id = _github_integration_milestone_get_id($list->name);
+    $cached_closed = cache_get('trello_integration_milestone_closed:' . $milestone_id);
+    $cached_closed = ($cached_closed && $cached_closed->expire > time()) ? $cached_closed->data : NULL;
+  
+    //attach javascript, settings, and (maybe) cached status data
+    $cached_statuses = cache_get('trello_integration_roadmap_statuses');
+    $cached_statuses = ($cached_statuses && $cached_statuses->expire > time()) ? $cached_statuses->data : NULL;
   }
-  
-  //get milestones so we can get cached closed ticket lists
-  $milestone_id = _github_integration_milestone_get_id($list->name);
-  $cached_closed = cache_get('trello_integration_milestone_closed:' . $milestone_id);
-  $cached_closed = ($cached_closed && $cached_closed->expire > time()) ? $cached_closed->data : NULL;
-  
-  //attach javascript, settings, and (maybe) cached status data
-  $cached_statuses = cache_get('trello_integration_roadmap_statuses');
-  $cached_statuses = ($cached_statuses && $cached_statuses->expire > time()) ? $cached_statuses->data : NULL;
   
   global $base_url;
   $js_settings = array(
     'ajax_path' => $base_url . '/trello/get',
     'roadmap_path' => $base_url . '/roadmap2/',
-    'roadmap_statuses' => $cached_statuses,
-    'roadmap_closed' => $cached_closed,
-    'milestone' => $list->name,
+    'roadmap_statuses' => isset($cached_statuses) ? $cached_statuses : NULL,
+    'roadmap_closed' => isset($cached_closed) ? $cached_closed : NULL,
+    'milestone' => (isset($list)) ? $list->name : NULL,
   );
   
   $render += array(
@@ -143,6 +151,45 @@ function trello_integration_roadmap_page($list_name) {
 }
 
 /**
+ * @function trello_integration_roadmap_backlog()
+ * 
+ * The backlog is split over several lists.  Use all of them.
+ */
+function trello_integration_roadmap_backlog() {
+  $trello = trello_integration_client();
+  $board = variable_get('trello_integration_intake');
+  list(,,,,$board_id) = explode('/', $board);
+  
+  $render = array(
+    '#prefix' => '<div class="milestone-wrapper"><h2>Backlog</h2>',
+    '#suffix' => '</div>',
+    'lists' => array(),
+  );
+  
+  foreach (array('Projects', 'Features', 'Bugs', 'Engineering') as $name) {
+    $list = _trello_integration_get_lists($board_id, $name);
+    $cards = $trello->lists($list->id)->cards()->get();
+    $data = trello_integration_roadmap_columns_cards_data($cards, 'Backlog');
+    $list_data[$name] = array_reduce($data, function($ret, $a) {return array_merge($ret, $a);}, array()); //
+  }
+  
+
+  foreach ($list_data as $label => $items) {
+    $render['lists'][] = array(
+      '#title' => $label,
+      '#theme' => 'item_list',
+      '#items' => $items,
+      '#type' => 'ul',
+      '#attributes' => array(
+        'class' => array('milestone'),
+      )
+    );
+  }
+  
+  return $render;
+}
+
+/**
  * @function trello_integration_roadmap_columns()
  * 
  * Fetch cards in a list, and draw them in a three column layout.
@@ -150,12 +197,13 @@ function trello_integration_roadmap_page($list_name) {
 function trello_integration_roadmap_columns($list_name, $list_id) {
   $trello = trello_integration_client();
   $cards = $trello->lists($list_id)->cards()->get();
-  $use_lists = array('Features' => array(), 'Bugs' => array(), 'Engineering' => array(), 'Hotfix' => array());
-  $list_data = trello_integration_roadmap_columns_cards_data($cards);
+  $use_lists = array('Features' => array(), 'Bugs' => array(), 'Engineering' => array(), 'Hotfix' => array()); 
+  
+  $list_data = trello_integration_roadmap_columns_cards_data($cards, $list_name);
   $list_data = array_merge($use_lists, array_intersect_key($list_data, $use_lists));
     
   $render = array(
-    '#prefix' => '<div class="milestone-wrapper"><h2>' . $list_name . '</h2>',
+    '#prefix' => '<div class="milestone-wrapper">',//<h2>' . $list_name . '</h2>',
     '#suffix' => '</div>',    
     'lists' => array(),  
   );
@@ -173,7 +221,7 @@ function trello_integration_roadmap_columns($list_name, $list_id) {
       '#items' => $items,
       '#type' => 'ul',
       '#attributes' => array(
-        'class' => array('milestone'),
+        'class' => array('ticket-list', strtolower($label)),
       )
     );
   }
@@ -181,7 +229,7 @@ function trello_integration_roadmap_columns($list_name, $list_id) {
   return $render;
 }
 
-function trello_integration_roadmap_columns_cards_data($cards) {
+function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
   $list_data = array();
   
   foreach ($cards as $card) {
@@ -191,14 +239,15 @@ function trello_integration_roadmap_columns_cards_data($cards) {
     //get the status from GH  
     list($link) = explode("\n", $card->desc);
     if (filter_var($link, FILTER_VALIDATE_URL)) {
-      if (strpos($link, 'github')) {
+      if (strpos($link, '://github')) {
         list(,,,,,,$id) = explode('/', $link);
       } else {
-        list(,,,,,$slug) = explode('/', $link);
-        $id = _getsatisfaction_integration_linked_issue($slug);
+        @list(,,,,,$slug) = explode('/', $link);
+        $id = (isset($slug) && $list_name != 'Backlog') ? _getsatisfaction_integration_linked_issue($slug) : NULL;
       }
     }    
-    $status = (isset($id)) ? "status-gh-$id" : 'status';
+    
+    $status = (isset($id) && $list_name != 'Backlog') ? "status-gh-$id" : 'status';
   
     //build the link
     $list_data[$label][] = l($card->name, $link, array('attributes' => array('class' => 'get-status ', 'id' => $status)));
@@ -255,7 +304,6 @@ function trello_integration_roadmap($milestone = NULL) {
   //and draw the current roadmap tab
   $return = trello_integration_roadmap_page($milestone);
 
-
   //links and such
   $return['milestone']['info'] = array(
     '#weight' => -10,
@@ -276,11 +324,6 @@ function trello_integration_roadmap($milestone = NULL) {
     )   
   );
   
-  if ($milestone != 'backlog') {
-    $return['milestone']['info']['backlog'] = array(
-      '#markup' => l('View Backlog', 'roadmap2/backlog', array('attributes' => array('class' => array('backlog-link')))),
-    );
-  } 
   //precalculate url formatting so we don't have to maintain php and js copies of same funciton
   $milestone_urls = array_reduce($milestones + $archives + array('Backlog'), function ($ret, $ms) {
     $ret[$ms] = _trello_integration_milestone_url($ms); return $ret;
