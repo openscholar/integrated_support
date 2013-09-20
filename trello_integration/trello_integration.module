@@ -15,6 +15,22 @@ function trello_integration_menu() {
       'page callback' => 'trello_integration_roadmap',
       'access arguments' => array('access content'),
     ),
+    'roadmap2/%' => array(
+      'title' => 'Current Release',
+      //'file' => '/getsatisfaction_integration.roadmap.inc',
+      'page callback' => 'trello_integration_roadmap',
+      'access arguments' => array('access content'),
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10,
+    ),
+    'roadmap2/backlog' => array(
+      'title' => 'Backlog',
+      //'file' => '/getsatisfaction_integration.roadmap.inc',
+      'page callback' => 'trello_integration_roadmap',
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+    ),
+    
     'admin/config/integrated_support/trello' => array(        
       'title' => 'Trello',
       'file' => '/trello_integration.admin.inc',
@@ -134,7 +150,7 @@ function trello_integration_roadmap_page($list_name) {
 function trello_integration_roadmap_columns($list_name, $list_id) {
   $trello = trello_integration_client();
   $cards = $trello->lists($list_id)->cards()->get();
-  $use_lists = array('Engineering' => array(), 'Bugs' => array(), 'Features' => array(), 'Hotfix' => array());
+  $use_lists = array('Features' => array(), 'Bugs' => array(), 'Engineering' => array(), 'Hotfix' => array());
   $list_data = trello_integration_roadmap_columns_cards_data($cards);
   $list_data = array_merge($use_lists, array_intersect_key($list_data, $use_lists));
     
@@ -250,9 +266,9 @@ function trello_integration_roadmap($milestone = NULL) {
         '#theme' => 'select',
         '#title' => 'Milestones',
         '#options' => array(
-          'none' => '-- Select a milestone --',
+          'none' => '-- Select a release --',
           'Milestones' => $milestones,
-          'Release Notes Archive' => $archives,
+          //'Release Notes Archive' => $archives, //restore this when old tickets are imported to trello
         ), 
         '#value' => 'none', 
         '#attributes' => array('id' => 'select_milestone'),
