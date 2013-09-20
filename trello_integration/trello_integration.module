@@ -268,7 +268,7 @@ function trello_integration_roadmap($milestone = NULL) {
         '#options' => array(
           'none' => '-- Select a release --',
           'Milestones' => $milestones,
-          'Release Notes Archive' => $archives,
+          //'Release Notes Archive' => $archives, //restore this when old tickets are imported to trello
         ), 
         '#value' => 'none', 
         '#attributes' => array('id' => 'select_milestone'),
