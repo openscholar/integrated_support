@@ -303,19 +303,23 @@ function trello_integration_roadmap($milestone = NULL) {
     $ret[$ms] = _trello_integration_milestone_url($ms); return $ret;
   });
   $return['#attached']['js'][1]['data']['trello_integration_roadmap']['milestones'] = $milestone_urls;
+  //$return['#attached']['js'][] = drupal_get_path('module', 'os') . '/theme/os_toggle.js';
   
   
   //legend.
   $options = array_values(variable_get('getsatisfaction_roadmap_status_labels'));
   $checkboxes = array_reduce($options, function($ret, $s) {
-    $ret[$s] = array('#markup' => "<label class='".strtolower($s)."'><input type='checkbox' name='$s' value='$s' checked /><span>$s</span></label>");
+    $ret[$s] = array('#markup' => "<label class='".strtolower($s)."'><input type='checkbox' name='$s' value='$s' /><span>$s</span></label>");
     return $ret;
   });
   
   if ($milestone != 'backlog') {
     $return['legend'] = array(
       'options' => $checkboxes,
-      '#prefix' => '<div id=roadmap-legend><form>',
+      'buttons' => array(
+        '#markup' => '<div class="legend-buttons"><span id="legend-save">Save</span><span id="legend-cancel">Cancel</span></div>',  
+      ),
+      '#prefix' => '<span class="status-filter">Status Filter</span><div id="roadmap-legend"><form>',
       '#suffix' => '</form></div>',
       '#weight' => -100,
     );
