@@ -91,10 +91,10 @@ Drupal.behaviors.trello_integration_roadmap = {
     $('#roadmap-legend > form > label > input').change(function(e) {
       //If everybody is unchecked, filtering is off.  Show all the things!
       $unchecked = $('#roadmap-legend > form > label > input:not(:checked)');
-      console.log($unchecked);
+      console.log($unchecked.length);
 
       if ($unchecked.length == 6) {
-        $('#roadmap-legend > form > label > input:checked').each(function(){
+        $('#roadmap-legend > form > label > input').each(function(){
           sel = 'ul.ticket-list li > a.' + $(this).attr('name').toLowerCase();
           $(sel).show();
         })        
