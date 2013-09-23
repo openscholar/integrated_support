@@ -145,7 +145,7 @@ ul.ticket-list > li > a:hover {
 #roadmap-legend label span {
      display: block;
      font-weight: normal;
-     padding: 5px;
+     padding: 2px;
      text-align: center;
 }
 
@@ -180,8 +180,8 @@ ul.ticket-list > li > a:hover {
   text-align: center;
   text-decoration: none;
   text-indent: 0px;
-  text-shadow: 1px 1px 0px #666;
-  width: 80px;
+  text-shadow: 1px 1px 0px #444;
+  width: 5em;
   border: 2px transparent solid;
 }
 
@@ -192,6 +192,7 @@ ul.ticket-list > li > a:hover {
 
 #roadmap-legend input:checked + span {
 	border: 2px black solid;
+  font-weight: bold;
 }
 
 /**

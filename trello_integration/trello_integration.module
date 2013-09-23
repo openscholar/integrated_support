@@ -309,7 +309,8 @@ function trello_integration_roadmap($milestone = NULL) {
   //legend.
   $options = array_values(variable_get('getsatisfaction_roadmap_status_labels'));
   $checkboxes = array_reduce($options, function($ret, $s) {
-    $ret[$s] = array('#markup' => "<label class='".strtolower($s)."'><input type='checkbox' name='$s' value='$s' /><span>$s</span></label>");
+    $txt = ($s == 'Development') ? 'Dev' : $s;
+    $ret[$s] = array('#markup' => "<label class='".strtolower($s)."'><input type='checkbox' name='$s' value='$s' /><span>$txt</span></label>");
     return $ret;
   });
   
