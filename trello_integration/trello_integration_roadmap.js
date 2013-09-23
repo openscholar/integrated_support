@@ -9,6 +9,7 @@ Drupal.behaviors.trello_integration_roadmap = {
     settings = Drupal.settings.trello_integration_roadmap;   
     
     //set up events for the status filters
+    /*
     $('.status-filter').click(function(){
       $this = $(this)
       offset = $this.offset();
@@ -74,6 +75,7 @@ Drupal.behaviors.trello_integration_roadmap = {
         $roadmap.fadeOut(50);
       });
     });
+    */
     
     
     //attach focus event to milestone selector
@@ -86,28 +88,29 @@ Drupal.behaviors.trello_integration_roadmap = {
     });
     
     //attach show/hide events to checkboxes
-//    $('#roadmap-legend > form > label > input').change(function(e) {
-//      
-//      //If this is the first item disabled, make it the only one enabled as though you entered a taxonomy term list.
-//      $unchecked = $('#roadmap-legend > form > label > input:not(:checked)');
-//      if ($unchecked.length == 1 && $unchecked.attr('name') == e.target.name) {
-//        $('#roadmap-legend > form > label > input:checked').each(function(){
-//          //uncheck the remain ones
-//          $(this).click();
-//          sel = 'ul.milestone li > a.' + $(this).attr('name').toLowerCase();
-//          $(sel).hide();
-//        })
-//        
-//        $unchecked.click(); //renable the clicked one.
-//      }
-//      
-//      sel = 'ul.milestone li > a.' + e.target.name.toLowerCase();
-//      if (e.target.checked) {
-//        $(sel).show();
-//      } else {
-//        $(sel).hide();
-//      }
-//    })
+    $('#roadmap-legend > form > label > input').change(function(e) {
+      //If everybody is unchecked, filtering is off.  Show all the things!
+      $unchecked = $('#roadmap-legend > form > label > input:not(:checked)');
+      console.log($unchecked);
+
+      if ($unchecked.length == 6) {
+        $('#roadmap-legend > form > label > input:checked').each(function(){
+          sel = 'ul.ticket-list li > a.' + $(this).attr('name').toLowerCase();
+          $(sel).show();
+        })        
+      } else {
+        //show/hide according to the checkboxes
+        $sel = $('ul.ticket-list li');
+        $('#roadmap-legend > form > label > input').each(function(){
+          $this = $(this);
+          if ($this.attr('checked')) {
+            $sel.find('a.' + $this.attr('name').toLowerCase()).show();
+          } else {
+            $sel.find('a.' + $this.attr('name').toLowerCase()).hide();
+          }
+        });
+      }
+    })
 
     /**
      * @function display_statuses
