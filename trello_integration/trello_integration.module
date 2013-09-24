@@ -273,6 +273,7 @@ function trello_integration_roadmap($milestone = NULL) {
   });
   
   //use current unless specified
+  $original_milestone = $milestone; //if none is specified, select will be different.
   $milestone = ($milestone) ? $milestone : _trello_integration_milestone_url(current($milestones));
   
   //and draw the current roadmap tab
@@ -288,11 +289,11 @@ function trello_integration_roadmap($milestone = NULL) {
         '#theme' => 'select',
         '#title' => 'Milestones',
         '#options' => array(
-          'none' => '-- Select a release --',
+          'none' => 'Current Release',
           'Milestones' => drupal_map_assoc($milestones),
           //'Release Notes Archive' => $archives, //restore this when old tickets are imported to trello
         ), 
-        '#value' => ($key = array_search($milestone, array_map('_trello_integration_milestone_url',$milestones))) ? $milestones[$key] :'none', 
+        '#value' => ($key = array_search($original_milestone, array_map('_trello_integration_milestone_url',$milestones))) ? $milestones[$key] :'none', 
         '#attributes' => array('id' => 'select_milestone'),
       ),
     )   
