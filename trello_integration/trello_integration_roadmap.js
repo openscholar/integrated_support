@@ -76,8 +76,7 @@ Drupal.behaviors.trello_integration_roadmap = {
       $('a.get-status').each(function() {
         var $this = $(this);
         var id = $this.attr('id').split('-')[2];
-        
-        if ($.inArray(id, data)) {
+        if ($.inArray(id, data) > -1) {
           $this.addClass('done')
             .removeClass('get-status');
         }
