@@ -494,9 +494,6 @@ function _getsatisfaction_integration_linked_issue($topic_id) {
     return $results->fetchColumn();
   }
   
-  dpm('dev mode active!  not creating issues.');
-  return;
-  
   //need a new issue
   $gh = github_create_issue(array(
     'title' => $topic->subject,
