@@ -269,9 +269,14 @@ function trello_integration_roadmap($milestone = NULL) {
     $ret[ $a['number'] ] = $a['title']; return $ret;
   });
   
+  $roadmap = variable_get('trello_integration_roadmap');
+  list(,,,,$roadmap_id) = explode('/', $roadmap);
+  $all_lists = array_keys(_trello_integration_get_lists($roadmap_id));
+  
   //use current unless specified
   $original_milestone = $milestone; //if none is specified, select will be different.
   $milestone = ($milestone) ? $milestone : _trello_integration_milestone_url(current($milestones));
+  $all_milestones = $milestones + $archives;
   
   //and draw the current roadmap tab
   $return = trello_integration_roadmap_page($milestone);
@@ -288,9 +293,9 @@ function trello_integration_roadmap($milestone = NULL) {
         '#options' => array(
           'none' => 'Current Release',
           'Milestones' => drupal_map_assoc($milestones),
-          //'Release Notes Archive' => $archives, //restore this when old tickets are imported to trello
+          'Release Notes Archive' => drupal_map_assoc(array_intersect($archives, $all_lists)), //only show roadmaps that have a corresponding trello list
         ), 
-        '#value' => ($key = array_search($original_milestone, array_map('_trello_integration_milestone_url',$milestones))) ? $milestones[$key] :'none', 
+        '#value' => ($key = array_search($original_milestone, array_map('_trello_integration_milestone_url',$all_milestones))) ? $all_milestones[$key] :'none', 
         '#attributes' => array('id' => 'select_milestone'),
       ),
     )   
@@ -720,7 +725,7 @@ function trello_integration_ajax_get_statuses() {
 function trello_integration_ajax_get_closed($milestone) {
   //milestones must be searched by number
   $milestone = urldecode($milestone);
-  $milestones = github_integration_milestones() + github_integration_milestones(array('state' => 'closed'));
+  $milestones = array_merge(github_integration_milestones(), github_integration_milestones(array('state' => 'closed')));
   foreach ($milestones as $ms) {
     if (_trello_integration_milestone_url($ms['title']) == _trello_integration_milestone_url($milestone)) {
       $number = $ms['number'];
