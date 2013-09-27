@@ -9,24 +9,21 @@
  */
 function trello_integration_menu() {
   return array(
-    'roadmap2' => array(
+    'roadmap' => array(
       'title' => 'Roadmap',
-      //'file' => '/getsatisfaction_integration.roadmap.inc',
       'page callback' => 'trello_integration_roadmap',
       'access arguments' => array('access content'),
     ),
-    'roadmap2/%' => array(
+    'roadmap/%' => array(
       'title' => 'Current Release',
-      //'file' => '/getsatisfaction_integration.roadmap.inc',
       'page callback' => 'trello_integration_roadmap',
       'page arguments' => array(1),
       'access arguments' => array('access content'),
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'weight' => -10,
     ),
-    'roadmap2/backlog' => array(
+    'roadmap/backlog' => array(
       'title' => 'Backlog',
-      //'file' => '/getsatisfaction_integration.roadmap.inc',
       'page callback' => 'trello_integration_roadmap',
       'page arguments' => array('backlog'),
       'access arguments' => array('access content'),
@@ -124,7 +121,7 @@ function trello_integration_roadmap_page($list_name) {
   global $base_url;
   $js_settings = array(
     'ajax_path' => $base_url . '/trello/get',
-    'roadmap_path' => $base_url . '/roadmap2/',
+    'roadmap_path' => $base_url . '/roadmap/',
     'roadmap_statuses' => isset($cached_statuses) ? $cached_statuses : NULL,
     'roadmap_closed' => isset($cached_closed) ? $cached_closed : NULL,
     'milestone' => (isset($list)) ? $list->name : NULL,
