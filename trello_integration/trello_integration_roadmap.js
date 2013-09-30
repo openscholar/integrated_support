@@ -21,15 +21,16 @@ Drupal.behaviors.trello_integration_roadmap = {
     $('#roadmap-legend > form > label > input').change(function(e) {
       //If everybody is unchecked, filtering is off.  Show all the things!
       $unchecked = $('#roadmap-legend > form > label > input:not(:checked)');
-      console.log($unchecked.length);
 
       if ($unchecked.length == 6) {
-        $('#roadmap-legend > form > label > input').each(function(){
-          sel = 'ul.ticket-list li > a.' + $(this).attr('name').toLowerCase();
-          $(sel).show();
-        })        
+//        $('#roadmap-legend > form > label > input').each(function(){
+//          sel = 'ul.ticket-list li > a.' + $(this).attr('name').toLowerCase();
+//          $(sel).show();
+//        })        
+        $('ul.ticket-list li > a').show();
       } else {
         //show/hide according to the checkboxes
+        $('ul.ticket-list li > a.get-status').hide(); //tickets without a status are always hidden on filter
         $sel = $('ul.ticket-list li');
         $('#roadmap-legend > form > label > input').each(function(){
           $this = $(this);
