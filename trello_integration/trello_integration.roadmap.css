@@ -171,31 +171,31 @@ ul.milestone > li > a {
 
 
 ul.milestone > li > a.pending {
-     border-left: 3px solid #888;
+     border-left: 3px solid #c00;
 }
 
 #roadmap-legend label.pending input:hover:not(:checked) + span, 
 #roadmap-legend label.pending input:checked + span {
-     background: none repeat scroll 0% 0% #888;
-     border-bottom: 3px solid #888;
+     background: none repeat scroll 0% 0% #c00;
+     border-bottom: 3px solid #c00;
 }
 
 #roadmap-legend label.pending input:not(:checked) + span {
-     border-bottom: 3px solid #888;
+     border-bottom: 3px solid #c00;
 }
 
 ul.ticket-list > li > a.design {
-     border-left: 3px solid #c00;
+     border-left: 3px solid #FF5200;
 }
 
 #roadmap-legend label.design input:hover:not(:checked) + span, 
 #roadmap-legend label.design input:checked + span {
-     background: #c00;
-     border-bottom: 3px solid #c00;
+     background: #FF5200;
+     border-bottom: 3px solid #FF5200;
 }
 
 #roadmap-legend label.design input:not(:checked) + span {
-     border-bottom: 3px solid #c00;
+     border-bottom: 3px solid #FF5200;
 }
 
 ul.ticket-list > li > a.development {
@@ -213,45 +213,45 @@ ul.ticket-list > li > a.development {
 }
 
 ul.ticket-list > li > a.review {
-     border-left: 3px solid #0a0;
+     border-left: 3px solid #33f;
 }
 
 #roadmap-legend label.review input:hover:not(:checked) + span, 
 #roadmap-legend label.review input:checked + span {
-     background: #0a0;
-     border-bottom: 3px solid #0a0;
-}
-
-#roadmap-legend label.review input:not(:checked) + span {
-     border-bottom: 3px solid #0a0;
-}
-
-ul.ticket-list > li > a.testing {
-     border-left: 3px solid #33f;
-}
-
-#roadmap-legend label.testing input:hover:not(:checked) + span, 
-#roadmap-legend label.testing input:checked + span {
      background: #33f;
      border-bottom: 3px solid #33f;
 }
 
-#roadmap-legend label.testing input:not(:checked) + span {
+#roadmap-legend label.review input:not(:checked) + span {
      border-bottom: 3px solid #33f;
 }
 
+ul.ticket-list > li > a.testing {
+     border-left: 3px solid #0a0;
+}
+
+#roadmap-legend label.testing input:hover:not(:checked) + span, 
+#roadmap-legend label.testing input:checked + span {
+     background: #0a0;
+     border-bottom: 3px solid #0a0;
+}
+
+#roadmap-legend label.testing input:not(:checked) + span {
+     border-bottom: 3px solid #0a0;
+}
+
 ul.ticket-list > li > a.done {
-     border-left: 3px solid #444;
+     border-left: 3px solid #006600;
 }
 
 #roadmap-legend label.done input:hover:not(:checked) + span, 
 #roadmap-legend label.done input:checked + span {
-     background: #444;
-     border-bottom: 3px solid #444;
+     background: #006600;
+     border-bottom: 3px solid #006600;
 }
 
 #roadmap-legend label.done input:not(:checked) + span {
-     border-bottom: 3px solid #444;
+     border-bottom: 3px solid #006600;
 }
 
 #select_milestone {
