@@ -22,11 +22,7 @@ Drupal.behaviors.trello_integration_roadmap = {
       //If everybody is unchecked, filtering is off.  Show all the things!
       $unchecked = $('#roadmap-legend > form > label > input:not(:checked)');
 
-      if ($unchecked.length == 6) {
-//        $('#roadmap-legend > form > label > input').each(function(){
-//          sel = 'ul.ticket-list li > a.' + $(this).attr('name').toLowerCase();
-//          $(sel).show();
-//        })        
+      if ($unchecked.length == 6) {   
         $('ul.ticket-list li > a').show();
       } else {
         //show/hide according to the checkboxes
@@ -61,11 +57,9 @@ Drupal.behaviors.trello_integration_roadmap = {
         var this_id = $this.attr('id').split('-')[2];
         if (id_status[parseInt(this_id)]) {
           $this.addClass(id_status[this_id].toLowerCase())
-            .removeClass('get-status');
+            .removeClass('get-status');;
         }
       });
-      
-      $('.roadmap .get-status').removeClass('get-status'); //clear remaining throbbers
     };
     
     /**
@@ -76,11 +70,11 @@ Drupal.behaviors.trello_integration_roadmap = {
     var display_closed = function(data) {
       $('a.get-status').each(function() {
         var $this = $(this);
-        var id = $this.attr('id').split('-')[2];
+        var id = parseInt($this.attr('id').split('-')[2]);
         if ($.inArray(id, data) > -1) {
           $this.addClass('done')
             .removeClass('get-status');
-        }
+        } 
       });
     }
     

@@ -701,7 +701,7 @@ function github_integration_milestones($query = array()) {
  * Given a milestone's name, get its github id so we can query for it.
  */
 function _github_integration_milestone_get_id($name) {
-  $milestones = github_integration_milestones() + github_integration_milestones(array('state' => 'closed'));
+  $milestones = array_merge(github_integration_milestones(), github_integration_milestones(array('state' => 'closed')));
   $names = array_reduce($milestones, function($ret, $a) {$ret[ $a['title'] ] = $a['number']; return $ret;});
   return (isset($names[$name])) ? $names[$name] : NULL; 
 }

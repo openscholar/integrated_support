@@ -301,6 +301,10 @@ function trello_integration_roadmap($milestone = NULL) {
     )   
   );
   
+  if ($milestone == 'backlog') {
+    unset($return['milestone']['info']['links']);  
+  }
+  
   //precalculate url formatting so we don't have to maintain php and js copies of same funciton
   $milestone_urls = array_reduce($milestones + $archives + array('Backlog'), function ($ret, $ms) {
     $ret[$ms] = _trello_integration_milestone_url($ms); return $ret;
@@ -729,12 +733,13 @@ function trello_integration_ajax_get_closed($milestone) {
   foreach ($milestones as $ms) {
     if (_trello_integration_milestone_url($ms['title']) == _trello_integration_milestone_url($milestone)) {
       $number = $ms['number'];
+      $id = $ms['id'];
       break;
     }
   }
   
   if (isset($number)) {
-    $key = 'trello_integration_milestone_closed:'.$number;
+    $key = 'trello_integration_milestone_closed:'.$id;
     $cached = cache_get($key);
     
     if ($cached && $cached->expire > time()) { 
@@ -743,7 +748,7 @@ function trello_integration_ajax_get_closed($milestone) {
       $closed = github_integration_search(array('state' => 'closed', 'milestone' => $number));
       $return = array_map(function($a) {return $a['number'];}, $closed);
       
-      cache_set('trello_integration_milestone_closed:'.$number, $return, 'cache', time() + 1800); //30min cache
+      cache_set('trello_integration_milestone_closed:'.$id, $return, 'cache', time() + 1800); //30min cache
       print drupal_json_encode($return);
     }
   }
