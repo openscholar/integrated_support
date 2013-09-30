@@ -213,17 +213,17 @@ ul.ticket-list > li > a.development {
 }
 
 ul.ticket-list > li > a.review {
-     border-left: 3px solid #33f;
+     border-left: 3px solid #28aae1;
 }
 
 #roadmap-legend label.review input:hover:not(:checked) + span, 
 #roadmap-legend label.review input:checked + span {
-     background: #33f;
-     border-bottom: 3px solid #33f;
+     background: #28aae1;
+     border-bottom: 3px solid #28aae1;
 }
 
 #roadmap-legend label.review input:not(:checked) + span {
-     border-bottom: 3px solid #33f;
+     border-bottom: 3px solid #28aae1;
 }
 
 ul.ticket-list > li > a.testing {
