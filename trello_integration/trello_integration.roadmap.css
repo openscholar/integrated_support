@@ -170,7 +170,7 @@ ul.milestone > li > a {
 }
 
 
-ul.milestone > li > a.pending {
+ul.ticket-list > li > a.pending {
      border-left: 3px solid #c00;
 }
 
