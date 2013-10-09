@@ -547,4 +547,45 @@ function desk_integration_backlog() {
  */
 function desk_integration_cron() {
   desk_integration_backlog();
+  desk_integration_fix_case_subjects();
+}
+
+/**
+ * @function desk_integration_fix_case_subjects
+ * 
+ * Search for olark cases and give them a useful subject line.
+ */
+function desk_integration_fix_case_subjects() {
+  if (!variable_get('desk_integration_fix_case_subjects', FALSE)) {
+    return;
+  }
+  
+  //find olark cases
+  $desk = desk_integration_client();
+  $search = $desk->api('case')->call('search',
+      array('subject' => 'wrote you a note', 'status' => 'new,open,pending'));
+  
+  foreach ($search->_embedded->entries as $case) {
+    $href = $case->_links->self->href;
+    list(,,,,$id) = explode('/', $href);
+  
+    //get the message nad make sure it's from olark
+    $message = $desk->api('case')->call('message', array('id' => $id));
+    list($olark,$body) = explode('----', $message->body);
+    if (strpos($olark,"The user's message follows:") === FALSE) {
+      continue;
+    }
+  
+    //prep the text
+    $body = trim(strip_tags($body));
+    $length = 128; //no idea what their hard cap is
+    if (strlen($body) > $length) {
+      $body = substr($body, 0, $length);
+    }
+  
+    //update desk case
+    if ($body) {
+      $response = $desk->api('case')->call('update', array('id' => $id, 'subject' => $body));
+    }
+  }  
 }
