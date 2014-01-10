@@ -516,3 +516,40 @@ function _getsatisfaction_integration_linked_issue($topic_id) {
 }
 
 
+/**
+ * @function getsatisfaction_integration_stats
+ * 
+ * Gets an array of some stats on our GS account.
+ */
+function getsatisfaction_integration_stats() {
+  $client = getsatisfaction_integration_client();
+  $ret = array();
+
+  
+  //recent topics
+  $query = array(
+    'company' => variable_get('getsatisfaction_company'), 
+    'sort' => 'recently_active', 
+    'active_since' => time() - variable_get('getsatisfaction_recent_time', 3600 * 24), //default = 1d
+  );
+  $topics = $client->api('topic')->call('company_topic', $query);
+  $ret['recent_active_topics'] = $topics->total;
+  
+  //open topics
+  $query = array(
+    'company' => variable_get('getsatisfaction_company'),
+    'status' => 'pending,active,null',
+  );
+  $topics = $client->api('topic')->call('company_topic', $query);
+  $ret['open_topics'] = $topics->total;
+  
+  //closed topics
+  $query = array(
+    'company' => variable_get('getsatisfaction_company'),
+    'status' => 'complete,rejected',
+  );
+  $topics = $client->api('topic')->call('company_topic', $query);
+  $ret['closed_topics'] = $topics->total;
+  
+  return $ret;
+}
