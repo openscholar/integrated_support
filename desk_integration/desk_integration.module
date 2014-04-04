@@ -72,39 +72,6 @@ function desk_integration_integrated_support_info() {
 }
 
 /**
- * Implements hook_libraries_info
- * 
- * Provides Desk api via tapir
- */
-function desk_integration_libraries_info() {
-  return array(
-    'tapir' => array(
-      'name' => 'Tapir',
-      'version' => 'master',
-      'files' => array('php' => array('tapir.php')),
-      'dependencies' => array('pear'),
-    ),
-    //PEAR HTTP/Request2
-    'pear' => array(
-      'name' => 'PEAR',
-      'version' => '2.1.1',
-      'files' => array('php' => array('HTTP/Request2.php')),
-      'callbacks' => array('pre-load' => array('_desk_integration_pear_path')),
-    )
-  );
-}
-
-/**
- * @function _desk_integration_pear_path
- *
- * PEAR includes reference each other, expecting them to be in PHP's path.  Adds their location
- * whenever we load PEAR so they can do that.
- */
-function _desk_integration_pear_path() {
-  set_include_path(libraries_get_path('pear'));
-}
-
-/**
  * Implements hook_integrated_support_event
  * 
  * Responds to a desk_integration event by creating a github issue

@@ -25,6 +25,37 @@ function integrated_support_menu() {
 }
 
 /**
+ * Implements hook_libraries_info
+ */
+function integrated_support_libraries_info() {
+  return array(
+    'tapir' => array(
+      'name' => 'Tapir',
+      'version' => 'master',
+      'files' => array('php' => array('tapir.php')),
+      'dependencies' => array('pear'),
+    ),
+    //PEAR HTTP/Request2
+    'pear' => array(
+      'name' => 'PEAR',
+      'version' => '2.1.1',
+      'files' => array('php' => array('HTTP/Request2.php')),
+      'callbacks' => array('pre-load' => array('_integrated_support_pear_path')),
+    )
+  );
+}
+
+/**
+ * @function _desk_integration_pear_path
+ *
+ * PEAR includes reference each other, expecting them to be in PHP's path.  Adds their location
+ * whenever we load PEAR so they can do that.
+ */
+function integrated_support_pear_path() {
+  set_include_path(libraries_get_path('pear'));
+}
+
+/**
  * @function integrated_support_status
  * 
  * Defines hook_integrated_support status
