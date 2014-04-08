@@ -52,11 +52,17 @@ function trello_integration_webhook_handler() {
             'trello_id' => $data->id,
             'description' => $data->desc,
           );
+          module_invoke_all('trello_webhook', 'updateCardDescription', $card);
           break;
       }
       break;
     // card was deleted from Trello
     case 'deleteCard':
+        $data = $action->data->card;
+        $card = array(
+          'trello_id',
+        );
+        module_invoke_all('trello_webhook', 'deleteCard', $card);
       break;
     // new List was created
     case 'createList':
