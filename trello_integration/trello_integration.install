@@ -5,7 +5,7 @@
  */
 function trello_integration_install() {
   _trello_integration_variable_set();
-  _trello_integration_create_ticket_hook();
+  _trello_integration_create_board_hook();
 }
 
 /**
@@ -69,5 +69,11 @@ function trello_integration_update_7004() {
 }
 
 function _trello_integration_create_board_hook() {
-
+  $client = trello_integration_client();
+  $url = $GLOBALS['base_url'].'/trello/handler';
+  $client->webhooks()->create(array(
+    'idModel' => variable_get('trello_integration_board_id'),
+    'callbackURL' => check_url(check_plain($url)),
+    'description' => 'OS Roadmap Board-wide hook',
+  ));
 }
