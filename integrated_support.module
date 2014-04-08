@@ -183,3 +183,80 @@ function  _integrated_support_http_parse_headers($headers) {
   }
   return $return;
 }
+
+
+/**
+ * Database operations
+ */
+function integrated_support_link_services($title, $first_service, $first_id, $second_service, $second_id) {
+  $record = new stdClass();
+  $record->title = $title;
+  $record->service_a_id = $first_id;
+  $record->service_a_name = $first_service;
+  $record->service_b_id = $second_id;
+  $record->service_b_name = $second_service;
+  drupal_write_record('integrated_support_service_links', $record);
+}
+
+function integrated_support_get_links($service, $id, $filter = '') {
+  $results = array();
+
+  // get results that match service a
+  $q = db_select('integrated_support_service_links', 'is')
+    ->fields('is', array('service_b_id', 'service_b_name'))
+    ->condition('service_a_id', $id)
+    ->condition('service_a_name', $service);
+  if ($filter) {
+    $q->condition('service_b_name', $filter);
+  }
+
+  $r = $q->execute();
+  foreach ($r as $row) {
+    $results[] = array(
+      'service' => $row->service_b_name,
+      'id' => $row->service_b_id,
+    );
+  }
+
+  // get results that match service b
+  $q = db_select('integrated_support_service_links', 'is')
+    ->fields('is', array('service_a_id', 'service_a_name'))
+    ->condition('service_b_id', $id)
+    ->condition('service_b_name', $service);
+  if ($filter) {
+    $q->condition('service_a_name', $filter);
+  }
+
+  $r = $q->execute();
+  foreach ($r as $row) {
+    $results[] = array(
+      'service' => $row->service_a_name,
+      'id' => $row->service_a_id,
+    );
+  }
+
+  return $results;
+}
+
+/**
+ * Alert other services that a linkage has been deleted.
+ * This usually means something like a Trello card was deleted, which should be
+ * pretty rare, but it's here in case the other services need to do something about it.
+ */
+function integrated_support_delete_link($service, $id) {
+  $links = integrated_support_get_links($service, $id);
+
+  $or = db_or()
+    ->condition(db_and()
+      ->condition('service_a_id', $id)
+      ->condition('service_a_name', $service))
+    ->condition(db_and()
+      ->condition('service_b_id', $id)
+      ->condition('service_b_name', $service));
+
+  db_delete('integrated_support')
+    ->condition($or)
+    ->execute();
+
+  module_invoke_all('integrated_support_linkage_delete', $service, $id, $links);
+}
