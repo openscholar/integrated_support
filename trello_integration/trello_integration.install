@@ -5,6 +5,7 @@
  */
 function trello_integration_install() {
   _trello_integration_variable_set();
+  _trello_integration_create_ticket_hook();
 }
 
 /**
@@ -58,4 +59,15 @@ function trello_integration_update_7002() {
  **/
 function trello_integration_update_7003() {
   _trello_integration_variable_set();
+}
+
+/**
+ * Creates a general webhook to listen for new cards
+ */
+function trello_integration_update_7004() {
+  _trello_integration_create_board_hook();
+}
+
+function _trello_integration_create_board_hook() {
+
 }

@@ -58,7 +58,13 @@ function trello_integration_menu() {
       'access arguments' => array('access content'),
       'page arguments' => array(3),
     ),
-    
+    'trello/handler' => array(
+      'title' => 'Trello Webhook Handler',
+      'type' => MENU_CALLBACK,
+      'page callback' => 'trello_integration_webhook_handler',
+      'access callback' => TRUE,
+      'file' => 'trello_integration.callbacks.inc',
+    )
   );
 }
 
