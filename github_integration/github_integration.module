@@ -768,3 +768,37 @@ function _github_intergation_update_issue_table($issue) {
   }
 }
 
+/**
+ * Hook Implementations
+ */
+function github_integration_trello_webhook($event, $data) {
+  switch ($event) {
+    case 'createCard':
+      $issue = array(
+        'title' => $data->title,
+        'milestone' => $data->milestone,
+        'body' => 'From Trello. [tid: '.$data->trello_id.']'
+      );
+      $issue = github_create_issue($issue);
+      integrated_support_link_services($data->title, 'trello', $data->trello_id, 'github', $issue['number']);
+      break;
+    case 'updateCardMilestone':
+      $links = integrated_support_get_links('trello', $data['trello_id'], 'github');
+      $client = github_integration_client();
+      foreach ($links as $l) {
+        $client->api('issue')->update(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $l['id'], array(
+          'milestone' => $data['milestone']
+        ));
+      }
+      break;
+    case 'updateCardDescription':
+      $links = integrated_support_get_links('trello', $data['trello_id'], 'github');
+      $client = github_integration_client();
+      foreach ($links as $l) {
+        $client->api('issue')->update(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $l['id'], array(
+          'body' => $data['description']
+        ));
+      }
+      break;
+  }
+}

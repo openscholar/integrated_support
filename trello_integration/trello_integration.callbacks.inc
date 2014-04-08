@@ -63,6 +63,7 @@ function trello_integration_webhook_handler() {
           'trello_id',
         );
         module_invoke_all('trello_webhook', 'deleteCard', $card);
+        integrated_support_delete_link('trello', $data->id);
       break;
     // new List was created
     case 'createList':
