@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 /**
  * @file trello_integration.module
@@ -29,8 +29,8 @@ function trello_integration_menu() {
       'access arguments' => array('access content'),
       'type' => MENU_LOCAL_TASK,
     ),
-    
-    'admin/config/integrated_support/trello' => array(        
+
+    'admin/config/integrated_support/trello' => array(
       'title' => 'Trello',
       'file' => '/trello_integration.admin.inc',
       'page callback' => 'drupal_get_form',
@@ -40,12 +40,12 @@ function trello_integration_menu() {
     ),
     'trello_callback/%/%' => array( //service, id
       'title' => 'Trello callbacks',
-      'type' => MENU_CALLBACK,    
+      'type' => MENU_CALLBACK,
       'page callback' => 'trello_integration_callback',
       'page arguments' => array(1,2),
       'access arguments' => array('access content'),
     ),
-    'trello/get/statuses' => array( 
+    'trello/get/statuses' => array(
       'title' => 'Roadmap statuses',
       'type' => MENU_CALLBACK,
       'page callback' => 'trello_integration_ajax_get_statuses',
@@ -85,16 +85,16 @@ function trello_integration_libraries_info() {
 
 /**
  * @function trello_integration_roadmap_page
- * 
+ *
  * Page shows roadmaps in tables
  */
-function trello_integration_roadmap_page($list_name) {  
+function trello_integration_roadmap_page($list_name) {
   //get the list
   $trello = trello_integration_client();
   $board = variable_get('trello_integration_roadmap');
   list(,,,,$board_id) = explode('/', $board);
-  
-  //get the roadmap board's list  
+
+  //get the roadmap board's list
   if (($lists = $trello->boards($board_id)->lists()->get(NULL, array('filter' => 'all'))) == FALSE) {
     watchdog('trello', 'Could not retrieve lists from trello.');
     return array('msg' => array('#markup' => 'Roadmap unavailable'));
@@ -123,7 +123,7 @@ function trello_integration_roadmap_page($list_name) {
   $cached_statuses = cache_get('trello_integration_roadmap_statuses');
   $cached_statuses = ($cached_statuses && $cached_statuses->expire > time()) ? $cached_statuses->data : NULL;
 
-  
+
   global $base_url;
   $js_settings = array(
     'ajax_path' => $base_url . '/trello/get',
@@ -132,7 +132,7 @@ function trello_integration_roadmap_page($list_name) {
     'roadmap_closed' => isset($cached_closed) ? $cached_closed : NULL,
     'milestone' => (isset($list)) ? $list->name : NULL,
   );
-  
+
   $render += array(
     '#attached' => array(
       'css' => array(
@@ -145,48 +145,48 @@ function trello_integration_roadmap_page($list_name) {
       ),
     ),
   );
-  
+
   return $render;
 }
 
 /**
  * @function trello_integration_roadmap_columns()
- * 
+ *
  * Fetch cards in a list, and draw them in a three column layout.
  */
 function trello_integration_roadmap_columns($list_name, $list_id) {
   $trello = trello_integration_client();
   $cards = $trello->lists($list_id)->cards()->get();
   $use_lists = array('Features' => array(), 'Bugs' => array(), 'Engineering' => array(), 'Hotfix' => array());
-  
+
   $list_data = trello_integration_roadmap_columns_cards_data($cards, $list_name);
   $list_data = array_merge($use_lists, array_intersect_key($list_data, $use_lists));
-  
+
   //drop hotfix and prepend proejcts
   if ($list_name == 'Backlog') {
     unset($list_data['Hotfix']);
     $roadmap = variable_get('trello_integration_roadmap');
     list(,,,,$roadmap_id) = explode('/', $roadmap);
     $projects_list = _trello_integration_get_lists($roadmap_id, 'Projects');
-  
+
     $cards = $trello->lists($projects_list->id)->cards()->get();
     $projects = trello_integration_roadmap_columns_cards_data($cards, $list_name);
     $projects = array_reduce($projects, function($ret, $a) {return array_merge($ret, $a);}, array());
     $list_data = array_merge(array('Projects' => $projects), $list_data);
   }
-    
+
   $render = array(
     '#prefix' => '<div class="milestone-wrapper">',//<h2>' . $list_name . '</h2>',
-    '#suffix' => '</div>',    
-    'lists' => array(),  
+    '#suffix' => '</div>',
+    'lists' => array(),
   );
-  
+
   if (empty($list_data)) {
     $render['lists'] = array(
-      '#markup' => t('Nothing in this milestone'),  
-    );  
+      '#markup' => t('Nothing in this milestone'),
+    );
   }
-  
+
   foreach ($list_data as $label => $items) {
     $render['lists'][] = array(
       '#title' => $label,
@@ -198,18 +198,18 @@ function trello_integration_roadmap_columns($list_name, $list_id) {
       )
     );
   }
-  
+
   return $render;
 }
 
 function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
   $list_data = array();
-  
+
   foreach ($cards as $card) {
     //choose a list bucket.
     @list($label) = array_map(function($o) {return $o->name;}, $card->labels); //only use first label.  ambiguities can be fixed in trello.
-    
-    //get the status from GH  
+
+    //get the status from GH
     list($link) = explode("\n", $card->desc);
     if (filter_var($link, FILTER_VALIDATE_URL)) {
       if (strpos($link, '://github')) {
@@ -217,24 +217,24 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
       } else {
         @list(,,,,,$slug) = explode('/', $link);
         $id = (isset($slug) && $list_name != 'Backlog') ? _getsatisfaction_integration_linked_issue($slug) : NULL;
-      } 
+      }
     } else {
       $link = NULL;
-    }    
-    
+    }
+
     $status = (isset($id) && $list_name != 'Backlog') ? "status-gh-$id" : 'status';
-  
+
     //build the link
-    $list_data[$label][] = ($link) 
+    $list_data[$label][] = ($link)
       ? l($card->name, $link, array('attributes' => array('class' => 'get-status ', 'id' => $status)))
       : "<span class=get-status $status>$card->name</span>";
   }
-  
+
   return $list_data;
 }
 /**
  * @function trello_integration_client
- * 
+ *
  * Returns client object for accessing trello.
  */
 function trello_integration_client() {
@@ -261,7 +261,7 @@ function trello_integration_client() {
 
 /**
  * @function trello_integration_roadmap
- * 
+ *
  * Displays a roadmap based on cards from trello.
  */
 function trello_integration_roadmap($milestone = NULL) {
@@ -274,16 +274,16 @@ function trello_integration_roadmap($milestone = NULL) {
   $archives = array_reduce(github_integration_milestones(array('state' => 'closed')), function($ret, $a) {
     $ret[ $a['number'] ] = $a['title']; return $ret;
   });
-  
+
   $roadmap = variable_get('trello_integration_roadmap');
   list(,,,,$roadmap_id) = explode('/', $roadmap);
   $all_lists = array_keys(_trello_integration_get_lists($roadmap_id));
-  
+
   //use current unless specified
   $original_milestone = $milestone; //if none is specified, select will be different.
   $milestone = ($milestone) ? $milestone : _trello_integration_milestone_url(current($milestones));
   $all_milestones = $milestones + $archives;
-  
+
   //and draw the current roadmap tab
   $return = trello_integration_roadmap_page($milestone);
 
@@ -300,25 +300,25 @@ function trello_integration_roadmap($milestone = NULL) {
           'none' => 'Current Release',
           'Milestones' => drupal_map_assoc($milestones),
           'Release Notes Archive' => drupal_map_assoc(array_intersect($archives, $all_lists)), //only show roadmaps that have a corresponding trello list
-        ), 
-        '#value' => ($key = array_search($original_milestone, array_map('_trello_integration_milestone_url',$all_milestones))) ? $all_milestones[$key] :'none', 
+        ),
+        '#value' => ($key = array_search($original_milestone, array_map('_trello_integration_milestone_url',$all_milestones))) ? $all_milestones[$key] :'none',
         '#attributes' => array('id' => 'select_milestone'),
       ),
-    )   
+    )
   );
-  
+
   if ($milestone == 'backlog') {
-    unset($return['milestone']['info']['links']);  
+    unset($return['milestone']['info']['links']);
   }
-  
+
   //precalculate url formatting so we don't have to maintain php and js copies of same funciton
   $milestone_urls = array_reduce($milestones + $archives + array('Backlog'), function ($ret, $ms) {
     $ret[$ms] = _trello_integration_milestone_url($ms); return $ret;
   });
   $return['#attached']['js'][1]['data']['trello_integration_roadmap']['milestones'] = $milestone_urls;
   //$return['#attached']['js'][] = drupal_get_path('module', 'os') . '/theme/os_toggle.js';
-  
-  
+
+
   //legend.
   $options = array_values(variable_get('getsatisfaction_roadmap_status_labels'));
   $checkboxes = array_reduce($options, function($ret, $s) {
@@ -326,7 +326,7 @@ function trello_integration_roadmap($milestone = NULL) {
     $ret[$s] = array('#markup' => "<label class='".strtolower($s)."'><input type='checkbox' name='$s' value='$s' /><span>$txt</span></label>");
     return $ret;
   });
-  
+
   if ($milestone != 'backlog') {
     $return['legend'] = array(
       'options' => $checkboxes,
@@ -335,11 +335,11 @@ function trello_integration_roadmap($milestone = NULL) {
       '#weight' => -100,
     );
   }
-    
+
   return $return;
 }
-  
-  
+
+
 
 /**
  * @function trello_integration_integrated_support_webhook
@@ -350,7 +350,7 @@ function trello_integration_integrated_support_webhook($trello_id, $service, $se
   global $base_url;
   $callback_url = "$base_url/trello_callback/$service/$service_id";
   $trello = trello_integration_client();
-  
+
   return $trello->webhooks()->create(array(
     'idModel' => $trello_id,
     'callbackURL' => check_url(check_plain($callback_url)),
@@ -360,62 +360,62 @@ function trello_integration_integrated_support_webhook($trello_id, $service, $se
 
 /**
  * @function trello_integration_callback
- * 
+ *
  * Callback URL for trello webhooks
  */
 function trello_integration_callback($service, $id) {
   //no cache for you!  varnish should never cache this page.
   drupal_add_http_header('Cache-Control', 'no-store, no-cache, must-revalidate');
   drupal_add_http_header('Pragma', 'no-cache');
-  
+
   $json = @file_get_contents('php://input');
   $payload = json_decode($json);
   $gh = github_integration_client();
   $trello = trello_integration_client();
   watchdog('trello', "Trello recieved a @type webhook for \"@id\" on \"@service\":<br />@hook", array('@id' => $id, '@service' => $service, '@hook' => $json, '@type' => $payload->action->type));
-  
+
   switch ($payload->action->type) {
     case 'moveCardToBoard':
       //check that we're on intake and roadmap
       $source = $trello->boards($payload->action->data->boardSource->id)->get();
       $dest   = $trello->boards($payload->action->data->board->id)->get();
       if ($source->url != variable_get('trello_integration_intake') || $dest->url != variable_get('trello_integration_roadmap')) {
-        return; 
+        return;
       }
 
       //apply label depending on the type of the ticket
       if ($color = _trello_integration_get_card_label($service, $id)) {
         $trello->cards($payload->model->id)->labels()->update($color);
       }
-      
+
       //update milestone
       _trello_integration_callback_list_changed($payload->model->idList, $service, $id);
-     
+
       break;
-      
+
     case 'addMemberToCard':
       //find the user mentioned
       $trello_user = $payload->action->member->username;
       $users = variable_get('trello_integration_github_users', array());
       $issue = ($service == 'github') ? github_integration_issue($id) : NULL;
-            
+
       //if we have a matching user and the ticket isn't assigned, assign it.
       if ($issue && !$issue['user'] && isset($users[$trello_user])) {
         watchdog('trello', 'Assigning ticket @id to @user', array('@id' => $id, '@user' => $users[$trello_user]));
         $gh->api('issue')->update(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $id, array('assignee' => $users[$trello_user],));
       }
       break;
-      
+
     case 'updateCard':
       if (!isset($payload->action->data->listAfter)) {
         break; //updateCard is not unique to moves.
       }
-      
+
       $board = $trello->boards($payload->model->idBoard)->get();
-      if ($board->url == variable_get('trello_integration_roadmap')) {        
+      if ($board->url == variable_get('trello_integration_roadmap')) {
         _trello_integration_callback_list_changed($payload->model->idList, $service, $id);
       }
-      
+
       break;
   }
 
@@ -423,8 +423,8 @@ function trello_integration_callback($service, $id) {
 }
 
 /*
- * @function _trello_integration_callback_list_changed($list_id, $service, $github_id) 
- * 
+ * @function _trello_integration_callback_list_changed($list_id, $service, $github_id)
+ *
  * Checks if a card's new list is a milestone.  Adjusts github milestone if it is.  Creates GH issue if necessary
  */
 function _trello_integration_callback_list_changed($list_id, $service, $id) {
@@ -435,8 +435,8 @@ function _trello_integration_callback_list_changed($list_id, $service, $id) {
     $ret[$m['title']] = $m['number'];
     return $ret;
   });
-  
-  $github_id = ($service == 'github') ? $id : _getsatisfaction_integration_linked_issue($id); 
+
+  $github_id = ($service == 'github') ? $id : _getsatisfaction_integration_linked_issue($id);
 
   //if the new list is a milestone, move the GH ticket to that milestone
   if (isset($milestones[$list->name])) {
@@ -446,7 +446,7 @@ function _trello_integration_callback_list_changed($list_id, $service, $id) {
 
 /**
  * @function trello_integration_ticket_sync()
- * 
+ *
  * Copies cards from getsatsifaction and github into trello
  */
 function trello_integration_ticket_sync() {
@@ -455,10 +455,10 @@ function trello_integration_ticket_sync() {
   $trello = trello_integration_client();
   $board = variable_get('trello_integration_intake');
   if (!$board) {
-    return; //intake board is not enabled.  
+    return; //intake board is not enabled.
   }
-  list(,,,,$board_id) = explode('/', $board); 
-  
+  list(,,,,$board_id) = explode('/', $board);
+
   foreach (variable_get('trello_integration_import') as $label_name => $import) {
     foreach ($import as $service => $params) {
       //get matching tickets
@@ -469,19 +469,19 @@ function trello_integration_ticket_sync() {
         continue;
       }
       $imported[$label_name] = max(array_keys($results));
-      
+
       foreach ($results as $ticket) {
         //extract relevant info.  don't post duplicates.
         $card = _trello_integration_prepare_card($board_id, $service, $ticket, $label_name);
         if ($card) {
           if ($trello->cards()->create($card) == FALSE) {
             watchdog('trello', t('Error sending card from @service to Trello.', array('@service' => $service)));
-          } 
+          }
         }
       }
     }
   }
-  
+
   //save the list of exported tickets
   variable_set('trello_integration_cards_imported', $imported);
 }
@@ -495,12 +495,12 @@ function trello_integration_cron() {
 
 /**
  * @function _trello_integration_prepare_card()
- * 
+ *
  * Given a service and a ticket from that service, return an array of items to send to trello
  */
 function _trello_integration_prepare_card($board_id, $service, $ticket, $label_name) {
   $list = _trello_integration_get_lists($board_id, variable_get('trello_integration_default_list'));
-  
+
   switch ($service) {
     case 'github':
       $mapped = db_select('getsatisfaction_service_map', 'gs')
@@ -512,27 +512,27 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $label_n
       if ($mapped->rowCount()) {
         return NULL; //don't create github cards when mapped.  gs card shoudl already exist.
       }
-      
+
       $body = (isset($ticket['body'])) ? $ticket['body'] : $ticket['body_html'];
       $return = array(
         'name' => $ticket['title'],
         'desc' => $ticket['html_url'] . "\n\n" . _trello_integration_html_to_markdown($body),
         'id' => $ticket['number'],
       );
-      
+
       //do we have a milestone?  if so, find and use that list instead.
       if ($ticket['milestone']) {
         $roadmap = variable_get('trello_integration_roadmap');
         list(,,,,$roadmap_id) = explode('/', $roadmap);
         $milestone_list = _trello_integration_get_lists($roadmap_id, $ticket['milestone']['title']);
-        
+
         if ($milestone_list) {
           $board_id = $roadmap_id;
           $list = $milestone_list;
         }
       }
       break;
-      
+
     case 'getsatisfaction':
       //if we have a mapping, get the github link as well.
       $mapped = db_select('getsatisfaction_service_map', 'gs')
@@ -540,7 +540,7 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $label_n
         ->condition('external_service', 'github_integration')
         ->fields('gs', array('external_id'))
         ->execute();
-        
+
       $links = array($ticket->at_sfn);
       if ($mapped->rowCount()) {
         $row = $mapped->fetchCol();
@@ -553,84 +553,84 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $label_n
         'id' => $ticket->id,
       );
       break;
-      
+
     default:
       return NULL;
   }
-  
+
   $colors = variable_get('trello_integration_colors', array());
   $return['idList'] = $list->id;
-  $return['labels'] = (isset($colors[$label_name])) ? $colors[$label_name] : NULL; 
-  
+  $return['labels'] = (isset($colors[$label_name])) ? $colors[$label_name] : NULL;
+
   return $return;
 }
 
 /**
  * @function _trello_integration_html_to_markdown()
- * 
+ *
  * Trello uses markdown.  GetSatisfaction uses html.  Convert html during ticket import.
  * Considered using a library, but GS uses such a small subset of HTML that this seemed easier.
- * 
+ *
  * @param string $html
  *   $html to convert
  * @param array $assets
  *   Assets to attach to the card will be added to this array.
- *   
+ *
  * Returns markdown
  */
 function _trello_integration_html_to_markdown($html) {
   $regexes = array();
-  
+
   //link
   $regexes['|<a.*?href=[\'"](.*?)[\'"].*?>(.*?)</a>|'] =  '[$2]($1)';
-  
+
   //image
   $regexes['|<img.*?src=[\'"](.*?)[\'"].*?>|'] = '![img]($1)';
-  
+
   //bold
   $regexes['|<strong>(.*?)</strong>|'] = '**$1**';
   $regexes['|<b>(.*?)</b>|'] = '**$1**';
-  
+
   //newline
   $regexes['|<br>|'] = "\n";
   $regexes['|<br ?/>|'] = "\n";
-  
+
   //italics
   $regexes['|<em>(.*?)</em>|'] = '*$1*';
   $regexes['|<i>(.*?)</i>|'] = '*$1*';
-  
+
   //underline does not exist in markdown
   $regexes['|<u>(.*?)</u>|'] = '$1';
-  
+
   //strikeout
   $regexes['|<s>(.*?)</s>|'] = '~~$1~~';
   $regexes['|<strike>(.*?)</strike>|'] = '~~$1~~';
-  
+
   //paragraph
   $regexes['|<p>(.*?)</p>|'] = "\n\n" . '$1' . "\n\n";
   $regexes['|</?p>|'] = "\n";
-  
+
   //lists (making them all ul for simplicity's sake)
   $regexes['|</?ul>|'] = '';
   $regexes['|</?ol>|'] = '';
   $regexes['|<li>(.*?)</li>|'] = '* $1';
-  
+
   //code
   $regexes['|<code>(.*?)</code>|'] = '```$1```';
-  
+
   //blockquote
   $regexes['|<blockquote>(.*?)</blockquote>|'] = '> $1';
-  
+
   foreach ($regexes as $pattern => $replacement) {
     $html = preg_replace($pattern, $replacement, $html);
   }
-  
+
   return $html;
 }
 
 /**
  * @function _trello_integration_get_lists
- * 
+ *
  * Gets trello list(s) by name
  */
 function _trello_integration_get_lists($board_id, $name = NULL) {
@@ -638,22 +638,22 @@ function _trello_integration_get_lists($board_id, $name = NULL) {
   if (empty($trello_lists) || empty($trello_lists[$board_id])) {
     $trello = trello_integration_client();
     $trello_lists[$board_id] = array();
-            
+
     foreach ($trello->boards($board_id)->lists()->get(NULL, array('filter' => 'all')) as $list) {
       $trello_lists[$board_id][$list->name] = $list;
     }
   }
-  
+
   if ($name) {
     return isset($trello_lists[$board_id][$name]) ? $trello_lists[$board_id][$name] : NULL;
   }
-  
+
   return $trello_lists[$board_id];
 }
 
 /**
  * @function _trello_integration_get_card_label
- * 
+ *
  * See if there's a label for this trello card.
  */
 function _trello_integration_get_card_label($service, $id) {
@@ -663,22 +663,22 @@ function _trello_integration_get_card_label($service, $id) {
     case 'github':
       $ticket = github_integration_issue($id);
       break;
-      
+
     case 'getsatisfaction':
       $ticket = getsatisfaction_integration_topic($id);
       break;
-      
+
     default:
       $ticket = NULL;
   }
-  
-  
-  
+
+
+
   //test if this ticket belongs to any of our services and matches their criteria for adding a ticket
   //returns the label for htat card type if it does.
   $ticket = (array) $ticket;
   $colors = variable_get('trello_integration_colors', array());
-  
+
   foreach (variable_get('trello_integration_import') as $label => $import) {
     foreach ($import as $import_service => $criteria) {
       if ($service == $import_service) {
@@ -686,13 +686,13 @@ function _trello_integration_get_card_label($service, $id) {
         if (empty($criteria)) {
           return isset($colors[$label]) ? $colors[$label] : NULL;
         }
-                
+
         foreach ($criteria as $key => $value) {
 
           if (@!isset($ticket[$key]) || $ticket[$key] != $value && !in_array($value, $ticket[$key])) {
             break;
           }
-          
+
           return isset($colors[$label]) ? $colors[$label] : NULL;
         }
       }
@@ -702,7 +702,7 @@ function _trello_integration_get_card_label($service, $id) {
 
 /**
  * @function trello_integration_ajax_get_statuses
- * 
+ *
  * Gets list of tickets by status for ajax
  */
 function trello_integration_ajax_get_statuses() {
@@ -715,23 +715,23 @@ function trello_integration_ajax_get_statuses() {
     'status: needs spec' => 'Design',
     'status: pending' => 'Pending',
   ));
-  
+
   //get ids of tickets all tickets matching a label status
   $return = array();
   foreach ($label_status as $label => $title) {
     $return[$title] = github_integration_issues_by_label($label);
   }
-  
+
   //cache it
   cache_set('trello_integration_roadmap_statuses', $return, 'cache', time() + 1800); //30min cache
-  
+
   print drupal_json_encode($return);
   exit;
 }
 
 /**
  * function trello_integration_ajax_get_closed()
- * 
+ *
  * Ajax call gets list of closed tickets within a milestone
  */
 function trello_integration_ajax_get_closed($milestone) {
@@ -745,32 +745,51 @@ function trello_integration_ajax_get_closed($milestone) {
       break;
     }
   }
-  
+
   if (isset($number)) {
     $key = 'trello_integration_milestone_closed:'.$id;
     $cached = cache_get($key);
-    
-    if ($cached && $cached->expire > time()) { 
+
+    if ($cached && $cached->expire > time()) {
       print drupal_json_encode($cached->data);
     } else {
       $closed = github_integration_search(array('state' => 'closed', 'milestone' => $number));
       $return = array_map(function($a) {return $a['number'];}, $closed);
-      
+
       cache_set('trello_integration_milestone_closed:'.$id, $return, 'cache', time() + 1800); //30min cache
       print drupal_json_encode($return);
     }
   }
-  
+
   exit;
 }
 /**
  * @function _trello_integration_milestone_url
- * 
+ *
  * Makes milestone title url friendly.  urlencode by itself makes ugly urls.
  **/
 function _trello_integration_milestone_url($milestone) {
   $milestone = str_replace(' ', '-', $milestone);
   $milestone = str_replace(array(',', '(', ')'), '', $milestone);
   $milestone = strtolower($milestone);
-  return urlencode($milestone);  
+  return urlencode($milestone);
+}
+
+/**
+ * Implements hook_integrated_support_linkage_delete.
+ *
+ * Deletes the trello card when the GS linkage is deleted.
+ */
+function trello_integration_integrated_support_linkage_delete($service, $id, $links) {
+  switch ($service) {
+    case 'getsatisfaction':
+      $client = trello_integration_client();
+      $to_delete = array();
+      foreach ($links as $l) {
+        if ($l['service'] == 'trello') {
+          $client->cards()->delete($l['id']);
+        }
+      }
+      break;
+  }
 }
