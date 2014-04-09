@@ -133,9 +133,6 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
       //apply status and update milestone
       foreach ($ids as $id) {
         $return[] = getsatisfaction_integration_update_topic_status($id, $status, @$payload['milestone'], @$payload['labels']);
-        if ($payload['milestone']) {
-          _getsatisfaction_integration_update_topic_milestone($id, $payload['milestone'], $payload['id']);
-        }
       }
 
 
