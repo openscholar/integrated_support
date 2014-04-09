@@ -588,6 +588,19 @@ function getsatisfaction_integration_trello_webhook($event, $data) {
       
       break;
     case 'updateCardMilestone':
+      if ($data['milestone'] != variable_get('trello_integration_default_list')) {
+        $milestone = $data['milestone'];
+        // get getsatisfaction links
+        $links = integrated_support_get_links('trello', $data['trello_id'], 'getsatisfaction');
+        $client = getsatisfaction_integration_client();
+        foreach ($links as $l) {
+          //update getsatisfaction
+          $id = $l['id'];
+          watchdog('getsatisfaction', 'topic @id needs milestone update: "@milestone"', array('@id' => $id, '@milestone' => $milestone));
+          $reply = 'This request has been scheduled to be part of our ' . $milestone . ' release.'; 
+          $updated = $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $reply))); 
+        }
+      }
       break;
   }
 }
