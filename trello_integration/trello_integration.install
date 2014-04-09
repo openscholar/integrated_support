@@ -29,6 +29,8 @@ function _trello_integration_variable_set() {
     'Engineering' => 'blue',
     'Hotfix' => 'orange',
   ));
+  
+  variable_set('trello_integration_default_list', 'Pending Review');
 }
 
 /** 
@@ -76,4 +78,8 @@ function _trello_integration_create_board_hook() {
     'callbackURL' => check_url(check_plain($url)),
     'description' => 'OS Roadmap Board-wide hook',
   ));
+}
+
+function trello_integration_update_7005() {
+  _trello_integration_variable_set();
 }

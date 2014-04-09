@@ -459,22 +459,24 @@ function trello_integration_ticket_sync() {
   }
   list(,,,,$board_id) = explode('/', $board); 
   
-  foreach (variable_get('trello_integration_import') as $list_name => $import) {
+  foreach (variable_get('trello_integration_import') as $label_name => $import) {
     foreach ($import as $service => $params) {
       //get matching tickets
       $search = '_' . $service . '_integration_newer_issues';
-      $last_id = (isset($imported[$list_name])) ? $imported[$list_name] : 0;
+      $last_id = (isset($imported[$label_name])) ? $imported[$label_name] : 0;
       $results = (function_exists($search)) ? $search($last_id, $params) : array();
       if (!$results) {
         continue;
       }
-      $imported[$list_name] = max(array_keys($results));
+      $imported[$label_name] = max(array_keys($results));
       
       foreach ($results as $ticket) {
         //extract relevant info.  don't post duplicates.
-        $card = _trello_integration_prepare_card($board_id, $service, $ticket, $list_name);
-        if ($card && ($new = $trello->cards()->create($card)) != FALSE) {
-          $wh = trello_integration_integrated_support_webhook($new->id, $service, $card['id']);
+        $card = _trello_integration_prepare_card($board_id, $service, $ticket, $label_name);
+        if ($card) {
+          if ($trello->cards()->create($card) == FALSE) {
+            watchdog('trello', t('Error sending card from @service to Trello.', array('@service' => $service)));
+          } 
         }
       }
     }
@@ -496,8 +498,8 @@ function trello_integration_cron() {
  * 
  * Given a service and a ticket from that service, return an array of items to send to trello
  */
-function _trello_integration_prepare_card($board_id, $service, $ticket, $list_name) {
-  $list = _trello_integration_get_lists($board_id, $list_name);
+function _trello_integration_prepare_card($board_id, $service, $ticket, $label_name) {
+  $list = _trello_integration_get_lists($board_id, variable_get('trello_integration_default_list'));
   
   switch ($service) {
     case 'github':
@@ -558,7 +560,7 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $list_na
   
   $colors = variable_get('trello_integration_colors', array());
   $return['idList'] = $list->id;
-  $return['labels'] = (isset($colors[$list_name])) ? $colors[$list_name] : NULL; 
+  $return['labels'] = (isset($colors[$label_name])) ? $colors[$label_name] : NULL; 
   
   return $return;
 }
