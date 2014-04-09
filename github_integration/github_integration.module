@@ -772,23 +772,29 @@ function _github_intergation_update_issue_table($issue) {
  * Hook Implementations
  */
 function github_integration_trello_webhook($event, $data) {
+  $milestones = github_integration_milestones();
   switch ($event) {
-    case 'createCard':
-      $issue = array(
-        'title' => $data->title,
-        'milestone' => $data->milestone,
-        'body' => 'From Trello. [tid: '.$data->trello_id.']'
-      );
-      $issue = github_create_issue($issue);
-      integrated_support_link_services($data->title, 'trello', $data->trello_id, 'github', $issue['number']);
-      break;
     case 'updateCardMilestone':
       $links = integrated_support_get_links('trello', $data['trello_id'], 'github');
       $client = github_integration_client();
-      foreach ($links as $l) {
-        $client->api('issue')->update(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $l['id'], array(
-          'milestone' => $data['milestone']
-        ));
+      if (!empty($links)) {
+        foreach ($links as $l) {
+          $client->api('issue')->update(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $l['id'], array(
+            'milestone' => $data['milestone']
+          ));
+        }
+        break;
+        // if there's no link to a github issue, we need to fall through and create a new issue
+      }
+    case 'createCard':
+      if (_github_integration_milestone_get_id($data['milestone'])) {
+        $issue = array(
+          'title' => $data['title'],
+          'milestone' => $data['milestone'],
+          'body' => 'From Trello. [tid: '.$data['trello_id'].']'
+        );
+        $issue = github_create_issue($issue);
+        integrated_support_link_services($data['title'], 'trello', $data['trello_id'], 'github', $issue['number']);
       }
       break;
     case 'updateCardDescription':

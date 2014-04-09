@@ -37,6 +37,7 @@ function trello_integration_webhook_handler() {
           if (1) {
             // allow other services to react to this event
             $card = array(
+              'title' => $data->name,
               'trello_id' => $data->id,
               'list' => $action->data->list->id,
               'milestone' => $action->data->listAfter->name,
