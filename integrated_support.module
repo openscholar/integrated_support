@@ -243,20 +243,38 @@ function integrated_support_get_links($service, $id, $filter = '') {
  * This usually means something like a Trello card was deleted, which should be
  * pretty rare, but it's here in case the other services need to do something about it.
  */
-function integrated_support_delete_link($service, $id) {
-  $links = integrated_support_get_links($service, $id);
-
-  $or = db_or()
-    ->condition(db_and()
-      ->condition('service_a_id', $id)
-      ->condition('service_a_name', $service))
-    ->condition(db_and()
-      ->condition('service_b_id', $id)
-      ->condition('service_b_name', $service));
-
-  db_delete('integrated_support')
-    ->condition($or)
-    ->execute();
-
-  module_invoke_all('integrated_support_linkage_delete', $service, $id, $links);
+function integrated_support_delete_link($service, $id, $service2 = null, $s2id = null) {
+  // attempting to delete an object across all services
+  if ($service2 == null && $s2id == null) {
+    $links = integrated_support_get_links($service, $id);
+  
+    $or = db_or()
+      ->condition(db_and()
+        ->condition('service_a_id', $id)
+        ->condition('service_a_name', $service))
+      ->condition(db_and()
+        ->condition('service_b_id', $id)
+        ->condition('service_b_name', $service));
+  
+    db_delete('integrated_support')
+      ->condition($or)
+      ->execute();
+  
+    module_invoke_all('integrated_support_linkage_delete', $service, $id, $links);
+  }
+  elseif (!is_null($service2) && !is_null($s2id)) {
+    db_delete('integrated_support')
+    ->condition(db_or()
+      ->condition(db_and()
+        ->condition('service_a_id', $id)
+        ->condition('service_a_name', $service)
+        ->condition('service_b_id', $s2id)
+        ->condition('service_b_name', $service2))
+      ->condition(db_and()
+        ->condition('service_b_id', $id)
+        ->condition('service_b_name', $service)
+        ->condition('service_a_id', $s2id)
+        ->condition('service_a_name', $service2))
+    )->execute();
+  }
 }
