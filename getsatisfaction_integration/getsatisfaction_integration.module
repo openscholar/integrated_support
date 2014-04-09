@@ -428,7 +428,7 @@ function _getsatisfaction_integration_roadmap_notification($type, $gs_topic, $gh
   }
   
   $headers = array('From: ' . variable_get('site_mail'));
-  
+     
   foreach ($recipients as $to) {
     mail($to, $subject, $body, implode("\r\n", $headers));
   } 
@@ -552,4 +552,42 @@ function getsatisfaction_integration_stats() {
   $ret['closed_topics'] = $topics->total;
   
   return $ret;
+}
+
+/**
+ * Hook Implementations
+ */
+function getsatisfaction_integration_trello_webhook($event, $data) {
+  switch ($event) {
+    case 'updateCardDescription':
+      // parse the description for getsatisfaction URLs and create/delete linkages as appropriate
+      $old_links = integrated_support_get_links('trello', $data['trello_id'], 'getsatisfaction');
+      $regex = '|http://community.openscholar.harvard.edu/openscholar/topics/[\s]+|';
+      preg_match_all($regex, $data['description'], $new_links);
+      
+      $old = array();
+      foreach ($old_links as $l) {
+        $old[] = $l['id'];
+      }
+      
+      $new = array();
+      foreach ($new_links[0] as $url) {
+        $new[] = $url;
+      }
+      
+      $add = array_diff($new, $old);
+      $remove = array_diff($old, $new);
+      
+      foreach ($add as $url) {
+        integrated_support_link_services($data['title'], 'getsatisfaction', $url, 'trello', $data['trello_id']);
+      }
+      
+      foreach ($remove as $url) {
+        integrated_support_delete_link('getsatisfaction', $url, 'trello', $data['trello_id']);
+      }
+      
+      break;
+    case 'updateCardMilestone':
+      break;
+  }
 }
