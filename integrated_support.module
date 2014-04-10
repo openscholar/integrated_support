@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 function integrated_support_menu() {
   $items = array(
@@ -14,7 +14,7 @@ function integrated_support_menu() {
       'page callback' => 'drupal_get_form',
       'page arguments' => array('integrated_support_admin_form'),
       'access arguments' => array('administer site configuration')
-    ),		
+    ),
   );
   $items['admin/config/integrated_support/integrated_support'] = $items['admin/config/integrated_support'];
   $items['admin/config/integrated_support/integrated_support']['type'] = MENU_DEFAULT_LOCAL_TASK;
@@ -41,6 +41,16 @@ function integrated_support_libraries_info() {
       'version' => '2.1.1',
       'files' => array('php' => array('HTTP/Request2.php')),
       'callbacks' => array('pre-load' => array('_integrated_support_pear_path')),
+    ),
+    // Facebook React framework
+    'react' => array(
+      'name' => 'React',
+      'version' => 'master',
+      'files' => array(
+        'js' => array(
+          ''
+        )
+      )
     )
   );
 }
@@ -56,8 +66,25 @@ function integrated_support_pear_path() {
 }
 
 /**
+ * Implements hook_library
+ */
+function integrated_support_library() {
+  $libs = array();
+  $root = drupal_get_path('module', 'integrated_support').'/libraries';
+  $libs['is.react'] = array(
+    'title' => 'Facebook React',
+    'version' => '1.3',
+    'js' => array(
+      $root.'/libraries/react/build/JSXTransformer.js',
+      $root.'/libraries/react/build/react.js',
+    )
+  );
+  return $libs;
+}
+
+/**
  * @function integrated_support_status
- * 
+ *
  * Defines hook_integrated_support status
  * Checks each of the service integration modules to see if they can connect
  */
@@ -72,8 +99,8 @@ function integrated_support_status() {
 
 /**
  * @function integrated_support_webhook
- * 
- * Recieves data from external services' webhooks.  
+ *
+ * Recieves data from external services' webhooks.
  * Send it to hook_integrated_support_event
  * Process the responses
  */
@@ -92,10 +119,10 @@ function integrated_support_event($name) {
     //$responses = array_filter($responses);
     if ($responses) {
       watchdog(
-        'integrated_support', 
+        'integrated_support',
         '@event event triggered reactions in @modules',
         array('@event' => $name, '@modules' => implode(', ', array_keys($responses))),
-        WATCHDOG_INFO  
+        WATCHDOG_INFO
       );
     } else {
       watchdog('integrated_support', 'No events completed for @event', array('@event' => $name), WATCHDOG_INFO);
@@ -137,7 +164,7 @@ function _integrated_support_cache_set($url, $parameters, $data, $headers = NULL
     $headers = _integrated_support_http_parse_headers($headers);
 
     if (isset($headers['Expires'])) {
-      $expire = strtotime($headers['Expires']);    
+      $expire = strtotime($headers['Expires']);
     } elseif (isset($headers['Cache-Control'])) {
       $cache_control = explode(', ',$headers['Cache-Control']);
       foreach ($cache_control as $directive) {
@@ -147,7 +174,7 @@ function _integrated_support_cache_set($url, $parameters, $data, $headers = NULL
           break;
         }
       }
-    }    
+    }
   }
 
   if ($force_cache) {
@@ -172,7 +199,7 @@ function _integrated_support_cache_get($url, $parameters) {
 
 /**
  * @function  _integrated_support_http_parse_headers($headers);
- * 
+ *
  * As PECL's  http_parse_headers
  */
 function  _integrated_support_http_parse_headers($headers) {
@@ -249,7 +276,7 @@ function integrated_support_delete_link($service, $id, $service2 = null, $s2id =
   // attempting to delete an object across all services
   if ($service2 == null && $s2id == null) {
     $links = integrated_support_get_links($service, $id);
-  
+
     $or = db_or()
       ->condition(db_and()
         ->condition('service_a_id', $id)
@@ -257,11 +284,11 @@ function integrated_support_delete_link($service, $id, $service2 = null, $s2id =
       ->condition(db_and()
         ->condition('service_b_id', $id)
         ->condition('service_b_name', $service));
-  
+
     db_delete('integrated_support')
       ->condition($or)
       ->execute();
-  
+
     module_invoke_all('integrated_support_linkage_delete', $service, $id, $links);
   }
   elseif (!is_null($service2) && !is_null($s2id)) {
