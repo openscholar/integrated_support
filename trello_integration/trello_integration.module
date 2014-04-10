@@ -14,7 +14,7 @@ function trello_integration_menu() {
       'page callback' => 'trello_integration_roadmap',
       'access arguments' => array('access content'),
     ),
-    'roadmap/%' => array(
+    'roadmap/current' => array(
       'title' => 'Current Release',
       'page callback' => 'trello_integration_roadmap',
       'page arguments' => array(1),
@@ -22,14 +22,27 @@ function trello_integration_menu() {
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'weight' => -10,
     ),
-    'roadmap/backlog' => array(
-      'title' => 'Backlog',
+    'roadmap/planned' => array(
+      'title' => 'Planned',
       'page callback' => 'trello_integration_roadmap',
-      'page arguments' => array('backlog'),
+      'page arguments' => array('planned'),
       'access arguments' => array('access content'),
       'type' => MENU_LOCAL_TASK,
     ),
-
+    'roadmap/archive' => array(
+      'title' => 'Past Improvements',
+      'page callback' => 'trello_integration_roadmap',
+      'page arguments' => array('archive'),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+    ),
+    'roadmap/to-review' => array(
+      'title' => 'To Be Reviewd',
+      'page callback' => 'trello_integration_roadmap',
+      'page arguments' => array('review'),
+      'access arguments' => array('access content'),
+      'type' => MENU_LOCAL_TASK,
+    ),
     'admin/config/integrated_support/trello' => array(
       'title' => 'Trello',
       'file' => '/trello_integration.admin.inc',
@@ -249,6 +262,7 @@ function trello_integration_client() {
   $key = variable_get('trello_integration_key');
   $secret = variable_get('trello_integration_secret');
   $token = variable_get('trello_integration_token');
+  drupal_set_message("Key: $key, Secret: $secret, Token: $token");
 
   if (!$key || !($secret || $token)) {
     throw new Exception('Trello isn\'t configured.');
