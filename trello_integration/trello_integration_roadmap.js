@@ -6,10 +6,10 @@
 
 Drupal.behaviors.trello_integration_roadmap = { 
   attach: function (context) {
-    settings = Drupal.settings.trello_integration_roadmap;   
+    var settings = Drupal.settings.trello_integration_roadmap;   
     
     //attach focus event to milestone selector
-    $select = $('select#select_milestone')
+    var $select = $('select#select_milestone')
     $select.change(function() {
       option = $select.find('option:selected').html();
       if (settings.milestones[option]) {
@@ -52,9 +52,9 @@ Drupal.behaviors.trello_integration_roadmap = {
         }
       }
     
-      $('a.get-status').each(function() {
+      $('.get-status[data-gh-id]').each(function() {
         var $this = $(this);
-        var this_id = $this.attr('id').split('-')[2];
+        var this_id = $this.attr('data-gh-id');
         if (id_status[parseInt(this_id)]) {
           $this.addClass(id_status[this_id].toLowerCase())
             .removeClass('get-status');;

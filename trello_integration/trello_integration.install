@@ -5,6 +5,7 @@
  */
 function trello_integration_install() {
   _trello_integration_variable_set();
+  _trello_integration_create_board_hook();
 }
 
 /**
@@ -28,6 +29,8 @@ function _trello_integration_variable_set() {
     'Engineering' => 'blue',
     'Hotfix' => 'orange',
   ));
+  
+  variable_set('trello_integration_default_list', 'Pending Review');
 }
 
 /** 
@@ -57,5 +60,26 @@ function trello_integration_update_7002() {
  * Reset import vars
  **/
 function trello_integration_update_7003() {
+  _trello_integration_variable_set();
+}
+
+/**
+ * Creates a general webhook to listen for new cards
+ */
+function trello_integration_update_7004() {
+  _trello_integration_create_board_hook();
+}
+
+function _trello_integration_create_board_hook() {
+  $client = trello_integration_client();
+  $url = $GLOBALS['base_url'].'/trello/handler';
+  $client->webhooks()->create(array(
+    'idModel' => variable_get('trello_integration_board_id'),
+    'callbackURL' => check_url(check_plain($url)),
+    'description' => 'OS Roadmap Board-wide hook',
+  ));
+}
+
+function trello_integration_update_7005() {
   _trello_integration_variable_set();
 }

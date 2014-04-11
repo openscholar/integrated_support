@@ -1,0 +1,82 @@
+<?php
+
+function integrated_support_schema() {
+  $tables = array();
+  $tables['integrated_support_service_links'] = array(
+    'description' => 'Maps ids of an object in a service to another object in a different service',
+    'fields' => array(
+      'title' => array(
+        'description' => 'Title of the object',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'service_a_id' => array(
+        'description' => 'ID of object in first service',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'service_a_name' => array(
+        'description' => 'Name of first service',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'service_b_id' => array(
+        'description' => 'ID of object in second service',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'service_b_name' => array(
+        'description' => 'Name of second service',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+    ),
+  );
+
+  return $tables;
+}
+
+function integrated_support_update_7001() {
+  $table = array(
+    'description' => 'Maps ids of an object in a service to another object in a different service',
+    'fields' => array(
+      'title' => array(
+        'description' => 'Title of the object',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'service_a_id' => array(
+        'description' => 'ID of object in first service',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'service_a_name' => array(
+        'description' => 'Name of first service',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'service_b_id' => array(
+        'description' => 'ID of object in second service',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+      'service_b_name' => array(
+        'description' => 'Name of second service',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ),
+    ),
+  );
+
+  db_create_table('integrated_support_service_links', $table);
+}

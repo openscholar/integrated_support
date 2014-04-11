@@ -133,9 +133,6 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
       //apply status and update milestone
       foreach ($ids as $id) {
         $return[] = getsatisfaction_integration_update_topic_status($id, $status, @$payload['milestone'], @$payload['labels']);
-        if ($payload['milestone']) {
-          _getsatisfaction_integration_update_topic_milestone($id, $payload['milestone'], $payload['id']);
-        }
       }
 
 
@@ -327,7 +324,29 @@ function getsatisfaction_integration_topics_to_github() {
  */
 function getsatisfaction_integration_cron() {
   if (variable_get('getsatisfaction_integration_cron', FALSE)) {
-    getsatisfaction_integration_topics_to_github();
+    getsatisfaction_integration_rejected_issue_handler();
+    getsatisfaction_integration_merged_issue_handler();
+    variable_set('getsatisfaction_integration_cron_last', time());
+  }
+}
+
+/**
+ * Checks all topics for new rejections and handles them
+ */
+function getsatisfaction_integration_rejected_issue_handler() {
+  $client = getsatisfaction_integration_client();
+  $params = array(
+    'page' => 1,
+    'limit' => 30,
+    'sort' => 'recently_active',
+    'active_since' => variable_get('getsatisfaction_integration_cron_last'),
+    'company' => variable_get('getsatisfaction_company'),
+    'status' => 'rejected'
+  );
+  $results = $client->api('topic')->call('company_topic', $params);
+  foreach ($results->data as $r) {
+    // this list can continue already rejected issues that have been commented on
+    integrated_support_delete_link('getsatisfaction', $r->at_sfn);
   }
 }
 
@@ -428,7 +447,7 @@ function _getsatisfaction_integration_roadmap_notification($type, $gs_topic, $gh
   }
   
   $headers = array('From: ' . variable_get('site_mail'));
-  
+     
   foreach ($recipients as $to) {
     mail($to, $subject, $body, implode("\r\n", $headers));
   } 
@@ -552,4 +571,55 @@ function getsatisfaction_integration_stats() {
   $ret['closed_topics'] = $topics->total;
   
   return $ret;
+}
+
+/**
+ * Hook Implementations
+ */
+function getsatisfaction_integration_trello_webhook($event, $data) {
+  switch ($event) {
+    case 'updateCardDescription':
+      // parse the description for getsatisfaction URLs and create/delete linkages as appropriate
+      $old_links = integrated_support_get_links('trello', $data['trello_id'], 'getsatisfaction');
+      $regex = '|http://community.openscholar.harvard.edu/openscholar/topics/[\s]+|';
+      preg_match_all($regex, $data['description'], $new_links);
+      
+      $old = array();
+      foreach ($old_links as $l) {
+        $old[] = $l['id'];
+      }
+      
+      $new = array();
+      foreach ($new_links[0] as $url) {
+        $new[] = $url;
+      }
+      
+      $add = array_diff($new, $old);
+      $remove = array_diff($old, $new);
+      
+      foreach ($add as $url) {
+        integrated_support_link_services($data['title'], 'getsatisfaction', $url, 'trello', $data['trello_id']);
+      }
+      
+      foreach ($remove as $url) {
+        integrated_support_delete_link('getsatisfaction', $url, 'trello', $data['trello_id']);
+      }
+      
+      break;
+    case 'updateCardMilestone':
+      if ($data['milestone'] != variable_get('trello_integration_default_list')) {
+        $milestone = $data['milestone'];
+        // get getsatisfaction links
+        $links = integrated_support_get_links('trello', $data['trello_id'], 'getsatisfaction');
+        $client = getsatisfaction_integration_client();
+        foreach ($links as $l) {
+          //update getsatisfaction
+          $id = $l['id'];
+          watchdog('getsatisfaction', 'topic @id needs milestone update: "@milestone"', array('@id' => $id, '@milestone' => $milestone));
+          $reply = 'This request has been scheduled to be part of our ' . $milestone . ' release. See more details at the <a href="http://theopenscholar.org/roadmap#'.$data['trello_id'].'">roadmap</a>'; 
+          $updated = $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $reply))); 
+        }
+      }
+      break;
+  }
 }

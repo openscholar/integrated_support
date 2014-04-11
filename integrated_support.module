@@ -1,4 +1,4 @@
-<?php 
+<?php
 
 function integrated_support_menu() {
   $items = array(
@@ -14,7 +14,7 @@ function integrated_support_menu() {
       'page callback' => 'drupal_get_form',
       'page arguments' => array('integrated_support_admin_form'),
       'access arguments' => array('administer site configuration')
-    ),		
+    ),
   );
   $items['admin/config/integrated_support/integrated_support'] = $items['admin/config/integrated_support'];
   $items['admin/config/integrated_support/integrated_support']['type'] = MENU_DEFAULT_LOCAL_TASK;
@@ -25,8 +25,66 @@ function integrated_support_menu() {
 }
 
 /**
+ * Implements hook_libraries_info
+ */
+function integrated_support_libraries_info() {
+  return array(
+    'tapir' => array(
+      'name' => 'Tapir',
+      'version' => 'master',
+      'files' => array('php' => array('tapir.php')),
+      'dependencies' => array('pear'),
+    ),
+    //PEAR HTTP/Request2
+    'pear' => array(
+      'name' => 'PEAR',
+      'version' => '2.1.1',
+      'files' => array('php' => array('HTTP/Request2.php')),
+      'callbacks' => array('pre-load' => array('_integrated_support_pear_path')),
+    ),
+    // Facebook React framework
+    'react' => array(
+      'name' => 'React',
+      'version' => 'master',
+      'files' => array(
+        'js' => array(
+          ''
+        )
+      )
+    )
+  );
+}
+
+/**
+ * @function _desk_integration_pear_path
+ *
+ * PEAR includes reference each other, expecting them to be in PHP's path.  Adds their location
+ * whenever we load PEAR so they can do that.
+ */
+function _integrated_support_pear_path() {
+  set_include_path(libraries_get_path('pear'));
+}
+
+/**
+ * Implements hook_library
+ */
+function integrated_support_library() {
+  $libs = array();
+  $root = drupal_get_path('module', 'integrated_support').'/libraries';
+  $libs['is.react'] = array(
+    'title' => 'Facebook React',
+    'version' => '1.3',
+    'js' => array(
+      $root.'/libraries/react/build/JSXTransformer.js',
+      $root.'/libraries/react/build/react.js',
+    )
+  );
+  return $libs;
+}
+
+/**
  * @function integrated_support_status
- * 
+ *
  * Defines hook_integrated_support status
  * Checks each of the service integration modules to see if they can connect
  */
@@ -41,8 +99,8 @@ function integrated_support_status() {
 
 /**
  * @function integrated_support_webhook
- * 
- * Recieves data from external services' webhooks.  
+ *
+ * Recieves data from external services' webhooks.
  * Send it to hook_integrated_support_event
  * Process the responses
  */
@@ -61,10 +119,10 @@ function integrated_support_event($name) {
     //$responses = array_filter($responses);
     if ($responses) {
       watchdog(
-        'integrated_support', 
+        'integrated_support',
         '@event event triggered reactions in @modules',
         array('@event' => $name, '@modules' => implode(', ', array_keys($responses))),
-        WATCHDOG_INFO  
+        WATCHDOG_INFO
       );
     } else {
       watchdog('integrated_support', 'No events completed for @event', array('@event' => $name), WATCHDOG_INFO);
@@ -106,7 +164,7 @@ function _integrated_support_cache_set($url, $parameters, $data, $headers = NULL
     $headers = _integrated_support_http_parse_headers($headers);
 
     if (isset($headers['Expires'])) {
-      $expire = strtotime($headers['Expires']);    
+      $expire = strtotime($headers['Expires']);
     } elseif (isset($headers['Cache-Control'])) {
       $cache_control = explode(', ',$headers['Cache-Control']);
       foreach ($cache_control as $directive) {
@@ -116,7 +174,7 @@ function _integrated_support_cache_set($url, $parameters, $data, $headers = NULL
           break;
         }
       }
-    }    
+    }
   }
 
   if ($force_cache) {
@@ -141,7 +199,7 @@ function _integrated_support_cache_get($url, $parameters) {
 
 /**
  * @function  _integrated_support_http_parse_headers($headers);
- * 
+ *
  * As PECL's  http_parse_headers
  */
 function  _integrated_support_http_parse_headers($headers) {
@@ -151,4 +209,101 @@ function  _integrated_support_http_parse_headers($headers) {
     $return[trim($key)] = trim($value);
   }
   return $return;
+}
+
+
+/**
+ * Database operations
+ */
+function integrated_support_link_services($title, $first_service, $first_id, $second_service, $second_id) {
+  $record = new stdClass();
+  $record->title = $title;
+  $record->service_a_id = $first_id;
+  $record->service_a_name = $first_service;
+  $record->service_b_id = $second_id;
+  $record->service_b_name = $second_service;
+  drupal_write_record('integrated_support_service_links', $record);
+}
+
+function integrated_support_get_links($service, $id, $filter = '') {
+  $results = array();
+
+  // get results that match service a
+  $q = db_select('integrated_support_service_links', 'isl')
+    ->fields('isl', array('title', 'service_b_id', 'service_b_name'))
+    ->condition('service_a_id', $id)
+    ->condition('service_a_name', $service);
+  if ($filter) {
+    $q->condition('service_b_name', $filter);
+  }
+
+  $r = $q->execute();
+  foreach ($r as $row) {
+    $results[] = array(
+      'title' => $row->title,
+      'service' => $row->service_b_name,
+      'id' => $row->service_b_id,
+    );
+  }
+
+  // get results that match service b
+  $q = db_select('integrated_support_service_links', 'isl')
+    ->fields('isl', array('title', 'service_a_id', 'service_a_name'))
+    ->condition('service_b_id', $id)
+    ->condition('service_b_name', $service);
+  if ($filter) {
+    $q->condition('service_a_name', $filter);
+  }
+
+  $r = $q->execute();
+  foreach ($r as $row) {
+    $results[] = array(
+      'title' => $row->title,
+      'service' => $row->service_a_name,
+      'id' => $row->service_a_id,
+    );
+  }
+
+  return $results;
+}
+
+/**
+ * Alert other services that a linkage has been deleted.
+ * This usually means something like a Trello card was deleted, which should be
+ * pretty rare, but it's here in case the other services need to do something about it.
+ */
+function integrated_support_delete_link($service, $id, $service2 = null, $s2id = null) {
+  // attempting to delete an object across all services
+  if ($service2 == null && $s2id == null) {
+    $links = integrated_support_get_links($service, $id);
+
+    $or = db_or()
+      ->condition(db_and()
+        ->condition('service_a_id', $id)
+        ->condition('service_a_name', $service))
+      ->condition(db_and()
+        ->condition('service_b_id', $id)
+        ->condition('service_b_name', $service));
+
+    db_delete('integrated_support')
+      ->condition($or)
+      ->execute();
+
+    module_invoke_all('integrated_support_linkage_delete', $service, $id, $links);
+  }
+  elseif (!is_null($service2) && !is_null($s2id)) {
+    db_delete('integrated_support')
+    ->condition(db_or()
+      ->condition(db_and()
+        ->condition('service_a_id', $id)
+        ->condition('service_a_name', $service)
+        ->condition('service_b_id', $s2id)
+        ->condition('service_b_name', $service2))
+      ->condition(db_and()
+        ->condition('service_b_id', $id)
+        ->condition('service_b_name', $service)
+        ->condition('service_a_id', $s2id)
+        ->condition('service_a_name', $service2))
+    )->execute();
+  }
 }
