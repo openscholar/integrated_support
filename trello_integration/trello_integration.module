@@ -108,23 +108,17 @@ function trello_integration_roadmap_page($list_name) {
   list(,,,,$board_id) = explode('/', $board);
 
   //get the roadmap board's list
-  if (($lists = $trello->boards($board_id)->lists()->get(NULL, array('filter' => 'all'))) == FALSE) {
+  $list = _trello_integration_get_lists($board_id, $list_name);
+  if (!$list) {
     watchdog('trello', 'Could not retrieve lists from trello.');
     return array('msg' => array('#markup' => 'Roadmap unavailable'));
   }
 
-  foreach ($lists as $l) {
-    if ($l->name == $list_name || _trello_integration_milestone_url($l->name) == $list_name) {
-      $list = $l;
-      break;
-    }
-  }
-
   //error message or rendered columns.  don't return yet - we still need to attach javascript.
   if (!isset($list)) {
-    $render = array('milestone' => array('msg' => array('#markup' => t('Could not find "@name" milestone', array('@name' => $list_name)))));
+    $render = array('columns' => array('msg' => array('#markup' => t('Could not find "@name" milestone', array('@name' => $list_name)))));
   } else {
-    $render = array('milestone' => trello_integration_roadmap_columns($list->name, $list->id));
+    $render = array('columns' => trello_integration_roadmap_columns($list->name, $list->id));
   }
 
   //get milestones so we can get cached closed ticket lists
@@ -275,7 +269,7 @@ function trello_integration_client() {
  *
  * Displays a roadmap based on cards from trello.
  */
-function trello_integration_roadmap($page) {
+function trello_integration_roadmap($page = 'current') {
   $output = array();
 
   $roadmap = variable_get('trello_integration_roadmap');
@@ -291,7 +285,8 @@ function trello_integration_roadmap($page) {
       $milestones = array_reduce(github_integration_milestones(array('direction' => 'asc')), function($ret, $a) {
         $ret[ $a['number'] ] = $a['title']; return $ret;
       });
-      $list_name = _trello_integration_milestone_url(current($milestones));
+
+      $list_name = current($milestones);
 
       $output['milestone'] = array(
         '#weight' => -10,

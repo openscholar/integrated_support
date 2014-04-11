@@ -61,7 +61,7 @@ function integrated_support_libraries_info() {
  * PEAR includes reference each other, expecting them to be in PHP's path.  Adds their location
  * whenever we load PEAR so they can do that.
  */
-function integrated_support_pear_path() {
+function _integrated_support_pear_path() {
   set_include_path(libraries_get_path('pear'));
 }
 
