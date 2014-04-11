@@ -39,7 +39,7 @@ function trello_integration_menu() {
     'roadmap/to-review' => array(
       'title' => 'To Be Reviewed',
       'page callback' => 'trello_integration_roadmap',
-      'page arguments' => array('review'),
+      'page arguments' => array('to-review'),
       'access arguments' => array('access content'),
       'type' => MENU_LOCAL_TASK,
     ),
@@ -329,8 +329,14 @@ function trello_integration_roadmap($page = 'current') {
         $ret[ $a['number'] ] = $a['title']; return $ret;
       });
 
+      krsort($archives);
+
       // assume the list is the first archive
       $list_name = current($archives);
+      $args = func_get_args();
+      if (count($args) > 1) {
+        $page = $args[1];
+      }
       // check the other lists to see if $page matches it
       // that's the real list
       foreach ($archives as $ln) {
