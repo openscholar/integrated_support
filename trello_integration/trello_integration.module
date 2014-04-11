@@ -215,24 +215,17 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
     @list($label) = array_map(function($o) {return $o->name;}, $card->labels); //only use first label.  ambiguities can be fixed in trello.
 
     //get the status from GH
-    list($link) = explode("\n", $card->desc);
-    if (filter_var($link, FILTER_VALIDATE_URL)) {
-      if (strpos($link, '://github')) {
-        list(,,,,,,$id) = explode('/', $link);
-      } else {
-        @list(,,,,,$slug) = explode('/', $link);
-        $id = (isset($slug) && $list_name != 'Backlog') ? _getsatisfaction_integration_linked_issue($slug) : NULL;
-      }
-    } else {
-      $link = NULL;
+    $linkages = integrated_support_get_links('trello', $card->id, 'github');
+
+    // there's only ever one github link
+    $id = '';
+    if (!empty($linkages)) {
+      $gh = current($linkages);
+      $id = " data-gh-id=\"{$gh['id']}\"";
     }
 
-    $status = (isset($id) && $list_name != 'Backlog') ? "status-gh-$id" : 'status';
-
     //build the link
-    $list_data[$label][] = ($link)
-      ? l($card->name, $link, array('attributes' => array('class' => 'get-status ', 'id' => $status)))
-      : "<span class=get-status $status>$card->name</span>";
+    $list_data[$label][] = "<span class=\"get-status\"$id data-trello-id=\"$card->id\">$card->name</span>";
   }
 
   return $list_data;

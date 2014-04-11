@@ -229,8 +229,8 @@ function integrated_support_get_links($service, $id, $filter = '') {
   $results = array();
 
   // get results that match service a
-  $q = db_select('integrated_support_service_links', 'is')
-    ->fields('is', array('title', 'service_b_id', 'service_b_name'))
+  $q = db_select('integrated_support_service_links', 'isl')
+    ->fields('isl', array('title', 'service_b_id', 'service_b_name'))
     ->condition('service_a_id', $id)
     ->condition('service_a_name', $service);
   if ($filter) {
@@ -247,8 +247,8 @@ function integrated_support_get_links($service, $id, $filter = '') {
   }
 
   // get results that match service b
-  $q = db_select('integrated_support_service_links', 'is')
-    ->fields('is', array('title', 'service_a_id', 'service_a_name'))
+  $q = db_select('integrated_support_service_links', 'isl')
+    ->fields('isl', array('title', 'service_a_id', 'service_a_name'))
     ->condition('service_b_id', $id)
     ->condition('service_b_name', $service);
   if ($filter) {
