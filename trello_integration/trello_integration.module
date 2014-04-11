@@ -343,7 +343,7 @@ function trello_integration_roadmap($page = 'current') {
       $milestone_urls = array_reduce($archives, function ($ret, $ms) {
         $ret[$ms] = _trello_integration_milestone_url($ms); return $ret;
       });
-      $output['#attached']['js'][1]['data']['trello_integration_roadmap']['milestones'] = $milestone_urls;
+      $output['milestone']['#attached']['js'][1]['data']['trello_integration_roadmap']['milestones'] = $milestone_urls;
       break;
   }
 
