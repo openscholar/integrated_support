@@ -328,7 +328,17 @@ function trello_integration_roadmap($page = 'current') {
       $archives = array_reduce(github_integration_milestones(array('state' => 'closed')), function($ret, $a) {
         $ret[ $a['number'] ] = $a['title']; return $ret;
       });
-      $list_name = _trello_integration_milestone_url(current($archives));
+
+      // assume the list is the first archive
+      $list_name = current($archives);
+      // check the other lists to see if $page matches it
+      // that's the real list
+      foreach ($archives as $ln) {
+        if ($page == _trello_integration_milestone_url($ln)) {
+          $list_name = $ln;
+          break;
+        }
+      }
 
       $output['milestone'] = array(
         '#weight' => -10,
@@ -336,6 +346,7 @@ function trello_integration_roadmap($page = 'current') {
         '#suffix' => '</div>',
         '#type' => 'select',
         '#options' => drupal_map_assoc(array_intersect($archives, $all_lists)),
+        '#value' => $list_name,
         '#attributes' => array('id' => 'select_milestone'),
       );
 
@@ -343,6 +354,18 @@ function trello_integration_roadmap($page = 'current') {
       $milestone_urls = array_reduce($archives, function ($ret, $ms) {
         $ret[$ms] = _trello_integration_milestone_url($ms); return $ret;
       });
+      $output['milestone']['#attached'] = array(
+        'js' => array(
+          array(
+            'data' => array(
+              'trello_integration_roadmap' => array(
+                'milestones' => $milestone_urls,
+              )
+            ),
+            'type' => 'setting',
+          )
+        )
+      );
       $output['milestone']['#attached']['js'][1]['data']['trello_integration_roadmap']['milestones'] = $milestone_urls;
       break;
   }

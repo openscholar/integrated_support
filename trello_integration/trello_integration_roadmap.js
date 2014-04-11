@@ -6,10 +6,10 @@
 
 Drupal.behaviors.trello_integration_roadmap = { 
   attach: function (context) {
-    settings = Drupal.settings.trello_integration_roadmap;   
+    var settings = Drupal.settings.trello_integration_roadmap;   
     
     //attach focus event to milestone selector
-    $select = $('select#select_milestone')
+    var $select = $('select#select_milestone')
     $select.change(function() {
       option = $select.find('option:selected').html();
       if (settings.milestones[option]) {
