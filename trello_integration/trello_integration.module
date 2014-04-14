@@ -228,7 +228,9 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
       ),
       'popup' => array(
         '#prefix' => '<div class="roadmap-popup-text">',
-        '#markup' => check_markup(nl2br($card->desc), 'filtered_html'),
+        'text' => array(
+          '#markup' => check_markup(nl2br($card->desc), 'filtered_html'),
+        ),
         '#suffix' => '</div>',
       )
     );

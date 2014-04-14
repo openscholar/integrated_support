@@ -46,11 +46,16 @@ Drupal.behaviors.trello_integration_roadmap = {
           autoOpen: false,
           modal: true,
           resizable: true,
-          minWidth: 500
+          minWidth: 700,
+          position: {
+            my: 'center top',
+            at: 'center top+100'
+          }
         });
       }
       
       elem.html($('.roadmap-popup-text', this).html()).dialog('open');
+      elem.dialog('option', 'title', $('span', this).html());
     });
 
     /**
