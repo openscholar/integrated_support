@@ -99,7 +99,8 @@ ul.ticket-list > li {
      padding-bottom: 1px;
 }
 
-ul.ticket-list > li > span, ul.ticket-list > li > a {
+ul.ticket-list > li > div, 
+ul.ticket-list > li > a {
      background:#F5F5F5;
      color: #333333;
      display: block;
@@ -107,6 +108,7 @@ ul.ticket-list > li > span, ul.ticket-list > li > a {
      margin-bottom: 4px;
      padding: 1em 7px;
      text-decoration: none;
+	   position: relative;
 }
 
 ul.ticket-list > li > a:hover {
@@ -261,4 +263,16 @@ ul.ticket-list > li > a.done {
 
 .page-roadmap-backlog #select_milestone {
      margin: 18px 0px 5px;
+}
+
+.roadmap-popup-text {
+	display: none;
+}
+
+.github-link {
+	position: absolute;
+	bottom: 4px;
+	right: 0;
+	height: 20px;
+	width: 20px;
 }

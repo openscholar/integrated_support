@@ -77,7 +77,7 @@ function trello_integration_menu() {
       'page callback' => 'trello_integration_webhook_handler',
       'access callback' => TRUE,
       'file' => 'trello_integration.callbacks.inc',
-    )
+    ),
   );
 }
 
@@ -214,6 +214,25 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
     //choose a list bucket.
     @list($label) = array_map(function($o) {return $o->name;}, $card->labels); //only use first label.  ambiguities can be fixed in trello.
 
+    // begin the output array
+    $output = array(
+      '#type' => 'container',
+      '#attributes' => array(
+        'class' => array(
+          'roadmap-item',
+          'get-status'
+        ),
+      ),
+      'label' => array(
+        '#markup' => '<span>'.$card->name.'</span>',
+      ),
+      'popup' => array(
+        '#prefix' => '<div class="roadmap-popup-text">',
+        '#markup' => check_markup(nl2br($card->desc), 'filtered_html'),
+        '#suffix' => '</div>',
+      )
+    );
+
     //get the status from GH
     $linkages = integrated_support_get_links('trello', $card->id, 'github');
 
@@ -221,11 +240,24 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
     $id = '';
     if (!empty($linkages)) {
       $gh = current($linkages);
-      $id = " data-gh-id=\"{$gh['id']}\"";
+      $output['#attributes']['data-gh-id'] = $gh['id'];
+      $output['gh'] = array(
+        '#theme' => 'link',
+        '#href' => 'http://github.com/openscholar/openscholar/issues/'.$gh['id'],
+        '#text' => theme('image', array('/path/to/octocat')),
+        '#options' => array(
+          'attributes' => array(
+            'class' => array('github-link')
+          ),
+          'html' => TRUE,
+          'external' => TRUE
+        ),
+        '#access' => TRUE,  // TODO: Replace this with user_access to some permission
+      );
     }
 
     //build the link
-    $list_data[$label][] = "<span class=\"get-status\"$id data-trello-id=\"$card->id\">$card->name</span>";
+    $list_data[$label][] = drupal_render($output);//"<span class=\"get-status\"$id data-trello-id=\"$card->id\">$card->name</span>";
   }
 
   return $list_data;
