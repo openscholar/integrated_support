@@ -222,6 +222,7 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
           'roadmap-item',
           'get-status'
         ),
+        'data-hash' => _trello_integration_milestone_url($card->name)
       ),
       'label' => array(
         '#markup' => '<span>'.$card->name.'</span>',

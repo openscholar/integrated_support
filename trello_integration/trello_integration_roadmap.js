@@ -37,7 +37,7 @@ Drupal.behaviors.trello_integration_roadmap = {
           }
         });
       }
-    })
+    });
     
     $('.roadmap-item').click(function (e) {
       var elem = $('#modal');
@@ -50,13 +50,21 @@ Drupal.behaviors.trello_integration_roadmap = {
           position: {
             my: 'center top',
             at: 'center top+100'
+          },
+          close: function () {
+            location.hash = '';
           }
         });
       }
       
       elem.html($('.roadmap-popup-text', this).html()).dialog('open');
       elem.dialog('option', 'title', $('span', this).html());
+      location.hash = $(this).attr('data-hash'); 
     });
+    
+    if (location.hash) {
+      $('.roadmap-item[data-hash="'+location.hash.substr(1)+'"]').click();
+    }
 
     /**
      * @function display_statuses
