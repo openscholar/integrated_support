@@ -134,11 +134,11 @@ ul.milestone > li > a {
 
 #roadmap-legend label input:not(:checked) + span {
      background: #CCCCCC;
-     color: #333333;
+     color: #FFF;
 }
 
 #roadmap-legend label span:hover {
-     color: #FFFFFF ! important;
+     color: #222 ! important;
      cursor: pointer;
 }
 
@@ -153,7 +153,7 @@ ul.milestone > li > a {
 
 #roadmap-legend label span, 
 #roadmap-legend input + span {
-     color: #FFFFFF;
+     color: #222;
      display: inline-block;
      font-family: Arial;
      font-size: 12px;
@@ -167,89 +167,100 @@ ul.milestone > li > a {
      width: 5em;
 }
 
-
+/** PENDING FILTER **/
 ul.ticket-list > li > a.pending {
      border-left: 5px solid #FF0000;
 }
 
 #roadmap-legend label.pending input:hover:not(:checked) + span, 
 #roadmap-legend label.pending input:checked + span {
-     background: #FF0000;
+     background: #CCCCCC;
      border-bottom: 3px solid #FF0000;
 }
 
 #roadmap-legend label.pending input:not(:checked) + span {
      border-bottom: 3px solid #FF0000;
+     background: #FF0000;
 }
 
+/** DESIGN FILTER **/
 ul.ticket-list > li > a.design {
-     border-left: 5px solid #FF5200;
+     border-left: 5px solid #28aae1;
 }
 
 #roadmap-legend label.design input:hover:not(:checked) + span, 
 #roadmap-legend label.design input:checked + span {
-     background: #FF5200;
-     border-bottom: 3px solid #FF5200;
+     background: #CCC;
+     border-bottom: 3px solid #28aae1;
 }
 
 #roadmap-legend label.design input:not(:checked) + span {
-     border-bottom: 3px solid #FF5200;
+     border-bottom: 3px solid #28aae1;
+     background: #28aae1;
 }
 
+/** DEV FILTER **/
 ul.ticket-list > li > a.development {
-     border-left: 5px solid #fa0;
+     border-left: 5px solid #E9C21B;
 }
 
 #roadmap-legend label.development input:hover:not(:checked) + span, 
 #roadmap-legend label.development input:checked + span {
-     background: #fa0;
-     border-bottom: 3px solid #fa0;
+     background: #CCC;
+     border-bottom: 3px solid #E9C21B;
 }
 
 #roadmap-legend label.development input:not(:checked) + span {
-     border-bottom: 3px solid #fa0;
+     border-bottom: 3px solid #E9C21B;
+     background: #E9C21B;
 }
 
+/** REVIEW FILTER **/
 ul.ticket-list > li > a.review {
-     border-left: 5px solid #28aae1;
+     border-left: 5px solid #E75D0F;
 }
 
 #roadmap-legend label.review input:hover:not(:checked) + span, 
 #roadmap-legend label.review input:checked + span {
-     background: #28aae1;
-     border-bottom: 3px solid #28aae1;
+     background: #CCC;
+     border-bottom: 3px solid #E75D0F;
 }
 
 #roadmap-legend label.review input:not(:checked) + span {
-     border-bottom: 3px solid #28aae1;
+     border-bottom: 3px solid #E75D0F;
+      background: #E75D0F;
 }
 
+/** TESTING FILTER **/
 ul.ticket-list > li > a.testing {
      border-left: 5px solid #0a0;
 }
 
 #roadmap-legend label.testing input:hover:not(:checked) + span, 
 #roadmap-legend label.testing input:checked + span {
-     background: #0a0;
+     background: #CCC;
      border-bottom: 3px solid #0a0;
 }
 
 #roadmap-legend label.testing input:not(:checked) + span {
      border-bottom: 3px solid #0a0;
+     background: #0a0;
 }
 
+/** DONE FILTER **/
 ul.ticket-list > li > a.done {
      border-left: 5px solid #000;
 }
 
 #roadmap-legend label.done input:hover:not(:checked) + span, 
 #roadmap-legend label.done input:checked + span {
-     background: #000;
+     background: #CCC;
      border-bottom: 3px solid #000;
 }
 
 #roadmap-legend label.done input:not(:checked) + span {
      border-bottom: 3px solid #000;
+     background: #000;
 }
 
 #select_milestone {
