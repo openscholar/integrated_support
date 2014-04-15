@@ -186,7 +186,7 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status, $mi
     }
   }
 
-  $topic = $client->api('topic')->call('status', $update); //do you return the topic?
+  //$topic = $client->api('topic')->call('status', $update); //do you return the topic?
   _getsatisfaction_integration_update_topic_table($topic);
   return $topic;
 }
@@ -445,7 +445,7 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone, $g
   watchdog('getsatisfaction', 'topic @id needs milestone update: "@milestone"', array('@id' => $id, '@milestone' => $milestone));
   _getsatisfaction_integration_roadmap_notification('update', $row->title, $row->external_title, $milestone);
   $reply = ($issue['state'] == 'closed' ) ? 'This request has been fixed.  The update is scheduled to be part of our ' . $milestone . ' release.' : 'This request has been scheduled to be part of our ' . $milestone . ' release.';
-  $updated = $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $reply)));
+  //$updated = $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $reply)));
 
   //now lets check tags, removing existing milestones and adding ours.
   $topic = $client->api('topic')->call('topic', array('id' => $id));
