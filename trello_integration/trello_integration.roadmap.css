@@ -1,3 +1,8 @@
+.page-roadmap #main-content {
+margin-left: 0;
+margin-right: 0;
+}
+
 .milestone-wrapper h3 {
      background: none repeat scroll 0px 0px #888888;
      color: #FFFFFF;
@@ -7,7 +12,6 @@
      margin-top: 0px;
      padding: 8px 10px;
      position: absolute;
-     width: 206px;
 }
 
 .roadmap .get-status {
@@ -24,7 +28,13 @@
 
 .milestone-wrapper {
      clear: both;
-}
+     background:#F3F3F3;
+     border:1px solid #CCC;
+     padding: 8px 8px 8px 0;
+     width:72%;
+	 display:inline-block;
+	margin: 0 15px 25px 0;
+	  }
 
 .milestone-permalink {
      float: right;
@@ -54,13 +64,12 @@ ul.primary li a.active {
 
 .milestone-wrapper .item-list {
      background-color: white;
-     display: block;
-     float: left;
+     display: inline-block;
      height: 50em;
-     margin: 10px 1px 35px;
+     margin: 10px 0 0 10px;
      overflow: auto;
      padding: 0px 0.5em;
-     width: 227px;
+     width: 30%;
 }
 
 .milestone-wrapper .item-list:nth-of-type(2) {
@@ -77,6 +86,19 @@ ul.primary li a.active {
      padding-left: 33px;
      width: 185px;
 }
+
+
+#os-twitter {
+	background:#F3F3F3;
+     border:1px solid #F15307;
+}
+
+.twitter-wrapper {
+	 width:25%;
+	 display:inline-block;
+	 vertical-align: top;
+}
+
 
 .page-roadmap-backlog .milestone-wrapper .item-list:nth-of-type(5) {
      background: #FFFFFF;
