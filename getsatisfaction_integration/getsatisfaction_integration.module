@@ -120,14 +120,14 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
         ->execute()
         ->fetchCol();
 
-      
+
       //When GH and GS tickets are mapped, set teh status.
       if ($payload['state'] == 'closed') {
         $status = 'complete';
       } else {
         $status = ($payload['milestone']) ? 'active' : NULL;
       }
-      
+
       watchdog('getsatisfaction', 'applying @status status to topics: @ids', array('@status' => $status, '@ids' => implode(',', $ids)));
 
       //apply status and update milestone
@@ -215,7 +215,7 @@ function getsatisfaction_integration_topic($id) {
 
 /**
  * @function getsatisfaction_integration_search()
- * 
+ *
  * Fetches all GS topics matching search params
  */
 function getsatisfaction_integration_search($params = array()) {
@@ -223,13 +223,13 @@ function getsatisfaction_integration_search($params = array()) {
   $query = array_merge($params, array('company' => variable_get('getsatisfaction_company')));
   $query['page'] = 1;
   $return = array();
-  
+
   while ($query['page']) {
     $results = $client->api('topic')->call('company_topic', $query);
     $return = array_merge($return, $results->data);
     $query['page'] = ($results->total > count($return)) ? $query['page'] + 1 : FALSE;
   }
-  
+
   return $return;
 }
 
@@ -248,13 +248,13 @@ function _getsatisfaction_integration_newer_issues($id, $params = array()) {
     'sort' => 'recently_created',
     'company' => variable_get('getsatisfaction_company'),
   ));
-  
+
   try {
     while ($params['page']) {
       $result = $gs->api('topic')->call('company_topic', $params);
       $result = array_filter($result->data, function($i) use ($id) {return ($id < $i->id);});
       $return = array_merge($return, $result);
-      
+
       error_log(t("@r results out of @l limit\n", array('@r' => count($result), '@l' => $params['limit'])));
       $params['page'] = (count($result) < $params['limit']) ? FALSE : $params['page'] + 1;
     }
@@ -262,7 +262,7 @@ function _getsatisfaction_integration_newer_issues($id, $params = array()) {
     watchdog('getsatisfaction', 'Error searching getsatisfaction: @error.  Message: @msg', array('@error' => $e->getCode(), '@msg' => $e->getMessage()), WATCHDOG_ERROR);
     return FALSE;
   }
-  
+
   $return = array_reduce($return, function($ret, $i) {$ret[$i->id] = $i; return $ret;}); //use id as array key
   return $return;
 }
@@ -365,15 +365,15 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone, $g
     ->fields('gs')
     ->execute();
   $row = $result->fetchObject();
-  
+
   if (empty($milestone) || $row->milestone == $milestone) {
     return;
   }
-  
+
   $client = getsatisfaction_integration_client();
   $issue = github_integration_issue($gh_id);
   $milestone_titles = array_map(create_function('$a', 'return $a["title"];'), github_integration_milestones());
-  
+
   //update our record
   $update = db_update('getsatisfaction_service_map')
     ->fields(array('milestone' => $milestone));
@@ -385,11 +385,11 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone, $g
   if (!$notify) {
     return;
   }
-  
+
   //update getsatisfaction
   watchdog('getsatisfaction', 'topic @id needs milestone update: "@milestone"', array('@id' => $id, '@milestone' => $milestone));
   _getsatisfaction_integration_roadmap_notification('update', $row->title, $row->external_title, $milestone);
-  $reply = ($issue['state'] == 'closed' ) ? 'This request has been fixed.  The update is scheduled to be part of our ' . $milestone . ' release.' : 'This request has been scheduled to be part of our ' . $milestone . ' release.'; 
+  $reply = ($issue['state'] == 'closed' ) ? 'This request has been fixed.  The update is scheduled to be part of our ' . $milestone . ' release.' : 'This request has been scheduled to be part of our ' . $milestone . ' release.';
   $updated = $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $reply)));
 
   //now lets check tags, removing existing milestones and adding ours.
@@ -400,24 +400,24 @@ function _getsatisfaction_integration_update_topic_milestone($id, $milestone, $g
     $keywords[] = $milestone;
     $client->api('topic')->call('update', array('id' => $id, 'topic' => array('keywords' => implode(',', $keywords))));
   }
-  
+
   return $updated;
 }
 
 /**
  * @function _getsatisfaction_integration_roadmap_notification
- * 
+ *
  * Notifies users of changes to our roadmap
- * 
+ *
  * @param string $type
  *   add, delete, or update
- *   
+ *
  * @param string $gs_topic
  *   Title of getsatisfaction topic
- *   
+ *
  * @param string $gh_issue
  *   Title of github issue
- *   
+ *
  * @param string $milestone
  *   milestone name.  Only used in update.
  */
@@ -425,32 +425,32 @@ function _getsatisfaction_integration_roadmap_notification($type, $gs_topic, $gh
   $recipients = variable_get('getsatisfaction_integration_roadmap_notification_recipients', '');
   $recipients = explode(',', $recipients);
   $recipients = array_map('trim', $recipients);
-  
+
   switch ($type) {
     case 'add':
       $body = t('"@topic" has been mapped to "@issue"', array('@topic' => $gs_topic, '@issue' => $gh_issue));
       $subject = t('[OS Roadmap] "@topic" has been added.', array('@topic' => $gs_topic));
       break;
-      
+
     case 'delete':
       $body = t('"@topic" has been removed from the roadmap.  It was previously mapped to "@issue"', array('@topic' => $gs_topic, '@issue' => $gh_issue));
-      $subject = t('[OS Roadmap] "@topic" has been removed.', array('@topic' => $gs_topic));     
+      $subject = t('[OS Roadmap] "@topic" has been removed.', array('@topic' => $gs_topic));
       break;
-      
+
     case 'update':
       $body = t('"@topic" has had its milestone changed to "@ms".', array('@topic' => $gs_topic, '@ms' => $milestone));
       $subject = t('[OS Roadmap] "@topic" has changed milestone.', array('@topic' => $gs_topic));
       break;
-      
+
     default:
       return;
   }
-  
+
   $headers = array('From: ' . variable_get('site_mail'));
-     
+
   foreach ($recipients as $to) {
     mail($to, $subject, $body, implode("\r\n", $headers));
-  } 
+  }
 }
 
 /**
@@ -496,7 +496,7 @@ function _getsatisfaction_integration_update_topic_table($topic) {
 
 /**
  * @function _getsatisfaction_integration_linked_issue($id)
- * 
+ *
  * Given a getsatisfaction topic, return the id of a linked GH issue, creating it if necessary
  */
 function _getsatisfaction_integration_linked_issue($topic_id) {
@@ -508,17 +508,17 @@ function _getsatisfaction_integration_linked_issue($topic_id) {
     ->fields('gs', array('external_id'))
     ->range(0,1)
     ->execute();
-    
+
   if ($results->rowCount()) {
     return $results->fetchColumn();
   }
-  
+
   //need a new issue
   $gh = github_create_issue(array(
     'title' => $topic->subject,
     'body' => $topic->content,
   ));
-  
+
   //create map
   if ($gh && isset($gh['number'])) {
     $state = array('values' => array(
@@ -526,10 +526,10 @@ function _getsatisfaction_integration_linked_issue($topic_id) {
       'external_id' => $gh['number'],
       'getsatisfaction_url' => $topic->at_sfn,
     ));
-  
+
     require_once(drupal_get_path('module', 'getsatisfaction_integration') . '/getsatisfaction_integration.admin.inc');
     drupal_form_submit('getsatisfaction_integration_admin_tickets', $state);
-    
+
     return $gh['number'];
   }
 }
@@ -537,23 +537,23 @@ function _getsatisfaction_integration_linked_issue($topic_id) {
 
 /**
  * @function getsatisfaction_integration_stats
- * 
+ *
  * Gets an array of some stats on our GS account.
  */
 function getsatisfaction_integration_stats() {
   $client = getsatisfaction_integration_client();
   $ret = array();
 
-  
+
   //recent topics
   $query = array(
-    'company' => variable_get('getsatisfaction_company'), 
-    'sort' => 'recently_active', 
+    'company' => variable_get('getsatisfaction_company'),
+    'sort' => 'recently_active',
     'active_since' => time() - variable_get('getsatisfaction_recent_time', 3600 * 24), //default = 1d
   );
   $topics = $client->api('topic')->call('company_topic', $query);
   $ret['recent_active_topics'] = $topics->total;
-  
+
   //open topics
   $query = array(
     'company' => variable_get('getsatisfaction_company'),
@@ -561,7 +561,7 @@ function getsatisfaction_integration_stats() {
   );
   $topics = $client->api('topic')->call('company_topic', $query);
   $ret['open_topics'] = $topics->total;
-  
+
   //closed topics
   $query = array(
     'company' => variable_get('getsatisfaction_company'),
@@ -569,7 +569,7 @@ function getsatisfaction_integration_stats() {
   );
   $topics = $client->api('topic')->call('company_topic', $query);
   $ret['closed_topics'] = $topics->total;
-  
+
   return $ret;
 }
 
@@ -583,28 +583,28 @@ function getsatisfaction_integration_trello_webhook($event, $data) {
       $old_links = integrated_support_get_links('trello', $data['trello_id'], 'getsatisfaction');
       $regex = '|http://community.openscholar.harvard.edu/openscholar/topics/[\s]+|';
       preg_match_all($regex, $data['description'], $new_links);
-      
+
       $old = array();
       foreach ($old_links as $l) {
         $old[] = $l['id'];
       }
-      
+
       $new = array();
       foreach ($new_links[0] as $url) {
         $new[] = $url;
       }
-      
+
       $add = array_diff($new, $old);
       $remove = array_diff($old, $new);
-      
+
       foreach ($add as $url) {
         integrated_support_link_services($data['title'], 'getsatisfaction', $url, 'trello', $data['trello_id']);
       }
-      
+
       foreach ($remove as $url) {
         integrated_support_delete_link('getsatisfaction', $url, 'trello', $data['trello_id']);
       }
-      
+
       break;
     case 'updateCardMilestone':
       if ($data['milestone'] != variable_get('trello_integration_default_list')) {
@@ -616,8 +616,8 @@ function getsatisfaction_integration_trello_webhook($event, $data) {
           //update getsatisfaction
           $id = $l['id'];
           watchdog('getsatisfaction', 'topic @id needs milestone update: "@milestone"', array('@id' => $id, '@milestone' => $milestone));
-          $reply = 'This request has been scheduled to be part of our ' . $milestone . ' release. See more details at the <a href="http://theopenscholar.org/roadmap#'.$data['trello_id'].'">roadmap</a>'; 
-          $updated = $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $reply))); 
+          $reply = 'This request has been scheduled to be part of our ' . $milestone . ' release. See more details at the <a href="http://theopenscholar.org/roadmap#'._trello_integration_milestone_url($data['trello_id']).'">roadmap</a>';
+          $updated = $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $reply)));
         }
       }
       break;

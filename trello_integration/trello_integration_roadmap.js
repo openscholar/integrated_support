@@ -13,7 +13,7 @@ Drupal.behaviors.trello_integration_roadmap = {
     $select.change(function() {
       option = $select.find('option:selected').html();
       if (settings.milestones[option]) {
-        document.location.href = settings.roadmap_path + settings.milestones[option];
+        document.location.href = settings.roadmap_path + 'archive/' + settings.milestones[option];
       }
     });
     
@@ -37,7 +37,34 @@ Drupal.behaviors.trello_integration_roadmap = {
           }
         });
       }
-    })
+    });
+    
+    $('.roadmap-item').click(function (e) {
+      var elem = $('#modal');
+      if (elem.length == 0) {
+        elem = $('<div id="modal"></div>').appendTo('body').dialog({
+          autoOpen: false,
+          modal: true,
+          resizable: true,
+          minWidth: 700,
+          position: {
+            my: 'center top',
+            at: 'center top+100'
+          },
+          close: function () {
+            location.hash = '';
+          }
+        });
+      }
+      
+      elem.html($('.roadmap-popup-text', this).html()).dialog('open');
+      elem.dialog('option', 'title', $('span', this).html());
+      location.hash = $(this).attr('data-hash'); 
+    });
+    
+    if (location.hash) {
+      $('.roadmap-item[data-hash="'+location.hash.substr(1)+'"]').click();
+    }
 
     /**
      * @function display_statuses
