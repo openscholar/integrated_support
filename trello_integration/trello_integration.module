@@ -181,7 +181,7 @@ function trello_integration_roadmap_columns($list_name, $list_id, $labels = arra
   $list_data = array_merge($use_lists, array_intersect_key($data[$list_id], $use_lists));
 
   $render = array(
-    '#prefix' => '<div class="milestone-wrapper">',//<h2>' . $list_name . '</h2>',
+    '#prefix' => '<div class="milestone-wrapper clearfix">',//<h2>' . $list_name . '</h2>',
     '#suffix' => '</div>',
     'lists' => array(),
   );
@@ -340,12 +340,12 @@ function trello_integration_roadmap($page = 'current') {
 
       // the hotfix list
       $current_list = _trello_integration_get_lists($roadmap_id, $list_name);
-      $output['hotfix'] = trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
-      $output['hotfix'] += array(
+      $output['sidebar']['hotfix'] = array(
         '#prefix' => '<div id="os-hotfixes">',
         '#suffix' => '</div>',
         '#weight' => 2
       );
+      $output['sidebar']['hotfix'] += trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
 
       break;
     case 'planned':
@@ -414,11 +414,15 @@ function trello_integration_roadmap($page = 'current') {
   //draw the current roadmap tab
   $output += trello_integration_roadmap_page($list_name);
 
-  $output['twitter'] = array(
-    '#prefix' => '<div id="os-twitter">',
+  $output['sidebar'] += array(
+    '#prefix' => '<div id="roadmap-sidebar">',
     '#suffix' => '</div>',
-    '#markup' => '???',
-    '#weight' => 1,
+    'twitter' => array(
+      '#prefix' => '<div id="os-twitter">',
+      '#suffix' => '</div>',
+      '#markup' => '???',
+      '#weight' => 1,
+    )
   );
 
   return $output;
