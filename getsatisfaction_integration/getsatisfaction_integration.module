@@ -331,6 +331,20 @@ function getsatisfaction_integration_cron() {
 }
 
 /**
+ * Implements hook_cron_queue_info()
+ *
+ * Sets up a cron queue that we'll to crawl through replies of a getsatisfaction ticket for merges
+ */
+function getsatisfaction_integration_cron_queue_info() {
+  $queues = array();
+  $queues['getsatisfaction_integration_check_replies'] = array(
+    'worker callback' => 'getsatisfaction_integration_check_reply',
+  );
+
+  return $queues;
+}
+
+/**
  * Checks all topics for new rejections and handles them
  */
 function getsatisfaction_integration_rejected_issue_handler() {
@@ -354,7 +368,41 @@ function getsatisfaction_integration_rejected_issue_handler() {
  * Checks all the most recently active topics for any replies that include merged text
  */
 function getsatisfaction_integration_merged_issue_handler() {
+  $client = getsatisfaction_integration_client();
+  $params = array(
+    'page' => 1,
+    'limit' => 30,
+    'sort' => 'recently_active',
+    'active_since' => variable_get('getsatisfaction_integration_cron_last'),
+    'company' => variable_get('getsatisfaction_company'),
+  );
+  $results = $client->api('topic')->call('company_topic', $params);
+  $queue = DrupalQueue::get('getsatisfaction_integfration_check_replies');
+  foreach ($results->data as $r) {
+    // make a queue item for each topic that's changed
+    $queue->createItem($r);
+  }
+}
 
+/**
+ * Checks the replies for a given topic for a 'Merged Issue' reply, so we can handle it
+ */
+function getsatisfaction_integration_check_reply($topic) {
+  $client = getsatisfaction_integration_client();
+  $params = array(
+    'id' => $topic->id
+  );
+  $results = $client->api('topic')->call('replies'. $params);
+  $to_match = '"<span class="translate"><em>This reply was created from a merged topic originally titled <br />';
+  foreach ($results->data as $r) {
+    if (strpos($to_match, $r->content) !== FALSE) {
+      $regex = '|<a class="notranslate" href="[^"]+" rel="nofollow" target="_blank">|';
+      preg_match($regex, $r->content, $matches);
+      $url = $matches[1];
+      // this url no longer goes anywhere. We need to delete the integration link
+      integrated_support_delete_link('getsatisfaction', $url);
+    }
+  }
 }
 
 /**
