@@ -351,6 +351,13 @@ function getsatisfaction_integration_rejected_issue_handler() {
 }
 
 /**
+ * Checks all the most recently active topics for any replies that include merged text
+ */
+function getsatisfaction_integration_merged_issue_handler() {
+
+}
+
+/**
  * @function _getsatisfaction_integration_update_topic_milestone
  *
  * Notifies a topic about a milestone change.
