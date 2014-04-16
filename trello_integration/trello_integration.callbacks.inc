@@ -7,6 +7,9 @@ function trello_integration_webhook_handler() {
 
   $json = @file_get_contents('php://input');
   $payload = json_decode($json);
+  if (!$payload) {
+    exit;
+  }
   $action = $payload->action;
   watchdog('trello', "Trello recieved a @type webhook:<br />@hook", array('@hook' => $json, '@type' => $payload->action->type));
 
@@ -80,4 +83,6 @@ function trello_integration_webhook_handler() {
       }
       break;
   }
+
+  exit;
 }
