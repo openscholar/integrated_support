@@ -85,7 +85,7 @@ ul.primary li a.active {
 
 #os-hotfixes .item-list h3 {
 	/*background: url("http://openscholar.harvard.edu/sites/osops.openscholar.harvard.edu/modules/integrated_support/getsatisfaction_integration/images/hotfix-warning.png") no-repeat scroll 5px center #FFF;*/
-	background: url("http://staging.hwpi.harvard.edu/files/styles/os_files_xxlarge/public/test/files/hotfix-warning.png") no-repeat scroll 5px center #FFF;
+	background: url("http://staging.hwpi.harvard.edu/files/test/files/warning-hotfix.png") no-repeat scroll 5px center #FFF;
      color: #444444;
      padding-left: 33px;
   
@@ -101,6 +101,11 @@ ul.primary li a.active {
      color: #FFFFFF;
      padding-left: 10px;
      width: 207px;
+}
+
+#roadmap-info {
+
+font-weight: bold;
 }
 
 #os-twitter {
@@ -156,11 +161,13 @@ ul.milestone > li > a {
 
 #roadmap-legend {
      float: right;
+    background: url("http://staging.hwpi.harvard.edu/files/styles/os_files_xxlarge/public/test/files/filter-separator_0.png") no-repeat -25px 0;
+  margin-bottom:15px;
 }
 
 #roadmap-legend label {
      float: left;
-     margin-left: 10px;
+     margin-left: 27px;
 }
 
 #roadmap-legend label span {
@@ -206,6 +213,7 @@ ul.milestone > li > a {
 }
 
 /** PENDING FILTER **/
+
 ul.ticket-list > li > a.pending {
      border-left: 5px solid #FF0000;
 }
