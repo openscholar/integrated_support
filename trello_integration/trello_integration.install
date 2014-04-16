@@ -10,7 +10,7 @@ function trello_integration_install() {
 
 /**
  * @function _trello_integration_variable_set
- * 
+ *
  * Resets trello integration variables.
  */
 function _trello_integration_variable_set() {
@@ -21,7 +21,7 @@ function _trello_integration_variable_set() {
     'Engineering' => array('github' => array('labels' => 'tr:eng')),
     'Hotfix' => array('github' => array('labels' => 'Hotfix')),
   ));
-  
+
   //Trello assigns labels by color, not by text.
   variable_set('trello_integration_colors', array(
     'Features' => 'green',
@@ -29,12 +29,12 @@ function _trello_integration_variable_set() {
     'Engineering' => 'blue',
     'Hotfix' => 'orange',
   ));
-  
+
   variable_set('trello_integration_default_list', 'Pending Review');
 }
 
-/** 
- * Reset import vars 
+/**
+ * Reset import vars
  **/
 function trello_integration_update_7001() {
   _trello_integration_variable_set();
@@ -50,9 +50,9 @@ function trello_integration_update_7002() {
     'status: in dev' => 'Development',
     'status: needs review' => 'Review',
     'status: needs qa' => 'Testing',
-    'status: fixed' => 'Done',  
+    'status: fixed' => 'Done',
   ));
-  
+
   variable_set('getsatisfaction_roadmap_status_labels', $label_status);
 }
 
@@ -73,8 +73,10 @@ function trello_integration_update_7004() {
 function _trello_integration_create_board_hook() {
   $client = trello_integration_client();
   $url = $GLOBALS['base_url'].'/trello/handler';
+  $board = variable_get('trello_integration_roadmap');
+  list(,,,,$board_id) = explode('/', $board);
   $client->webhooks()->create(array(
-    'idModel' => variable_get('trello_integration_board_id'),
+    'idModel' => $board_id,
     'callbackURL' => check_url(check_plain($url)),
     'description' => 'OS Roadmap Board-wide hook',
   ));
