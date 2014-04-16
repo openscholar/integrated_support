@@ -161,9 +161,16 @@ ul.milestone > li > a {
 
 #roadmap-legend {
      float: right;
-    background: url("http://staging.hwpi.harvard.edu/files/styles/os_files_xxlarge/public/test/files/filter-separator_0.png") no-repeat -25px 0;
+    background: url("http://staging.hwpi.harvard.edu/files/styles/os_files_xxlarge/public/test/files/filter-separator_0.png") no-repeat -25px 22px;
   margin-bottom:15px;
 }
+
+
+#roadmap-legend span:first-child {
+margin: 0 0 8px 150px;
+display: block;
+}
+
 
 #roadmap-legend label {
      float: left;
