@@ -304,6 +304,8 @@ function trello_integration_roadmap($page = 'current') {
   list(,,,,$roadmap_id) = explode('/', $roadmap);
   $all_lists = array_keys(_trello_integration_get_lists($roadmap_id));
 
+  $output['sidebar'] = array();
+
   switch ($page) {
     case 'current':
       // figure out what 'current' means.
