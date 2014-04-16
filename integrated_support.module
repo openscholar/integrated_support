@@ -285,14 +285,14 @@ function integrated_support_delete_link($service, $id, $service2 = null, $s2id =
         ->condition('service_b_id', $id)
         ->condition('service_b_name', $service));
 
-    db_delete('integrated_support')
+    db_delete('integrated_support_service_links')
       ->condition($or)
       ->execute();
 
     module_invoke_all('integrated_support_linkage_delete', $service, $id, $links);
   }
   elseif (!is_null($service2) && !is_null($s2id)) {
-    db_delete('integrated_support')
+    db_delete('integrated_support_service_links')
     ->condition(db_or()
       ->condition(db_and()
         ->condition('service_a_id', $id)

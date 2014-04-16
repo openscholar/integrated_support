@@ -335,7 +335,7 @@ function trello_integration_roadmap($page = 'current') {
 
       $output['legend'] = array(
         'options' => $checkboxes,
-        '#prefix' => '<div id="roadmap-legend"><form>',
+        '#prefix' => '<div id="roadmap-legend"><span>Color key indicates stages in the development cycle</span><form>',
         '#suffix' => '</form></div>',
         '#weight' => -100,
       );
@@ -567,6 +567,7 @@ function trello_integration_ticket_sync() {
         if ($card) {
           if ($trello->cards()->create($card) == FALSE) {
             watchdog('trello', t('Error sending card from @service to Trello.', array('@service' => $service)));
+            watchdog('trello', $trello->error());
           }
         }
       }
