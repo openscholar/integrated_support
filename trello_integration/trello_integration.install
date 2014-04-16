@@ -67,19 +67,30 @@ function trello_integration_update_7003() {
  * Creates a general webhook to listen for new cards
  */
 function trello_integration_update_7004() {
-  _trello_integration_create_board_hook();
+  if ($errors = _trello_integration_create_board_hook()) {
+    return $errors;
+  }
+  else {
+    return t('Webhook successfully created.');
+  }
 }
 
 function _trello_integration_create_board_hook() {
   $client = trello_integration_client();
   $url = $GLOBALS['base_url'].'/trello/handler';
   $board = variable_get('trello_integration_roadmap');
-  list(,,,,$board_id) = explode('/', $board);
+  list(,,,,$short) = explode('/', $board);
+  // we can't use the shortID to create a webhook
+  // we need to get the long ID first
+  $board = $client->boards($short)->get();
   $client->webhooks()->create(array(
-    'idModel' => $board_id,
+    'idModel' => $board->id,
     'callbackURL' => check_url(check_plain($url)),
     'description' => 'OS Roadmap Board-wide hook',
   ));
+  if ($client->error()) {
+    return $client->error();
+  }
 }
 
 function trello_integration_update_7005() {
