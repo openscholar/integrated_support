@@ -172,7 +172,7 @@ function trello_integration_roadmap_columns($list_name, $list_id, $labels = arra
   }
 
   if (empty($labels)) {
-    $use_lists = array('Features' => array(), 'Bugs' => array(), 'Engineering' => array());
+    $use_lists = array('New Features' => array(), 'Bug Fixes' => array(), 'Infrastructure Upgrades' => array());
   }
   else {
     $use_lists = array_fill_keys($labels, array());

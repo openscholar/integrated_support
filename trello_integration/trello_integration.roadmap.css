@@ -3,6 +3,7 @@ margin-left: 0;
 margin-right: 0;
 }
 
+#os-hotfixes .item-list h3,
 .milestone-wrapper h3 {
      background: none repeat scroll 0px 0px #888888;
      color: #FFFFFF;
@@ -77,27 +78,17 @@ ul.primary li a.active {
      padding-left: 0px;
 }
 
-.milestone-wrapper .item-list:nth-of-type(5) {
-     background: none repeat scroll 0% 0% #EDEDED;
+#os-hotfixes .item-list {
+     background: #EDEDED;
+	padding:5px 5px 1px 5px;
 }
 
-.milestone-wrapper .item-list:nth-of-type(5) h3 {
-     background: url("http://openscholar.harvard.edu/sites/osops.openscholar.harvard.edu/modules/integrated_support/getsatisfaction_integration/images/warning_orange.png") no-repeat scroll 5px center #F9F9F9;
+#os-hotfixes .item-list h3 {
+	/*background: url("http://openscholar.harvard.edu/sites/osops.openscholar.harvard.edu/modules/integrated_support/getsatisfaction_integration/images/hotfix-warning.png") no-repeat scroll 5px center #FFF;*/
+	background: url("http://staging.hwpi.harvard.edu/files/styles/os_files_xxlarge/public/test/files/hotfix-warning.png") no-repeat scroll 5px center #FFF;
      color: #444444;
      padding-left: 33px;
-     width: 185px;
-}
-
-
-#os-twitter {
-	background:#F3F3F3;
-     border:1px solid #F15307;
-}
-
-#roadmap-sidebar {
-	 width:25%;
-	 display:inline-block;
-	 vertical-align: top;
+  
 }
 
 
@@ -111,6 +102,19 @@ ul.primary li a.active {
      padding-left: 10px;
      width: 207px;
 }
+
+#os-twitter {
+	background:#F3F3F3;
+     border:1px solid #F15307;
+     margin-bottom: 20px;
+}
+
+#roadmap-sidebar {
+	 width:25%;
+	 display:inline-block;
+	 vertical-align: top;
+}
+
 
 ul.ticket-list {
      list-style-type: none;
@@ -140,6 +144,15 @@ ul.ticket-list > li > a:hover {
 ul.milestone > li > a {
      border: 1px solid #EEEEEE;
 }
+
+#os-hotfixes ul.ticket-list > li > a {
+     background:#FFF;
+}
+
+#os-hotfixes ul.ticket-list > li > a:hover {
+     background-color: #F5F5F5;
+}
+
 
 #roadmap-legend {
      float: right;
