@@ -47,6 +47,7 @@ function trello_integration_webhook_handler() {
               'trello_id' => $data->id,
               'list' => $action->data->listAfter->id,
               'milestone' => $action->data->listAfter->name,
+              'desc' => $action->data->description
             );
             module_invoke_all('trello_webhook', 'updateCardMilestone', $card);
           }
