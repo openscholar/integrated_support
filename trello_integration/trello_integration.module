@@ -579,7 +579,9 @@ function trello_integration_ticket_sync() {
             ->range(0,1)
             ->execute();
 
+            watchdog('trello', t('Card @card added existing GH link @gh.', array('@card' => $card['id'],'@gh' => $gh_issue_link)));
             if ($results->rowCount() && ($milesotone = $results->fetchColumn())) {
+              watchdog('trello', t('Card @card added directly to milestone @mile.', array('@card' => $card['id'],'@mile' => $milesotone)));
               $card = _trello_integration_prepare_card($board_id, $service, $ticket, $label_name, $milesotone);
             }
           }
