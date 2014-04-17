@@ -691,7 +691,7 @@ function getsatisfaction_integration_trello_webhook($event, $data) {
           //update getsatisfaction
           $id = $l['id'];
           watchdog('getsatisfaction', 'topic @id needs milestone update: "@milestone"', array('@id' => $id, '@milestone' => $milestone));
-          $reply = 'This request has been scheduled to be part of our ' . $milestone . ' release. See more details at the <a href="http://theopenscholar.org/roadmap#'._trello_integration_milestone_url($data['trello_id']).'">roadmap</a>';
+          $reply = 'This request has been scheduled to be part of our ' . $milestone . ' release. See more details at the <a href="http://theopenscholar.org/roadmap#'._trello_integration_milestone_url($data['title']).'">roadmap</a>';
           $updated = $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $reply)));
         }
       }
