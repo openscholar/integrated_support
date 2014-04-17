@@ -568,6 +568,22 @@ function trello_integration_ticket_sync() {
         //extract relevant info.  don't post duplicates.
         $card = _trello_integration_prepare_card($board_id, $service, $ticket, $label_name);
         if ($card) {
+          $gh_issue_link = FALSE;
+          //Check if there is already a GH issue with this GS topic.
+          if($service == 'getsatisfaction' && ($gh_issue_link = _getsatisfaction_integration_linked_issue($card['id']))) {
+            // See if this is already in a milestone.
+            $results = db_select('getsatisfaction_service_map', 'gs')
+            ->condition('id', $card['id'])
+            ->condition('external_service', 'github_integration')
+            ->fields('gs', array('milestone'))
+            ->range(0,1)
+            ->execute();
+
+            if ($results->rowCount() && ($milesotone = $results->fetchColumn())) {
+              $card = _trello_integration_prepare_card($board_id, $service, $ticket, $label_name, $milesotone);
+            }
+          }
+
           $new_card = $trello->cards()->create($card);
           if ($card == FALSE) {
             watchdog('trello', t('Error sending card from @service to Trello.', array('@service' => $service)));
@@ -575,6 +591,10 @@ function trello_integration_ticket_sync() {
           }
           else {
             integrated_support_link_services($card['name'], 'trello', $new_card->id, $service, $card['id']);
+
+            if($gh_issue_link) {
+              integrated_support_link_services($card['name'], 'trello', $new_card->id, 'github', $gh_issue_link);
+            }
           }
         }
       }
@@ -597,8 +617,17 @@ function trello_integration_cron() {
  *
  * Given a service and a ticket from that service, return an array of items to send to trello
  */
-function _trello_integration_prepare_card($board_id, $service, $ticket, $label_name) {
-  $list = _trello_integration_get_lists($board_id, variable_get('trello_integration_default_list'));
+function _trello_integration_prepare_card($board_id, $service, $ticket, $label_name, $trello_list = FALSE) {
+  $list = FALSE;
+  //Lookup list if lable is passed.
+  if($trello_list) {
+    $list = _trello_integration_get_lists($board_id, $trello_list);
+  }
+
+  //Use Default List
+  if(!$list) {
+    $list = _trello_integration_get_lists($board_id, variable_get('trello_integration_default_list'));
+  }
 
   switch ($service) {
     case 'github':

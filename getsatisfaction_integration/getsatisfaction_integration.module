@@ -558,7 +558,7 @@ function _getsatisfaction_integration_update_topic_table($topic) {
  *
  * Given a getsatisfaction topic, return the id of a linked GH issue, creating it if necessary
  */
-function _getsatisfaction_integration_linked_issue($topic_id) {
+function _getsatisfaction_integration_linked_issue($topic_id, $create_issue = TRUE) {
   //check if we already have this issue
   $topic = getsatisfaction_integration_topic($topic_id); //$topic_id may actually be slug.  need to be certain we're using id.
   $results = db_select('getsatisfaction_service_map', 'gs')
@@ -570,6 +570,10 @@ function _getsatisfaction_integration_linked_issue($topic_id) {
 
   if ($results->rowCount()) {
     return $results->fetchColumn();
+  }
+
+  if(!$create_issue) {
+    return FALSE;
   }
 
   //need a new issue
