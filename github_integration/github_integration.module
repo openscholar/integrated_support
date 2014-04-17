@@ -60,14 +60,14 @@ function github_integration_libraries_info() {
     'composer' => array(
       'name' => 'Composer Libs',
       'files' => array('php' => array('vendor/autoload.php')),
-      'version' => 'master',        
+      'version' => 'master',
     ),
   );
 }
 
 /**
  * Implements hook_theme
- * 
+ *
  * Provides github_integration_theme_issue and github_integration_theme_issue_labels
  */
 function github_integration_theme($existing, $type, $theme, $path) {
@@ -113,10 +113,10 @@ function github_integration_integrated_support_status() {
  * @function github_client()
  *
  * Returns object for poking github
- * 
+ *
  * @param bool $auth
  *   Use our auth token.  [default: TRUE]
- *   
+ *
  * @param bool $body_html
  *   Fetch issue body as html rather than markdown [default: TRUE]
  */
@@ -134,10 +134,10 @@ function github_integration_client($auth = TRUE, $body_html = TRUE) {
   //$cache = new Github\HttpClient\CachedHttpClient(array('cache_dir' => __DIR__ . '/.github-api-cache'));
   $cache = new Github\HttpClient\CachedHttpClient(array('cache_dir' => $cache_dir));
   $gh_client = new Github\Client($cache);
-  
+
   //we want body_html, not body
   if ($body_html) {
-    $gh_client->setHeaders(array( 
+    $gh_client->setHeaders(array(
       sprintf('Accept: application/vnd.github.%s.html+json', $gh_client->getOption('api_version'))
     ));
   }
@@ -504,7 +504,7 @@ function github_integration_alert_page() {
         'labels' => implode(',', $labels),
         'state' => 'closed',
         'sort' => 'updated',
-        'since' => date(DATE_ISO8601, time() - 60*60*24*7*2), //show all closures within two weeks  
+        'since' => date(DATE_ISO8601, time() - 60*60*24*7*2), //show all closures within two weeks
       ));
 
       $issues = array_merge($issues, $closed);
@@ -547,7 +547,7 @@ function github_integration_alert_page() {
  * Fetch a github issue by id.
  */
 function github_integration_issue($id) {
-  $gh = github_integration_client(); 
+  $gh = github_integration_client();
   try {
     $issue = $gh->api('issue')->show(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $id);
   } catch (Exception $e) {
@@ -577,10 +577,10 @@ function github_integration_issue($id) {
  * Fetch a github issue by search params.
  */
 function github_integration_search($params = array()) {
-  $gh = github_integration_client(); 
+  $gh = github_integration_client();
   $params['page'] = 1;
   $params['per_page'] = 25;
-  
+
   $issues = array();
   try {
     while ($params['page']) {
@@ -592,27 +592,27 @@ function github_integration_search($params = array()) {
     watchdog('github', 'Error searching github: @error.  Message: @msg', array('@error' => $e->getCode(), '@msg' => $e->getMessage()), WATCHDOG_ERROR);
     return FALSE;
   }
-  
+
   return $issues;
 }
 
 function github_integration_issues_by_label($label) {
   static $labels;
   if (empty($labels)) {
-    $labels = array();  
+    $labels = array();
   }
-  
+
   if (empty($labels[$label])) {
     $issues = github_integration_search(array('labels' => $label));
     $labels[$label] = array_map(function($a) {return $a['number'];}, $issues);
   }
-  
+
   return $labels[$label];
 }
 
 /**
  * @function _github_integration_newest_issues
- * 
+ *
  * Fetches GH issues newer than $id.  This is pretty much a copy of _search above, but with some logic
  * to bail out if we've passed the id we're looking for.
  */
@@ -624,7 +624,7 @@ function _github_integration_newer_issues($id, $params = array()) {
     'sort' => 'created',
     'direction' => 'desc'
   ));
-  
+
   $issues = array();
   try {
     while ($params['page']) {
@@ -637,14 +637,14 @@ function _github_integration_newer_issues($id, $params = array()) {
     watchdog('github', 'Error searching github: @error.  Message: @msg', array('@error' => $e->getCode(), '@msg' => $e->getMessage()), WATCHDOG_ERROR);
     return FALSE;
   }
-  
+
   $issues = array_filter($issues, function($i) {return !(strpos($i['html_url'], 'pull'));} ); //filter out PRs
   $issues = array_reduce($issues, function($ret, $i) {$ret[$i['number']] = $i; return $ret;}); //use id as array key
   return $issues;
 }
 /**
  * @function github_integration_issues
- * 
+ *
  * Searches github for issues matching a variety of criteria
  */
 function github_integration_issues($parameters) {
@@ -688,7 +688,7 @@ function github_integration_milestones($query = array()) {
   } catch (Exception $e) {
     watchdog('github', 'Could not fetch github milestones: @code', array('@code' => $e->getCode()), WATCHDOG_ERROR);
     drupal_set_message('There was an error connecting to github.  Please try again in a few minutes.', 'error');
-    return NULL; 
+    return NULL;
   }
 
   cache_set($key, $milestones, 'cache', time() + 3600);
@@ -697,17 +697,17 @@ function github_integration_milestones($query = array()) {
 
 /**
  * @function _github_integration_milestone_get_id
- * 
+ *
  * Given a milestone's name, get its github id so we can query for it.
  */
 function _github_integration_milestone_get_id($name) {
   $milestones = array_merge(github_integration_milestones(), github_integration_milestones(array('state' => 'closed')));
   $names = array_reduce($milestones, function($ret, $a) {$ret[ $a['title'] ] = $a['number']; return $ret;});
-  return (isset($names[$name])) ? $names[$name] : NULL; 
+  return (isset($names[$name])) ? $names[$name] : NULL;
 }
 /**
  * @function _github_integration_filter_labels
- * 
+ *
  * Removes labels that aren't whitelisted to show up.
  */
 function _github_integration_filter_labels($labels) {
@@ -780,7 +780,7 @@ function github_integration_trello_webhook($event, $data) {
       if (!empty($links)) {
         foreach ($links as $l) {
           $client->api('issue')->update(variable_get('github_repo_owner'), variable_get('github_repo_repository'), $l['id'], array(
-            'milestone' => $data['milestone']
+            'milestone' => _github_integration_milestone_get_id($data['milestone'])
           ));
         }
         break;
@@ -790,7 +790,7 @@ function github_integration_trello_webhook($event, $data) {
       if (_github_integration_milestone_get_id($data['milestone'])) {
         $issue = array(
           'title' => $data['title'],
-          'milestone' => $data['milestone'],
+          'milestone' => _github_integration_milestone_get_id($data['milestone']),
           'body' => 'From Trello. [tid: '.$data['trello_id'].']'
         );
         $issue = github_create_issue($issue);
