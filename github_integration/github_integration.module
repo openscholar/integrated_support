@@ -788,13 +788,16 @@ function github_integration_trello_webhook($event, $data) {
       }
     case 'createCard':
       if (_github_integration_milestone_get_id($data['milestone'])) {
-        $issue = array(
-          'title' => $data['title'],
-          'milestone' => _github_integration_milestone_get_id($data['milestone']),
-          'body' => 'From Trello. [tid: '.$data['trello_id'].']'
-        );
-        $issue = github_create_issue($issue);
-        integrated_support_link_services($data['title'], 'trello', $data['trello_id'], 'github', $issue['number']);
+        // Do not create a GH issue if one exists.
+        if(!count(integrated_support_get_links('trello',$data['trello_id'],'github'))) {
+          $issue = array(
+            'title' => $data['title'],
+            'milestone' => _github_integration_milestone_get_id($data['milestone']),
+            'body' => 'From Trello. [tid: '.$data['trello_id'].']'
+          );
+          $issue = github_create_issue($issue);
+          integrated_support_link_services($data['title'], 'trello', $data['trello_id'], 'github', $issue['number']);
+        }
       }
       break;
     case 'updateCardDescription':
