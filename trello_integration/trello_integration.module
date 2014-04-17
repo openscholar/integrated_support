@@ -20,7 +20,7 @@ function trello_integration_menu() {
       'page arguments' => array('current'),
       'access arguments' => array('access content'),
       'type' => MENU_DEFAULT_LOCAL_TASK,
-      'weight' => -10,
+      'weight' => 0,
     ),
     'roadmap/planned' => array(
       'title' => 'Planned',
@@ -28,6 +28,7 @@ function trello_integration_menu() {
       'page arguments' => array('planned'),
       'access arguments' => array('access content'),
       'type' => MENU_LOCAL_TASK,
+      'weight' => 10,
     ),
     'roadmap/archive' => array(
       'title' => 'Past Improvements',
@@ -35,6 +36,7 @@ function trello_integration_menu() {
       'page arguments' => array('archive'),
       'access arguments' => array('access content'),
       'type' => MENU_LOCAL_TASK,
+      'weight' => -10,
     ),
     'roadmap/to-review' => array(
       'title' => 'To Be Reviewed',
@@ -42,6 +44,7 @@ function trello_integration_menu() {
       'page arguments' => array('to-review'),
       'access arguments' => array('access content'),
       'type' => MENU_LOCAL_TASK,
+      'weight' => 20,
     ),
     'admin/config/integrated_support/trello' => array(
       'title' => 'Trello',
