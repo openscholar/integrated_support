@@ -2,14 +2,17 @@
 
 function trello_integration_webhook_handler() {
   //no cache for you!  varnish should never cache this page.
+  watchdog('trello_integration', 'Trello webhook begun');
   drupal_add_http_header('Cache-Control', 'no-store, no-cache, must-revalidate');
   drupal_add_http_header('Pragma', 'no-cache');
 
   $json = @file_get_contents('php://input');
   $payload = json_decode($json);
   if (!$payload) {
+    watchdog('trello_integration', 'No payload for Trello webhook');
     exit;
   }
+  watchdog('trello_integration', 'Payload found, action is '.$action->type);
   $action = $payload->action;
   watchdog('trello', "Trello recieved a @type webhook:<br />@hook", array('@hook' => $json, '@type' => $payload->action->type));
 
