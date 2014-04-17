@@ -571,7 +571,7 @@ function trello_integration_ticket_sync() {
             watchdog('trello', $trello->error());
           }
           else {
-            integrated_support_link_services($card->title, 'trello', $new_card->id, $service, $card['id']);
+            integrated_support_link_services($card['name'], 'trello', $new_card->id, $service, $card['id']);
           }
         }
       }
