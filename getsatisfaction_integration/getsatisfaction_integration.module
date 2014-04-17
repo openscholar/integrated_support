@@ -263,7 +263,11 @@ function _getsatisfaction_integration_newer_issues($id, $params = array()) {
     return FALSE;
   }
 
-  $return = array_reduce($return, function($ret, $i) {$ret[$i->id] = $i; return $ret;}); //use id as array key
+  $return = array_reduce($return, function($ret, $i) {
+    _getsatisfaction_integration_update_topic_table($i);
+    $ret[$i->id] = $i;
+    return $ret;
+  }); //use id as array key
   return $return;
 }
 
@@ -652,12 +656,24 @@ function getsatisfaction_integration_trello_webhook($event, $data) {
       $add = array_diff($new, $old);
       $remove = array_diff($old, $new);
 
+      // we need to use the slug to get the integer id of the topic
+      $client = getsatisfaction_integration_client();
       foreach ($add as $url) {
-        integrated_support_link_services($data['title'], 'getsatisfaction', $url, 'trello', $data['trello_id']);
+        trim($url, '/');
+        $frags = explode('/', $url);
+        $slug = array_pop($frags);
+        $topic = $client->topic()->topic($slug);
+        _getsatisfaction_integration_update_topic_table($topic);
+        integrated_support_link_services($data['title'], 'getsatisfaction', $topic->id, 'trello', $data['trello_id']);
       }
 
       foreach ($remove as $url) {
-        integrated_support_delete_link('getsatisfaction', $url, 'trello', $data['trello_id']);
+        $id = db_select('getsatisfaction_topics', 'gt')
+          ->fields('gt', array('id'))
+          ->condition('link', $url)
+          ->execute()
+          ->fetchField();
+        integrated_support_delete_link('getsatisfaction', $id, 'trello', $data['trello_id']);
       }
 
       break;

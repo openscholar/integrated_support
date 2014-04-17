@@ -565,9 +565,13 @@ function trello_integration_ticket_sync() {
         //extract relevant info.  don't post duplicates.
         $card = _trello_integration_prepare_card($board_id, $service, $ticket, $label_name);
         if ($card) {
-          if ($trello->cards()->create($card) == FALSE) {
+          $new_card = $trello->cards()->create($card);
+          if ($card == FALSE) {
             watchdog('trello', t('Error sending card from @service to Trello.', array('@service' => $service)));
             watchdog('trello', $trello->error());
+          }
+          else {
+            integrated_support_link_services($card->title, 'trello', $new_card->id, $service, $card['id']);
           }
         }
       }
