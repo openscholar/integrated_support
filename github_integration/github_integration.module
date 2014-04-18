@@ -773,6 +773,9 @@ function _github_intergation_update_issue_table($issue) {
  */
 function github_integration_trello_webhook($event, $data) {
   $milestones = github_integration_milestones();
+  if (isset($data['milestone'])) {
+    watchdog('github_integration', 'Milestone for '.$data['milestone'].': '._github_integration_milestone_get_id($data['milestone']));
+  }
   switch ($event) {
     case 'updateCardMilestone':
       $links = integrated_support_get_links('trello', $data['trello_id'], 'github');
