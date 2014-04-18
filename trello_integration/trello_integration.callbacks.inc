@@ -15,6 +15,7 @@ function trello_integration_webhook_handler() {
   watchdog('trello_integration', 'Payload found, action is '.$payload->action->type);
   $action = $payload->action;
   watchdog('trello', "Trello recieved a @type webhook:<br />@hook", array('@hook' => $json, '@type' => $payload->action->type));
+  watchdog('trello_integration', 'Payload action: '.json_encode($payload->action));
 
   switch ($action->type) {
     // card was created in Trello
