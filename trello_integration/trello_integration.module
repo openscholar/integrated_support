@@ -249,8 +249,8 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
       $output['#attributes']['data-gh-id'] = $gh['id'];
       $output['gh'] = array(
         '#theme' => 'link',
-        '#href' => 'http://github.com/openscholar/openscholar/issues/'.$gh['id'],
-        '#text' => theme('image', array('/path/to/octocat')),
+        '#path' => 'http://github.com/openscholar/openscholar/issues/'.$gh['id'],
+        '#text' => 'Github', //theme('image', array('/path/to/octocat')),
         '#options' => array(
           'attributes' => array(
             'class' => array('github-link')
@@ -258,7 +258,7 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
           'html' => TRUE,
           'external' => TRUE
         ),
-        '#access' => TRUE,  // TODO: Replace this with user_access to some permission
+        '#access' => user_access('view github link'),
       );
     }
 
