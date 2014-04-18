@@ -725,7 +725,7 @@ function _trello_integration_html_to_markdown($html) {
   //clean up
   $regexes['|<ul><br />|'] = '';
   $regexes['|<li>(.*?)<br /></li>|'] = '<li>$1</li>';
-  $regexes['|</li><br />[\w]*<li>|'] = '</li><li>';
+  $regexes['|</li><br />([\s]*)<li>|'] = '</li>$1<li>';
 
   //lists (making them all ul for simplicity's sake)
   $regexes['|</?ul>|'] = '';
