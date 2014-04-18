@@ -120,6 +120,13 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
         ->execute()
         ->fetchCol();
 
+      $links = integrated_support_get_links('github', $gh_id, 'trello');
+      foreach ($links as $l) {
+        $gs_links = integrated_support_get_links('trello', $l['id'], 'getsatisfaction');
+        foreach ($gs_links as $m) {
+          $ids[] = $m['id'];
+        }
+      }
 
       //When GH and GS tickets are mapped, set teh status.
       if ($payload['state'] == 'closed') {
