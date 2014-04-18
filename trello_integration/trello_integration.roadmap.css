@@ -14,6 +14,7 @@ margin-right: 0;
      padding: 8px 10px;
      position: absolute;
      width: 20%;
+     z-index: 10;
 }
 
 .roadmap .get-status {
@@ -108,10 +109,47 @@ ul.primary li a.active {
 font-weight: bold;
 }
 
+/* TWITTER BLOCK IN ROADMAP PAGE */
 #os-twitter {
 	background:#F3F3F3;
      border:1px solid #F15307;
      margin-bottom: 20px;
+}
+#os-twitter .block-inner {
+margin-left: 0;
+margin-right: 0;
+}
+
+#os-twitter .block-content {
+	padding: 10px;
+}
+
+.tweet-authorphoto {
+	display:none;
+	}
+
+#os-twitter li {
+margin-bottom: 8px;
+border-bottom: 1px solid #FF0000;
+}
+
+#os-twitter li:last-child {
+margin-bottom: 0;
+border-bottom: none;
+}
+
+#os-twitter h2.block-title {
+	background: url("http://staging.hwpi.harvard.edu/files/styles/os_files_xxlarge/public/test/files/loud-speaker.png") no-repeat scroll 5px 1px #FFF;
+     color: #444444;
+     padding: 8px 0 0 40px;
+     height:28px;
+    margin-bottom: 0;
+    font-weight: normal;
+}
+
+#os-twitter .twitter-followme {
+float: right;
+margin-bottom: 7px;
 }
 
 #roadmap-sidebar {
@@ -237,7 +275,7 @@ ul.ticket-list > li > a.pending {
 }
 
 /** DESIGN FILTER **/
-ul.ticket-list > li > a.design {
+ul.ticket-list div.roadmap-item.design {
      border-left: 5px solid #28aae1;
 }
 
@@ -253,7 +291,7 @@ ul.ticket-list > li > a.design {
 }
 
 /** DEV FILTER **/
-ul.ticket-list > li > a.development {
+ul.ticket-list div.roadmap-item.development {
      border-left: 5px solid #E9C21B;
 }
 
@@ -269,7 +307,7 @@ ul.ticket-list > li > a.development {
 }
 
 /** REVIEW FILTER **/
-ul.ticket-list > li > a.review {
+ul.ticket-list div.roadmap-item.review {
      border-left: 5px solid #E75D0F;
 }
 
@@ -285,7 +323,7 @@ ul.ticket-list > li > a.review {
 }
 
 /** TESTING FILTER **/
-ul.ticket-list > li > a.testing {
+ul.ticket-list div.roadmap-item.testing {
      border-left: 5px solid #0a0;
 }
 
@@ -301,7 +339,7 @@ ul.ticket-list > li > a.testing {
 }
 
 /** DONE FILTER **/
-ul.ticket-list > li > a.done {
+ul.ticket-list div.roadmap-item.done {
      border-left: 5px solid #000;
 }
 
