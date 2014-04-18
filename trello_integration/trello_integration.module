@@ -319,7 +319,11 @@ function trello_integration_roadmap($page = 'current') {
         $ret[ $a['number'] ] = $a['title']; return $ret;
       });
 
-      $list_name = current($milestones);
+      $timestamps = array_map(function ($i) {
+        return strtotime($i);
+      }, $milestones);
+      asort($timestamps);
+      $list_name = $milestones[key($timestamps)];
 
       $output['milestone'] = array(
         '#weight' => -10,
