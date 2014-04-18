@@ -721,6 +721,11 @@ function _trello_integration_html_to_markdown($html) {
   //image
   $regexes['|<img.*?src=[\'"](.*?)[\'"].*?>|'] = '![img]($1)';
 
+  //lists (making them all ul for simplicity's sake)
+  $regexes['|</?ul>|'] = '';
+  $regexes['|</?ol>|'] = '';
+  $regexes['|<li>(.*?)</li>|s'] = '* $1';
+
   //bold
   $regexes['|<strong>(.*?)</strong>|'] = '**$1**';
   $regexes['|<b>(.*?)</b>|'] = '**$1**';
@@ -744,16 +749,11 @@ function _trello_integration_html_to_markdown($html) {
   $regexes['|<p>(.*?)</p>|'] = "\n\n" . '$1' . "\n\n";
   $regexes['|</?p>|'] = "\n";
 
-  //lists (making them all ul for simplicity's sake)
-  $regexes['|</?ul>|'] = '';
-  $regexes['|</?ol>|'] = '';
-  $regexes['|<li>(.*?)</li>|'] = '* $1';
-
   //code
-  $regexes['|<code>(.*?)</code>|'] = '```$1```';
+  $regexes['|<code>(.*?)</code>|s'] = '```$1```';
 
   //blockquote
-  $regexes['|<blockquote>(.*?)</blockquote>|'] = '> $1';
+  $regexes['|<blockquote>(.*?)</blockquote>|s'] = '> $1';
 
   foreach ($regexes as $pattern => $replacement) {
     $html = preg_replace($pattern, $replacement, $html);
