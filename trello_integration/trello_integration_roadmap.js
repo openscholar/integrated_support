@@ -31,9 +31,9 @@ Drupal.behaviors.trello_integration_roadmap = {
         $('#roadmap-legend > form > label > input').each(function(){
           $this = $(this);
           if ($this.attr('checked')) {
-            $sel.find('a.' + $this.attr('name').toLowerCase()).show();
+            $sel.find('div.' + $this.attr('name').toLowerCase()).show();
           } else {
-            $sel.find('a.' + $this.attr('name').toLowerCase()).hide();
+            $sel.find('div.' + $this.attr('name').toLowerCase()).hide();
           }
         });
       }
