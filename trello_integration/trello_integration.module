@@ -307,7 +307,7 @@ function trello_integration_roadmap($page = 'current') {
   list(,,,,$roadmap_id) = explode('/', $roadmap);
   $all_lists = array_keys(_trello_integration_get_lists($roadmap_id));
 
-  $output['sidebar'] = array();
+  $output['sidebar'] = array('#weight' => 100);
 
   switch ($page) {
     case 'current':
@@ -575,7 +575,7 @@ function trello_integration_ticket_sync() {
         if ($card) {
           $gh_issue_link = FALSE;
           //Check if there is already a GH issue with this GS topic.
-          if($service == 'getsatisfaction' && ($gh_issue_link = _getsatisfaction_integration_linked_issue($card['id']))) {
+          if($service == 'getsatisfaction' && ($gh_issue_link = _getsatisfaction_integration_linked_issue($card['id'], FALSE))) {
             // See if this is already in a milestone.
             $results = db_select('getsatisfaction_service_map', 'gs')
             ->condition('id', $card['id'])
@@ -676,15 +676,15 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $label_n
         ->fields('gs', array('external_id'))
         ->execute();
 
-      $links = array($ticket->at_sfn);
+      $links = array('<a href="'.$ticket->at_sfn.'" class="gs-link">'.$ticket->subject.'</>');
       if ($mapped->rowCount()) {
         $row = $mapped->fetchCol();
-        $links = array_merge($links, array_map(function($i) {$gh = github_integration_issue($i); return $gh['html_url'];}, $row));
+        $links = array_merge($links, array_map(function($i) {$gh = github_integration_issue($i); return '<a href="'.$gh['html_url'].'" class="gh-link">'.$issue['title']."</>";}, $row));
       }
 
       $return = array(
         'name' => $ticket->subject,
-        'desc' => implode("\n", $links) . "\n\n--\n\n" . _trello_integration_html_to_markdown($ticket->content),
+        'desc' => _trello_integration_html_to_markdown(implode("\n", $links)."\n--\n".$ticket->content),
         'id' => $ticket->id,
       );
       break;
