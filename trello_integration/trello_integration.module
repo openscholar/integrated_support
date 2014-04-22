@@ -307,7 +307,7 @@ function trello_integration_roadmap($page = 'current') {
   list(,,,,$roadmap_id) = explode('/', $roadmap);
   $all_lists = array_keys(_trello_integration_get_lists($roadmap_id));
 
-  $output['sidebar'] = array('#weight' => 100);
+  $output['sidebar'] = array();
 
   switch ($page) {
     case 'current':
@@ -354,7 +354,7 @@ function trello_integration_roadmap($page = 'current') {
         '#suffix' => '</div>',
         '#weight' => 2
       );
-      $output['sidebar']['hotfix'] += trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
+      $output['sidebar']['hotfix']  += trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
 
       break;
     case 'planned':
@@ -432,8 +432,13 @@ function trello_integration_roadmap($page = 'current') {
       '#markup' => '<a class="twitter-timeline" href="https://twitter.com/osharvardstatus" data-widget-id="457247458108506112">Tweets by @osharvardstatus</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?\'http\':\'https\';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>',
       '#weight' => 1,
-    )
+    ),
+    '#weight' => 100,
   );
+
+  if(isset($output['columns'])) {
+    $output['columns']['#weight'] = 10;
+  }
 
   return $output;
 }
@@ -651,7 +656,7 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $label_n
       $body = (isset($ticket['body'])) ? $ticket['body'] : $ticket['body_html'];
       $return = array(
         'name' => $ticket['title'],
-        'desc' => $ticket['html_url'] . "\n\n" . _trello_integration_html_to_markdown($body),
+        'desc' => _trello_integration_html_to_markdown($ticket['html_url'] . "\n\n" .$body),
         'id' => $ticket['number'],
       );
 
