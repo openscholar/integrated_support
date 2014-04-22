@@ -106,6 +106,7 @@ ul.primary li:nth-of-type(4) a {
 
 .page-roadmap-backlog .milestone-wrapper .item-list:nth-of-type(5) {
      background: #FFFFFF;
+
 }
 
 .page-roadmap-backlog .milestone-wrapper .item-list:nth-of-type(5) h3 {
@@ -116,8 +117,9 @@ ul.primary li:nth-of-type(4) a {
 }
 
 #roadmap-info {
-
-font-weight: bold;
+	position: absolute;
+	top: 90px;
+	font-weight: bold;
 }
 
 /* TWITTER BLOCK IN ROADMAP PAGE 
@@ -211,16 +213,20 @@ ul.milestone > li > a {
 
 #roadmap-legend {
      float: right;
-    background: url("images/filter-separator.png") no-repeat -25px 22px;
+    background: url("images/filter-separator.png") no-repeat 0 22px;
   margin-bottom:15px;
+  width:608px;
 }
 
 
 #roadmap-legend span:first-child {
-margin: 0 0 8px 150px;
+margin: 0 0 8px 175px;
 display: block;
 }
 
+#roadmap-legend form {
+     float: right;
+}
 
 #roadmap-legend label {
      float: left;
