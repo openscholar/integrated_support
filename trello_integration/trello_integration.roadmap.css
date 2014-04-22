@@ -65,6 +65,17 @@ ul.primary li a.active {
      padding-top: 12px !important;
 }
 
+
+ul.primary li:nth-of-type(3) a {
+     background:url('images/ques-icon.png') 65px 4px no-repeat;
+
+}
+
+ul.primary li:nth-of-type(4) a {
+     background:url('images/ques-icon.png') 110px 4px no-repeat;
+}
+
+
 .milestone-wrapper .item-list {
      background-color: white;
      display: inline-block;
@@ -85,8 +96,8 @@ ul.primary li a.active {
 }
 
 #os-hotfixes .item-list h3 {
-	/*background: url("http://openscholar.harvard.edu/sites/osops.openscholar.harvard.edu/modules/integrated_support/getsatisfaction_integration/images/hotfix-warning.png") no-repeat scroll 5px center #FFF;*/
-	background: url("http://staging.hwpi.harvard.edu/files/test/files/warning-hotfix.png") no-repeat scroll 5px center #FFF;
+	
+	background: url("images/warning-hotfix.png") no-repeat scroll 5px center #FFF;
      color: #444444;
      padding-left: 33px;
   
@@ -109,7 +120,7 @@ ul.primary li a.active {
 font-weight: bold;
 }
 
-/* TWITTER BLOCK IN ROADMAP PAGE */
+/* TWITTER BLOCK IN ROADMAP PAGE 
 #os-twitter {
 	background:#F3F3F3;
      border:1px solid #F15307;
@@ -151,6 +162,7 @@ border-bottom: none;
 float: right;
 margin-bottom: 7px;
 }
+*/
 
 #roadmap-sidebar {
 	 width:25%;
@@ -199,7 +211,7 @@ ul.milestone > li > a {
 
 #roadmap-legend {
      float: right;
-    background: url("http://staging.hwpi.harvard.edu/files/styles/os_files_xxlarge/public/test/files/filter-separator_0.png") no-repeat -25px 22px;
+    background: url("images/filter-separator.png") no-repeat -25px 22px;
   margin-bottom:15px;
 }
 
