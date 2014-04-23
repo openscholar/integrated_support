@@ -406,3 +406,18 @@ ul.ticket-list div.roadmap-item.done {
 	height: 20px;
 	width: 20px;
 }
+
+/*TOOLTIP STYLES*/
+.ui-tooltip {
+	padding: 8px;
+	position: absolute;
+	z-index: 99999;
+	max-width: 300px;
+	-webkit-box-shadow: 0 0 5px #aaa;
+	box-shadow: 0 0 5px #aaa;
+	border-width: 2px;
+	background:#FFFFFF;
+}
+
+
+
