@@ -51,7 +51,17 @@ function integrated_support_libraries_info() {
           ''
         )
       )
-    )
+    ),
+    //Markdown to HTML support
+    'php-markdown' => array(
+      'name' => 'Markdown',
+      'version' => '1.4.0',
+      'path' => 'Michelf',
+      'files' => array('php' => array(
+                         'MarkdownInterface.php',
+                         'Markdown.php',
+                       )),
+    ),
   );
 }
 

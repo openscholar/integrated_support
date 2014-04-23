@@ -212,6 +212,7 @@ function trello_integration_roadmap_columns($list_name, $list_id, $labels = arra
 
 function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
   $list_data = array();
+  libraries_load('php-markdown');
 
   foreach ($cards as $card) {
     //choose a list bucket.
@@ -233,7 +234,7 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
       'popup' => array(
         '#prefix' => '<div class="roadmap-popup-text">',
         'text' => array(
-          '#markup' => check_markup("Test Markup", 'full_html'), //$card->desc
+          '#markup' => Michelf\Markdown::defaultTransform( strip_tags($card->desc) ),
         ),
         '#suffix' => '</div>',
       )
