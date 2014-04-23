@@ -304,6 +304,9 @@ function trello_integration_client() {
 function trello_integration_roadmap($page = 'current') {
   $output = array();
 
+  // Include the dialog UI even if you are not an Admin.
+  drupal_add_library('system', 'ui.dialog');
+
   $roadmap = variable_get('trello_integration_roadmap');
   list(,,,,$roadmap_id) = explode('/', $roadmap);
   $all_lists = array_keys(_trello_integration_get_lists($roadmap_id));
