@@ -123,3 +123,11 @@ Drupal.behaviors.trello_integration_roadmap = {
 };
 
 })(jQuery);  
+
+
+  jQuery(function() {
+    jQuery( document ).tooltip({
+      track: true
+    });
+  });
+
