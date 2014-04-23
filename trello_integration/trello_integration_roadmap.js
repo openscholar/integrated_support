@@ -119,6 +119,12 @@ Drupal.behaviors.trello_integration_roadmap = {
     } else {
       $.getJSON(settings.ajax_path + '/closed/' + settings.milestone, '', display_closed);
     }
+    
+    // This is a hack to keep us from overridding the menu_link TPL just for this page
+    $('#tasks li').has('a[href^="/theopenscholar/roadmap"]').attr('title',"Roadmap Tooltip");
+    $('#tasks li').has('a[href^="/theopenscholar/roadmap/planned"]').attr('title',"Planned Tooltip");
+    $('#tasks li').has('a[href^="/theopenscholar/roadmap/archive"]').attr('title',"Archive Tooltip");
+    $('#tasks li').has('a[href^="/theopenscholar/roadmap/to-review"]').attr('title',"Review Tooltip");
   }
 };
 
