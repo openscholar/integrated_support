@@ -21,9 +21,8 @@ Drupal.behaviors.trello_integration_roadmap = {
     $('#roadmap-legend > form > label > input').change(function(e) {
       //If everybody is unchecked, filtering is off.  Show all the things!
       $unchecked = $('#roadmap-legend > form > label > input:not(:checked)');
-      $checked = $('#roadmap-legend > form > label > input:checked');
 
-      if ($unchecked.length == 6 || $checked.length == 6) {   
+      if ($unchecked.length == 6) {   
         $('ul.ticket-list li > div').show();
       } else {
         //show/hide according to the checkboxes
@@ -32,9 +31,9 @@ Drupal.behaviors.trello_integration_roadmap = {
         $('#roadmap-legend > form > label > input').each(function(){
           $this = $(this);
           if ($this.attr('checked')) {
-            $sel.find('div.' + $this.attr('name').toLowerCase()).hide();
-          } else {
             $sel.find('div.' + $this.attr('name').toLowerCase()).show();
+          } else {
+            $sel.find('div.' + $this.attr('name').toLowerCase()).hide();
           }
         });
       }
