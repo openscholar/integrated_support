@@ -715,7 +715,7 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $label_n
       $links = array('<a href="'.$ticket->at_sfn.'" class="gs-link">'.$ticket->subject.'</>');
       if ($mapped->rowCount()) {
         $row = $mapped->fetchCol();
-        $links = array_merge($links, array_map(function($i) {$gh = github_integration_issue($i); return '<a href="'.$gh['html_url'].'" class="gh-link">'.$issue['title']."</>";}, $row));
+        $links = array_merge($links, array_map(function($i) {$gh = github_integration_issue($i); return '<a href="'.$gh['html_url'].'" class="gh-link">View or participate in the full discussion</a>';}, $row));
       }
 
       $return = array(
