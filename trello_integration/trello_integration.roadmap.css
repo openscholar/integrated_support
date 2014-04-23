@@ -65,7 +65,7 @@ ul.primary li a.active {
      padding-top: 12px !important;
 }
 
-
+/* DISABLE THE QUES ICONS FOR NOW
 ul.primary li:nth-of-type(3) a {
      background:url('images/ques-icon.png') 65px 4px no-repeat;
 
@@ -74,7 +74,7 @@ ul.primary li:nth-of-type(3) a {
 ul.primary li:nth-of-type(4) a {
      background:url('images/ques-icon.png') 110px 4px no-repeat;
 }
-
+*/
 
 .milestone-wrapper .item-list {
      background-color: white;
