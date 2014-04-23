@@ -790,6 +790,7 @@ function github_integration_trello_webhook($event, $data) {
         // if there's no link to a github issue, we need to fall through and create a new issue
       }
     case 'createCard':
+      // Verify that this was moved into a valid milestone.
       if (_github_integration_milestone_get_id($data['milestone'])) {
         // Do not create a GH issue if one exists.
         if(!count(integrated_support_get_links('trello',$data['trello_id'],'github'))) {

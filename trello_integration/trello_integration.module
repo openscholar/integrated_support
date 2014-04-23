@@ -233,7 +233,7 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
       'popup' => array(
         '#prefix' => '<div class="roadmap-popup-text">',
         'text' => array(
-          '#markup' => check_markup($card->desc, 'filtered_html'),
+          '#markup' => $card->descData,
         ),
         '#suffix' => '</div>',
       )
@@ -354,7 +354,7 @@ function trello_integration_roadmap($page = 'current') {
         '#suffix' => '</div>',
         '#weight' => 2
       );
-      $output['sidebar']['hotfix'] += trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
+      $output['sidebar']['hotfix']  += trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
 
       break;
     case 'planned':
@@ -432,8 +432,13 @@ function trello_integration_roadmap($page = 'current') {
       '#markup' => '<a class="twitter-timeline" href="https://twitter.com/osharvardstatus" data-widget-id="457247458108506112">Tweets by @osharvardstatus</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?\'http\':\'https\';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>',
       '#weight' => 1,
-    )
+    ),
+    '#weight' => 100,
   );
+
+  if(isset($output['columns'])) {
+    $output['columns']['#weight'] = 10;
+  }
 
   return $output;
 }
@@ -575,7 +580,7 @@ function trello_integration_ticket_sync() {
         if ($card) {
           $gh_issue_link = FALSE;
           //Check if there is already a GH issue with this GS topic.
-          if($service == 'getsatisfaction' && ($gh_issue_link = _getsatisfaction_integration_linked_issue($card['id']))) {
+          if($service == 'getsatisfaction' && ($gh_issue_link = _getsatisfaction_integration_linked_issue($card['id'], FALSE))) {
             // See if this is already in a milestone.
             $results = db_select('getsatisfaction_service_map', 'gs')
             ->condition('id', $card['id'])
@@ -651,7 +656,7 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $label_n
       $body = (isset($ticket['body'])) ? $ticket['body'] : $ticket['body_html'];
       $return = array(
         'name' => $ticket['title'],
-        'desc' => $ticket['html_url'] . "\n\n" . _trello_integration_html_to_markdown($body),
+        'desc' => _trello_integration_html_to_markdown($ticket['html_url'] . "\n\n" .$body),
         'id' => $ticket['number'],
       );
 
@@ -676,15 +681,15 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $label_n
         ->fields('gs', array('external_id'))
         ->execute();
 
-      $links = array($ticket->at_sfn);
+      $links = array('<a href="'.$ticket->at_sfn.'" class="gs-link">'.$ticket->subject.'</>');
       if ($mapped->rowCount()) {
         $row = $mapped->fetchCol();
-        $links = array_merge($links, array_map(function($i) {$gh = github_integration_issue($i); return $gh['html_url'];}, $row));
+        $links = array_merge($links, array_map(function($i) {$gh = github_integration_issue($i); return '<a href="'.$gh['html_url'].'" class="gh-link">'.$issue['title']."</>";}, $row));
       }
 
       $return = array(
         'name' => $ticket->subject,
-        'desc' => implode("\n", $links) . "\n\n--\n\n" . _trello_integration_html_to_markdown($ticket->content),
+        'desc' => _trello_integration_html_to_markdown(implode("\n", $links)."\n--\n".$ticket->content),
         'id' => $ticket->id,
       );
       break;
