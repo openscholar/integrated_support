@@ -19,6 +19,7 @@ function trello_integration_menu() {
       'page callback' => 'trello_integration_roadmap',
       'page arguments' => array('current'),
       'access arguments' => array('access content'),
+      'description' => "Tooltip for the InDev tab",
       'type' => MENU_DEFAULT_LOCAL_TASK,
       'weight' => 0,
     ),
@@ -27,6 +28,7 @@ function trello_integration_menu() {
       'page callback' => 'trello_integration_roadmap',
       'page arguments' => array('planned'),
       'access arguments' => array('access content'),
+      'description' => "Tooltip for the Planned tab",
       'type' => MENU_LOCAL_TASK,
       'weight' => 10,
     ),
@@ -35,6 +37,7 @@ function trello_integration_menu() {
       'page callback' => 'trello_integration_roadmap',
       'page arguments' => array('archive'),
       'access arguments' => array('access content'),
+      'description' => "Tooltip for the Past imporvements tab",
       'type' => MENU_LOCAL_TASK,
       'weight' => -10,
     ),
@@ -43,6 +46,7 @@ function trello_integration_menu() {
       'page callback' => 'trello_integration_roadmap',
       'page arguments' => array('to-review'),
       'access arguments' => array('access content'),
+      'description' => "Tooltip for the TBR tab",
       'type' => MENU_LOCAL_TASK,
       'weight' => 20,
     ),
@@ -307,6 +311,9 @@ function trello_integration_roadmap($page = 'current') {
   // Include the dialog UI even if you are not an Admin.
   drupal_add_library('system', 'ui.dialog');
 
+  //Include the tooltip library for tooltips
+  drupal_add_library('system', 'ui.tooltip');
+
   $roadmap = variable_get('trello_integration_roadmap');
   list(,,,,$roadmap_id) = explode('/', $roadmap);
   $all_lists = array_keys(_trello_integration_get_lists($roadmap_id));
@@ -340,7 +347,7 @@ function trello_integration_roadmap($page = 'current') {
       $options = array_values(variable_get('getsatisfaction_roadmap_status_labels'));
       $checkboxes = array_reduce($options, function($ret, $s) {
         $txt = ($s == 'Development') ? 'Dev' : $s;
-        $ret[$s] = array('#markup' => "<label class='".strtolower($s)."'><input type='checkbox' name='$s' value='$s' /><span>$txt</span></label>");
+        $ret[$s] = array('#markup' => "<label class='".strtolower($s)."'><input type='checkbox' name='$s' value='$s' /><span title='This is the {$txt} tooltip'>$txt</span></label>");
         return $ret;
       });
 
