@@ -121,10 +121,10 @@ Drupal.behaviors.trello_integration_roadmap = {
     }
     
     // This is a hack to keep us from overridding the menu_link TPL just for this page
-    $('#tasks li').has('a[href^="/theopenscholar/roadmap"]').attr('title',"Roadmap Tooltip");
-    $('#tasks li').has('a[href^="/theopenscholar/roadmap/planned"]').attr('title',"Planned Tooltip");
-    $('#tasks li').has('a[href^="/theopenscholar/roadmap/archive"]').attr('title',"Archive Tooltip");
-    $('#tasks li').has('a[href^="/theopenscholar/roadmap/to-review"]').attr('title',"Review Tooltip");
+    $('#tasks li').has('a[href^="/theopenscholar/roadmap"]').attr('title',"Issue currently being worked on.");
+    $('#tasks li').has('a[href^="/theopenscholar/roadmap/planned"]').attr('title',"These issues have been reviewed and are listed in order of priority. If you feel something needs a different level of priority, please join the conversation and let us know.");
+    $('#tasks li').has('a[href^="/theopenscholar/roadmap/archive"]').attr('title',"Issues worked on in past releases.");
+    $('#tasks li').has('a[href^="/theopenscholar/roadmap/to-review"]').attr('title',"These issues have been received but not yet reviewed.");
   }
 };
 
