@@ -256,11 +256,11 @@ display: block;
 
 #roadmap-legend label input:not(:checked) + span {
      background: #CCCCCC;
-     color: #FFF;
+     color: #222;
 }
 
 #roadmap-legend label span:hover {
-     color: #222 ! important;
+     color: #FFF ! important;
      cursor: pointer;
 }
 
@@ -275,7 +275,7 @@ display: block;
 
 #roadmap-legend label span, 
 #roadmap-legend input + span {
-     color: #222;
+     color: #FFF;
      display: inline-block;
      font-family: Arial;
      font-size: 12px;
