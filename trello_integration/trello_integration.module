@@ -367,7 +367,7 @@ function trello_integration_roadmap($page = 'current') {
           break;
 		}
 
-        $ret[$s] = array('#markup' => "<label class='".strtolower($s)."'><input type='checkbox' name='$s' value='$s' /><span title='{$tooltip}'>$txt</span></label>");
+        $ret[$s] = array('#markup' => "<label class='".strtolower($s)."'><input type='checkbox' name='$s' value='$s' /><span title=\"{$tooltip}\">$txt</span></label>");
         return $ret;
       });
 
