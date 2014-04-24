@@ -350,7 +350,7 @@ function trello_integration_roadmap($page = 'current') {
           case 'Design':
             $tooltip = "Our designers are hard at work.";
           break;
-          case 'Dev':
+          case 'Development':
             $tooltip = "Serious coding going on now.";
           break;
           case 'Review':
