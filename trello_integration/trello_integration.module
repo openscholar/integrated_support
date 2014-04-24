@@ -345,7 +345,7 @@ function trello_integration_roadmap($page = 'current') {
         $txt = ($s == 'Development') ? 'Dev' : $s;
         switch ($s) {
           case 'Pending':
-            $tooltip = "We\'re waiting on something else to happen before we can work on this.";
+            $tooltip = "We're waiting on something else to happen before we can work on this.";
           break;
           case 'Design':
             $tooltip = "Our designers are hard at work.";
@@ -354,7 +354,7 @@ function trello_integration_roadmap($page = 'current') {
             $tooltip = "Serious coding going on now.";
           break;
           case 'Review':
-            $tooltip = "We\'re checking eachother\'s code work to ensure it will all work together.";
+            $tooltip = "We're checking eachother's code work to ensure it will all work together.";
           break;
           case 'Testing':
             $tooltip = "Double-checking that everything works as expected.";
