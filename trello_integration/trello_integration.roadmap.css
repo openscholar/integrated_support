@@ -134,7 +134,6 @@ ul.primary li:nth-of-type(4) a {
 /* TWITTER BLOCK IN ROADMAP PAGE */
 #os-twitter {
 	background:#F3F3F3;
-     border:1px solid #F15307;
      margin-bottom: 20px;
 }
 /*
@@ -299,11 +298,11 @@ ul.ticket-list > li > a.pending {
 #roadmap-legend label.pending input:checked + span {
      
      background: #FF0000;
-     border-bottom: 3px solid #FF0000;
+     border-bottom: 4px solid #FF0000;
 }
 
 #roadmap-legend label.pending input:not(:checked) + span {
-    border-bottom: 3px solid #FF0000;
+    border-bottom: 4px solid #FF0000;
    background: #CCCCCC;
 }
 
@@ -316,11 +315,11 @@ ul.ticket-list div.roadmap-item.design {
 #roadmap-legend label.design input:checked + span {
      
       background: #28aae1;
-     border-bottom: 3px solid #28aae1;
+     border-bottom: 4px solid #28aae1;
 }
 
 #roadmap-legend label.design input:not(:checked) + span {
-     border-bottom: 3px solid #28aae1;
+     border-bottom: 4px solid #28aae1;
     background: #CCC;
 }
 
@@ -333,11 +332,11 @@ ul.ticket-list div.roadmap-item.development {
 #roadmap-legend label.development input:checked + span {
     
      background: #E9C21B;
-     border-bottom: 3px solid #E9C21B;
+     border-bottom: 4px solid #E9C21B;
 }
 
 #roadmap-legend label.development input:not(:checked) + span {
-     border-bottom: 3px solid #E9C21B;
+     border-bottom: 4px solid #E9C21B;
       background: #CCC;
 }
 
@@ -350,11 +349,11 @@ ul.ticket-list div.roadmap-item.review {
 #roadmap-legend label.review input:checked + span {
      
       background: #E75D0F;
-     border-bottom: 3px solid #E75D0F;
+     border-bottom: 4px solid #E75D0F;
 }
 
 #roadmap-legend label.review input:not(:checked) + span {
-     border-bottom: 3px solid #E75D0F;
+     border-bottom: 4px solid #E75D0F;
      background: #CCC;
 }
 
@@ -366,11 +365,11 @@ ul.ticket-list div.roadmap-item.testing {
 #roadmap-legend label.testing input:hover:not(:checked) + span, 
 #roadmap-legend label.testing input:checked + span {
      background: #0a0;
-     border-bottom: 3px solid #0a0;
+     border-bottom: 4px solid #0a0;
 }
 
 #roadmap-legend label.testing input:not(:checked) + span {
-     border-bottom: 3px solid #0a0;
+     border-bottom: 4px solid #0a0;
      background: #CCC;
 }
 
@@ -382,11 +381,11 @@ ul.ticket-list div.roadmap-item.done {
 #roadmap-legend label.done input:hover:not(:checked) + span, 
 #roadmap-legend label.done input:checked + span {
      background: #000;
-     border-bottom: 3px solid #000;
+     border-bottom: 4px solid #000;
 }
 
 #roadmap-legend label.done input:not(:checked) + span {
-     border-bottom: 3px solid #000;
+     border-bottom: 4px solid #000;
     background: #CCC;
 }
 
