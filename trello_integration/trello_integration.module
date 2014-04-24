@@ -354,7 +354,7 @@ function trello_integration_roadmap($page = 'current') {
             $tooltip = "Serious coding going on now.";
           break;
           case 'Review':
-            $tooltip = "We're checking eachother's code work to ensure it will all work together.";
+            $tooltip = "We're checking each other's code to make sure it meet our standards.";
           break;
           case 'Testing':
             $tooltip = "Double-checking that everything works as expected.";
