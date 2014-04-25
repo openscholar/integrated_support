@@ -689,7 +689,8 @@ function getsatisfaction_integration_trello_webhook($event, $data) {
 
       break;
     case 'updateCardMilestone':
-      if ($data['milestone'] != variable_get('trello_integration_default_list')) {
+      // If this was moved to a valid GH Milestone (Not Backlog or Pending Review) then update the ticket.
+      if (_github_integration_milestone_get_id($data['milestone'])) {
         $milestone = $data['milestone'];
         // get getsatisfaction links
         $links = integrated_support_get_links('trello', $data['trello_id'], 'getsatisfaction');
@@ -698,7 +699,7 @@ function getsatisfaction_integration_trello_webhook($event, $data) {
           //update getsatisfaction
           $id = $l['id'];
           watchdog('getsatisfaction', 'topic @id needs milestone update: "@milestone"', array('@id' => $id, '@milestone' => $milestone));
-          $reply = 'This request has been scheduled to be part of our ' . $milestone . ' release. See more details at the <a href="http://theopenscholar.org/roadmap#'._trello_integration_milestone_url($data['title']).'">roadmap</a>';
+          $reply = 'This request has been scheduled to be part of our ' . $milestone . ' release. See more details on the <a href="http://theopenscholar.org/roadmap#'._trello_integration_milestone_url($data['title']).'">roadmap</a>';
           $updated = $client->api('topic')->call('reply', array('id' => $id, 'reply' => array('content' => $reply)));
         }
       }
