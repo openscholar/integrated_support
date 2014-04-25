@@ -705,22 +705,27 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $label_n
       break;
 
     case 'getsatisfaction':
-      //if we have a mapping, get the github link as well.
-      $mapped = db_select('getsatisfaction_service_map', 'gs')
+
+      $links = array("[View or participate in the full discussion]({$ticket->at_sfn})");
+
+      //By default we don't include GH links on the top of trello cards.
+      if(variable_get('trello_integration_add_ghlink_to_card', FALSE)) {
+        //if we have a mapping, get the github link as well.
+        $mapped = db_select('getsatisfaction_service_map', 'gs')
         ->condition('id', $ticket->id)
         ->condition('external_service', 'github_integration')
         ->fields('gs', array('external_id'))
         ->execute();
 
-      $links = array('<a href="'.$ticket->at_sfn.'" class="gs-link">'.$ticket->subject.'</>');
-      if ($mapped->rowCount()) {
-        $row = $mapped->fetchCol();
-        $links = array_merge($links, array_map(function($i) {$gh = github_integration_issue($i); return '<a href="'.$gh['html_url'].'" class="gh-link">View or participate in the full discussion</a>';}, $row));
+        if ($mapped->rowCount()) {
+          $row = $mapped->fetchCol();
+          $links = array_merge($links, array_map(function($i) {$gh = github_integration_issue($i); return '['.$gh['title'].']('.$gh['html_url'].')';}, $row));
+        }
       }
 
       $return = array(
         'name' => $ticket->subject,
-        'desc' => _trello_integration_html_to_markdown(implode("\n", $links)."\n<b>The Plan</b>\n".$ticket->content),
+        'desc' => implode("\n", $links)."\n\n**The Plan**\n\n"._trello_integration_html_to_markdown($ticket->content),
         'id' => $ticket->id,
       );
       break;
