@@ -725,7 +725,7 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $label_n
 
       $return = array(
         'name' => $ticket->subject,
-        'desc' => implode("\n", $links)."\n\n**Description**\n\n"._trello_integration_html_to_markdown($ticket->content),
+        'desc' => implode("\n", $links)."\n\n**The Plan**\n\n[coming soon]\n\n**Description**\n\n"._trello_integration_html_to_markdown($ticket->content),
         'id' => $ticket->id,
       );
       break;
