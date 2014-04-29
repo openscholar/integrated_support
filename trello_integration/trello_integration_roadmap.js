@@ -97,7 +97,7 @@ Drupal.behaviors.trello_integration_roadmap = {
     var display_closed = function(data) {
       $('.get-status[data-gh-id]').each(function() {
         var $this = $(this);
-        var id = $this.attr('data-gh-id');
+        var id = parseInt($this.attr('data-gh-id'));
         if ($.inArray(id, data) > -1) {
           $this.addClass('done')
             .removeClass('get-status');
