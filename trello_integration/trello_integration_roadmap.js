@@ -95,9 +95,9 @@ Drupal.behaviors.trello_integration_roadmap = {
      * Closed tickets have their own ajax call.  Mark them as done as well.
      */
     var display_closed = function(data) {
-      $('a.get-status').each(function() {
+      $('.get-status[data-gh-id]').each(function() {
         var $this = $(this);
-        var id = parseInt($this.attr('id').split('-')[2]);
+        var id = $this.attr('data-gh-id');
         if ($.inArray(id, data) > -1) {
           $this.addClass('done')
             .removeClass('get-status');
