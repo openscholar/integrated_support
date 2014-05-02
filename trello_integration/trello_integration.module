@@ -213,7 +213,7 @@ function trello_integration_roadmap_columns($list_name, $list_id, $labels = arra
 function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
   $list_data = array();
   libraries_load('php-markdown');
-dpm($cards);
+
   foreach ($cards as $card) {
     //choose a list bucket.
     @list($label) = array_map(function($o) {return $o->name;}, $card->labels); //only use first label.  ambiguities can be fixed in trello.
