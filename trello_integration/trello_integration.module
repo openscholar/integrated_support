@@ -13,6 +13,7 @@ function trello_integration_menu() {
       'title' => 'Roadmap',
       'page callback' => 'trello_integration_roadmap',
       'access arguments' => array('access content'),
+    	'page arguments' => variable_get('integrated_support_in_planning',FALSE)? array('planned') : array('current'),
     ),
     'roadmap/current' => array(
       'title' => variable_get('integrated_support_in_planning',FALSE)?'Last Release':'In Development',
