@@ -395,12 +395,11 @@ function trello_integration_roadmap($page = 'current') {
       $list_name = 'Backlog';
       if(variable_get('integrated_support_planning_text',FALSE)) {
       	$output['planning_text'] = array(
-	      	'#weight' => -10,
-	      	'#prefix' => '<div id="roadmap-info">',
-	      	'#suffix' => '</div>',
-	      	'#type' => 'markup',
-	        '#markup' => variable_get('integrated_support_planning_text',FALSE),
-	      );
+      			'#weight' => -10,
+      			'#prefix' => '<div id="roadmap-info" class="planning"><span id="planning-text">',
+      			'#suffix' => '</span></div>',
+      			'#markup' => variable_get('integrated_support_planning_text',FALSE),
+      	);
       }
       
       break;
