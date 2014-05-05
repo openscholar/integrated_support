@@ -334,7 +334,7 @@ function trello_integration_roadmap($page = 'current') {
       asort($timestamps);
       $list_name = $milestones[key($timestamps)];
 
-      $planning_text = (variable_get('integrated_support_in_planning',FALSE)) ? "<span class='planning'><br />".variable_get('trello_integration_released_text',"This release has gone live.  We are performing any needed<br> stabilization and preparing for the next release.")."</span>":"";
+      $planning_text = (variable_get('integrated_support_in_planning',FALSE) && variable_get('trello_integration_released_text',TRUE)) ? "<span class='planning'><br />".variable_get('trello_integration_released_text',"This release has gone live.  We are performing any needed<br> stabilization and preparing for the next release.")."</span>":"";
       //If we are adding extra text shift the text up a little.
       $extra_room = $planning_text?" class='shift-up' ":"";
       $output['milestone'] = array(
