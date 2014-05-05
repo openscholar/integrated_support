@@ -164,12 +164,6 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status, $mi
   }
 
   $client = getsatisfaction_integration_client();
-  $update = array(
-    'id' => $topic_id,
-    'topic' => array(
-      'status' => $status,
-    ),
-  );
 
   //send a reply when the topic is set to copmlete.
   if ($status == 'complete') {
@@ -193,7 +187,7 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status, $mi
     }
   }
 
-  //$topic = $client->api('topic')->call('status', $update); //do you return the topic?
+  $topic = $client->topic()->topic($topic_id);
   _getsatisfaction_integration_update_topic_table($topic);
   return $topic;
 }
