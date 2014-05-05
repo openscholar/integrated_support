@@ -334,11 +334,12 @@ function trello_integration_roadmap($page = 'current') {
       asort($timestamps);
       $list_name = $milestones[key($timestamps)];
 
+      $planning_text = (variable_get('integrated_support_in_planning',FALSE)) ? "<br />".variable_get('trello_integration_released_text',"This release has gone live.  We are performing any needed stabilization and preparing for the next release."):"";
       $output['milestone'] = array(
         '#weight' => -10,
         '#prefix' => '<div id="roadmap-info">',
         '#suffix' => '</div>',
-        '#markup' => t('Estimated Release Date: @date', array('@date' => $list_name))
+        '#markup' => t('Estimated Release Date: @date', array('@date' => $list_name)).$planning_text;
       );
 
       //legend.

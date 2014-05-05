@@ -135,6 +135,11 @@ ul.primary li:nth-of-type(4) a {
   position: relative;
   top: 0;
   font-weight: normal;
+  margin-bottom: 10px;
+}
+
+#roadmap-info.planning, #roadmap-info .planning {
+	font-weight: normal;
 }
 
 /* TWITTER BLOCK IN ROADMAP PAGE */
