@@ -15,11 +15,11 @@ function trello_integration_menu() {
       'access arguments' => array('access content'),
     ),
     'roadmap/current' => array(
-      'title' => 'In Development',
+      'title' => variable_get('integrated_support_in_planning',FALSE)?'Last Release':'In Development',
       'page callback' => 'trello_integration_roadmap',
       'page arguments' => array('current'),
       'access arguments' => array('access content'),
-      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'type' => variable_get('integrated_support_in_planning',FALSE)? MENU_LOCAL_TASK : MENU_DEFAULT_LOCAL_TASK,
       'weight' => 0,
     ),
     'roadmap/planned' => array(
@@ -27,7 +27,7 @@ function trello_integration_menu() {
       'page callback' => 'trello_integration_roadmap',
       'page arguments' => array('planned'),
       'access arguments' => array('access content'),
-      'type' => MENU_LOCAL_TASK,
+      'type' => variable_get('integrated_support_in_planning',FALSE)? MENU_DEFAULT_LOCAL_TASK : MENU_LOCAL_TASK,
       'weight' => 10,
     ),
     'roadmap/archive' => array(
@@ -392,6 +392,16 @@ function trello_integration_roadmap($page = 'current') {
     case 'planned':
       // we know this list already
       $list_name = 'Backlog';
+      if(variable_get('integrated_support_planning_text',FALSE)) {
+      	$output['planning_text'] = array(
+	      	'#weight' => -10,
+	      	'#prefix' => '<div id="roadmap-info">',
+	      	'#suffix' => '</div>',
+	      	'#type' => 'markup',
+	        '#markup' => variable_get('integrated_support_planning_text',FALSE),
+	      );
+      }
+      
       break;
     case 'to-review':
       // this one too

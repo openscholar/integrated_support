@@ -20,7 +20,19 @@ function integrated_support_admin_form($form, &$state) {
       '#title' => t('Force API caching'),
       '#description' => t('Integrated Support makes frequent API calls.  This setting will force those results to be cached for a number of seconds, regardless of what the API service\'s cache control headers say.'),
       '#default_value' => variable_get('integrated_support_force_cache', FALSE),
-    )
+    ),
+  	'integrated_support_in_planning' => array(
+  	  '#type' => 'checkbox',
+  	  '#title' => t('In Planning Week'),
+  	  '#description' => t('Are we in planning week? If so change "In Development" to "Last Release" and make planning the default.'),
+  	  '#default_value' => variable_get('integrated_support_in_planning', FALSE),
+    ),
+    'integrated_support_planning_text' => array(
+  		'#type' => 'textarea',
+  		'#title' => t('Text to describe the planning tab.'),
+  		'#description' => t('Shows at the top of the planning tab, maybe has a link to a google doc or somthing.'),
+  	  '#default_value' => variable_get('integrated_support_planning_text', FALSE),
+  	),
   );
 
   $info = module_invoke_all('integrated_support_info');
@@ -75,6 +87,15 @@ function integrated_support_admin_form_submit($form, &$state) {
 
   if (isset($state['values']['integrated_support_force_cache'])) {
     variable_set('integrated_support_force_cache', $state['values']['integrated_support_force_cache']);
+  }
+  
+  if (isset($state['values']['integrated_support_in_planning'])) {
+  	variable_set('menu_rebuild_needed', TRUE);
+  	variable_set('integrated_support_in_planning', $state['values']['integrated_support_in_planning']);
+  }
+  
+  if (isset($state['values']['integrated_support_planning_text'])) {
+  	variable_set('integrated_support_planning_text', $state['values']['integrated_support_planning_text']);
   }
 }
 
