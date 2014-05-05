@@ -194,8 +194,8 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status, $mi
   }
 
   //$topic = $client->api('topic')->call('status', $update); //do you return the topic?
-  _getsatisfaction_integration_update_topic_table($topic);
-  return $topic;
+  _getsatisfaction_integration_update_topic_table($topic_id);
+  return $topic_id;
 }
 
 
