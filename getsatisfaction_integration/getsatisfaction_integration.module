@@ -651,7 +651,7 @@ function getsatisfaction_integration_trello_webhook($event, $data) {
     case 'updateCardDescription':
       // parse the description for getsatisfaction URLs and create/delete linkages as appropriate
       $old_links = integrated_support_get_links('trello', $data['trello_id'], 'getsatisfaction');
-      $regex = '|http://community.openscholar.harvard.edu/openscholar/topics/[A-Za-z_-]+|';
+      $regex = '~http:\/\/(community\.openscholar\.harvard\.edu|getsatisfaction\.com)\/openscholar\/topics\/[A-Za-z_-]+~';
       preg_match_all($regex, $data['description'], $new_links);
 
       $old = array();
