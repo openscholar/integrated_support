@@ -164,6 +164,12 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status, $mi
   }
 
   $client = getsatisfaction_integration_client();
+  $update = array(
+    'id' => $topic_id,
+    'topic' => array(
+      'status' => $status,
+    ),
+  );
 
   //send a reply when the topic is set to copmlete.
   if ($status == 'complete') {
@@ -187,7 +193,7 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status, $mi
     }
   }
 
-  $topic = $client->topic()->topic($topic_id);
+  $topic = $client->api('topic')->call('status', $update); //do you return the topic?
   _getsatisfaction_integration_update_topic_table($topic);
   return $topic;
 }
@@ -645,7 +651,7 @@ function getsatisfaction_integration_trello_webhook($event, $data) {
     case 'updateCardDescription':
       // parse the description for getsatisfaction URLs and create/delete linkages as appropriate
       $old_links = integrated_support_get_links('trello', $data['trello_id'], 'getsatisfaction');
-      $regex = '|http://community.openscholar.harvard.edu/openscholar/topics/[\s]+|';
+      $regex = '~http:\/\/(community\.openscholar\.harvard\.edu|getsatisfaction\.com)\/openscholar\/topics\/[A-Za-z_-]+~';
       preg_match_all($regex, $data['description'], $new_links);
 
       $old = array();
