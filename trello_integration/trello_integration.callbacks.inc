@@ -59,6 +59,7 @@ function trello_integration_webhook_handler() {
           $data = $action->data->card;
           $card = array(
             'trello_id' => $data->id,
+            'title' => $data->name,
             'description' => $data->desc,
           );
           module_invoke_all('trello_webhook', 'updateCardDescription', $card);

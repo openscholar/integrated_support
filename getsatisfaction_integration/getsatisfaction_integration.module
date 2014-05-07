@@ -672,6 +672,8 @@ function getsatisfaction_integration_trello_webhook($event, $data) {
         $new[] = $topic->id;
       }
 
+      $new = array_unique($new);
+
       $add = array_diff($new, $old);
       $remove = array_diff($old, $new);
 
