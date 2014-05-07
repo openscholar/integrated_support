@@ -508,6 +508,54 @@ function trello_integration_integrated_support_webhook($trello_id, $service, $se
 }
 
 /**
+ *
+ */
+function trello_integration_integrated_support_event($event, $payload) {
+
+  $return = array();
+  switch ($event) {
+    case 'github_issue':
+      // check the issue for a 'new ticket' flag
+      $import = variable_get('trello_integration_import', array());
+      if (empty($import)) return;
+
+      // there's already a card for this issue. Do nothing.
+      $links = integrated_support_get_links('github', $payload['id'], 'trello');
+      if (!empty($links)) return;
+
+      $board = variable_get('trello_integration_intake');
+      if (!$board) {
+        return; //intake board is not enabled.
+      }
+      list(,,,,$board_id) = explode('/', $board);
+
+      $client = trello_integration_client();
+
+      foreach ($import as $label_name => $import) {
+        if (!isset($import['github'])) continue;
+
+        $search = $import['github']['labels'];
+        if (in_array($search, $payload['labels'])) {
+          list($payload['html_url'],) = explode('#', $payload['url']);
+          $card = _trello_integration_prepare_card($board_id, 'github', $payload, $label_name, $payload['milestone']);
+          $card = $client->card()->create($card);
+
+          if ($card == FALSE) {
+            watchdog('trello', t('Error sending card from @service to Trello.', array('@service' => $service)));
+            watchdog('trello', $trello->error());
+          }
+          else {
+            integrated_support_link_services($card['name'], 'trello', $card->id, 'github', $payload['id']);
+          }
+        }
+      }
+    break;
+  }
+
+  return $return;
+}
+
+/**
  * @function trello_integration_callback
  *
  * Callback URL for trello webhooks
@@ -701,7 +749,7 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $label_n
       $body = (isset($ticket['body'])) ? $ticket['body'] : $ticket['body_html'];
       $return = array(
         'name' => $ticket['title'],
-        'desc' => _trello_integration_html_to_markdown($ticket['html_url'] . "\n\n" .$body),
+        'desc' => _trello_integration_html_to_markdown('['.$ticket['html_url'].']('.$ticket['html_url'] . "')\n\n" .$body),
         'id' => $ticket['number'],
       );
 

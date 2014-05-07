@@ -180,6 +180,7 @@ function github_integration_github_issue_process($body) {
       'state' => (in_array($json->action, array('closed', 'reopened'))) ? $json->action : $json->issue->state,
       'title' => $json->issue->title,
       'labels' => array_map(create_function('$a', 'return $a->name;'), $json->issue->labels),
+      'body' => $json->issue->body,
       'type' => 'issue',
     );
 
