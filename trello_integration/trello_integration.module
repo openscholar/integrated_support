@@ -530,6 +530,7 @@ function trello_integration_integrated_support_event($event, $payload) {
       list(,,,,$board_id) = explode('/', $board);
 
       $client = trello_integration_client();
+      $imported = variable_get('trello_integration_cards_imported');
 
       foreach ($import as $label_name => $import) {
         if (!isset($import['github'])) continue;
@@ -546,6 +547,10 @@ function trello_integration_integrated_support_event($event, $payload) {
           }
           else {
             integrated_support_link_services($card['name'], 'trello', $card->id, 'github', $payload['id']);
+            if ($imported['label_name'] < $payload['id']) {
+              $imported['label_name'] = $payload['id'];
+              variable_set('trello_integration_cards_imported', $imported);
+            }
           }
         }
       }
