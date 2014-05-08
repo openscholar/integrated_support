@@ -172,7 +172,7 @@ function trello_integration_roadmap_columns($list_name, $list_id, $labels = arra
     $arguments = array(
       'members' => true,
     );
-    $cards = $trello->lists($list_id)->cards()->get($arguments);
+    $cards = $trello->lists($list_id)->cards()->get(NULL, $arguments);
 
     // cache this so we can call this function multiple times if necessary without occuring a performance hit
     $data[$list_id] = trello_integration_roadmap_columns_cards_data($cards, $list_name);
