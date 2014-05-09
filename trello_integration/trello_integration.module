@@ -325,21 +325,30 @@ function trello_integration_roadmap($page = 'current') {
 
   $output['sidebar'] = array();
 
+  //get milestones.  backlog isn't a milestone, so we don't have to skip it.
+  $milestones = array_reduce(github_integration_milestones(array('direction' => 'asc')), function($ret, $a) {
+    $ret[ $a['number'] ] = $a['title']; return $ret;
+  });
+
+  $timestamps = array_map(function ($i) {
+    return strtotime($i);
+  }, $milestones);
+  asort($timestamps);
+  $list_name = $milestones[key($timestamps)];
+
+  // the hotfix list
+  $current_list = _trello_integration_get_lists($roadmap_id, $list_name);
+  $hotfix = array(
+    '#prefix' => '<div id="os-hotfixes">',
+    '#suffix' => '</div>',
+    '#weight' => 2
+  );
+  $hotfix  += trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
+
   switch ($page) {
     case 'current':
       // figure out what 'current' means.
       // should be the list with the next upcoming date
-
-      //get milestones.  backlog isn't a milestone, so we don't have to skip it.
-      $milestones = array_reduce(github_integration_milestones(array('direction' => 'asc')), function($ret, $a) {
-        $ret[ $a['number'] ] = $a['title']; return $ret;
-      });
-
-      $timestamps = array_map(function ($i) {
-        return strtotime($i);
-      }, $milestones);
-      asort($timestamps);
-      $list_name = $milestones[key($timestamps)];
 
       $planning_text = (variable_get('integrated_support_in_planning',FALSE) && variable_get('trello_integration_released_text',TRUE)) ? "<span class='planning'><br />".variable_get('trello_integration_released_text',"This release has gone live.  We are performing any needed<br> stabilization and preparing for the next release.")."</span>":"";
       //If we are adding extra text shift the text up a little.
@@ -390,15 +399,6 @@ function trello_integration_roadmap($page = 'current') {
         '#weight' => -100,
       );
 
-      // the hotfix list
-      $current_list = _trello_integration_get_lists($roadmap_id, $list_name);
-      $hotfix = array(
-        '#prefix' => '<div id="os-hotfixes">',
-        '#suffix' => '</div>',
-        '#weight' => 2
-      );
-      $hotfix  += trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
-
       $output['sidebar']['hotfix'] = $hotfix;
 
       break;
@@ -413,15 +413,6 @@ function trello_integration_roadmap($page = 'current') {
       			'#markup' => variable_get('integrated_support_planning_text',FALSE),
       	);
       }
-
-      // the hotfix list
-      $current_list = _trello_integration_get_lists($roadmap_id, $list_name);
-      $hotfix = array(
-        '#prefix' => '<div id="os-hotfixes">',
-        '#suffix' => '</div>',
-        '#weight' => 2
-      );
-      $hotfix  += trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
 
       $output['sidebar']['hotfix'] = $hotfix;
       
