@@ -392,18 +392,20 @@ function trello_integration_roadmap($page = 'current') {
 
       // the hotfix list
       $current_list = _trello_integration_get_lists($roadmap_id, $list_name);
-      $output['sidebar']['hotfix'] = array(
+      $hotfix = array(
         '#prefix' => '<div id="os-hotfixes">',
         '#suffix' => '</div>',
         '#weight' => 2
       );
-      $output['sidebar']['hotfix']  += trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
+      $hotfix  += trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
+
+      $output['sidebar']['hotfix'] = $hotfix;
 
       break;
     case 'planned':
       // we know this list already
       $list_name = 'Backlog';
-      if(variable_get('integrated_support_planning_text',FALSE)) {
+      if (variable_get('integrated_support_planning_text',FALSE)) {
       	$output['planning_text'] = array(
       			'#weight' => -10,
       			'#prefix' => '<div id="roadmap-info" class="planning"><span id="planning-text">',
@@ -411,6 +413,17 @@ function trello_integration_roadmap($page = 'current') {
       			'#markup' => variable_get('integrated_support_planning_text',FALSE),
       	);
       }
+
+      // the hotfix list
+      $current_list = _trello_integration_get_lists($roadmap_id, $list_name);
+      $hotfix = array(
+        '#prefix' => '<div id="os-hotfixes">',
+        '#suffix' => '</div>',
+        '#weight' => 2
+      );
+      $hotfix  += trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
+
+      $output['sidebar']['hotfix'] = $hotfix;
       
       break;
     case 'to-review':
