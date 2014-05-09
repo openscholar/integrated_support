@@ -326,6 +326,7 @@ function trello_integration_roadmap($page = 'current') {
   $output['sidebar'] = array();
 
   //get milestones.  backlog isn't a milestone, so we don't have to skip it.
+  // do this here so we can use the current milestone to get hotfixes
   $milestones = array_reduce(github_integration_milestones(array('direction' => 'asc')), function($ret, $a) {
     $ret[ $a['number'] ] = $a['title']; return $ret;
   });
