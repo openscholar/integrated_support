@@ -137,6 +137,9 @@ function getsatisfaction_integration_integrated_support_event($event, $payload) 
 
       watchdog('getsatisfaction', 'applying @status status to topics: @ids', array('@status' => $status, '@ids' => implode(',', $ids)));
 
+      // prevent duplicate messages because of old data
+      $ids = array_unique($ids);
+
       //apply status and update milestone
       foreach ($ids as $id) {
         $return[] = getsatisfaction_integration_update_topic_status($id, $status, @$payload['milestone'], @$payload['labels']);
