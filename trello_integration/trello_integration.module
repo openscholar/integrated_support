@@ -785,7 +785,7 @@ function _trello_integration_prepare_card($board_id, $service, $ticket, $label_n
 
     case 'getsatisfaction':
 
-      $links = array("[View or participate in the full discussion]({$ticket->at_sfn})");
+      $links = array("[View or participate in the full discussion on our Community website]({$ticket->at_sfn})");
 
       //By default we don't include GH links on the top of trello cards.
       if(variable_get('trello_integration_add_ghlink_to_card', FALSE)) {
