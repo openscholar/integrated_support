@@ -220,18 +220,24 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
 
   foreach ($cards as $card) {
     //choose a list bucket.
-    @list($label) = array_map(function($o) {return $o->name;}, $card->labels); //only use first label.  ambiguities can be fixed in trello.
+    @$labels = array_map(function($o) {return $o->name;}, $card->labels); //only use first label.  ambiguities can be fixed in trello.
+
+    if (!is_array($labels)) $labels = array();
+    @list($label) = $labels;
+
+
 
     // begin the output array
     $output = array(
       '#type' => 'container',
       '#attributes' => array(
-        'class' => array(
+        'class' => array_merge(array(
           'roadmap-item',
           'get-status'
-        ),
+        ),$labels),
         'data-hash' => _trello_integration_milestone_url($card->name),
         'data-trello-shortLink' => $card->shortLink,
+
       ),
       'label' => array(
         '#markup' => '<span>'.$card->name.'</span>',
@@ -346,6 +352,15 @@ function trello_integration_roadmap($page = 'current') {
   );
   $hotfix  += trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
 
+  // The backlog list that has major intitives in it.
+  $backlog_list = _trello_integration_get_lists($roadmap_id, "Backlog");
+  $initiatives = array(
+    '#prefix' => '<div id="os-initiative">',
+    '#suffix' => '</div>',
+    '#weight' => 2
+  );
+  $initiatives  += trello_integration_roadmap_columns("Backlog", $backlog_list->id, array('Initiative'));
+
   switch ($page) {
     case 'current':
       // figure out what 'current' means.
@@ -415,8 +430,9 @@ function trello_integration_roadmap($page = 'current') {
       	);
       }
 
+      $output['sidebar']['initiatives'] = $initiatives;
       $output['sidebar']['hotfix'] = $hotfix;
-      
+
       break;
     case 'to-review':
       // this one too

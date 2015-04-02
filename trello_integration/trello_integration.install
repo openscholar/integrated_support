@@ -28,6 +28,7 @@ function _trello_integration_variable_set() {
     'Bugs' => 'red',
     'Engineering' => 'blue',
     'Hotfix' => 'orange',
+    'Initiative' => 'yellow',
   ));
 
   variable_set('trello_integration_default_list', 'Pending Review');
@@ -94,5 +95,9 @@ function _trello_integration_create_board_hook() {
 }
 
 function trello_integration_update_7005() {
+  _trello_integration_variable_set();
+}
+
+function trello_integration_update_7006() {
   _trello_integration_variable_set();
 }
