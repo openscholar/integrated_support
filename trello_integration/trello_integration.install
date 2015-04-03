@@ -28,7 +28,7 @@ function _trello_integration_variable_set() {
     'Bugs' => 'red',
     'Engineering' => 'blue',
     'Hotfix' => 'orange',
-    'Large Initiatives' => 'yellow',
+    'Initiatives' => 'yellow',
   ));
 
   variable_set('trello_integration_default_list', 'Pending Review');

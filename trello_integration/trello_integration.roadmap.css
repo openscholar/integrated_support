@@ -224,6 +224,10 @@ ul.ticket-list > li > a {
 	   position: relative;
 }
 
+ul.ticket-list > li > div.initiative {
+     background: #F0DFD9;
+}
+
 ul.ticket-list > li > a:hover {
      background-color: #EEEEEE;
 }

@@ -225,7 +225,7 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
     if (!is_array($labels)) $labels = array();
     @list($label) = $labels;
 
-    $initiatives = in_array('Large Initiatives',$labels);
+    $initiatives = in_array('Initiatives',$labels);
 
     // begin the output array
     $output = array(
@@ -278,12 +278,17 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
       );
     }
 
-    //build the link
-    $list_data[$label][] = drupal_render($output);//"<span class=\"get-status\"$id data-trello-id=\"$card->id\">$card->name</span>";
-
     if($initiatives) {
       $output['#attributes']['class'][] = 'initiative';
-      $list_data['Large Initiatives'][] = drupal_render($output);
+    }
+
+    //build the link
+    $output = drupal_render($output);//"<span class=\"get-status\"$id data-trello-id=\"$card->id\">$card->name</span>";
+
+    $list_data[$label][] = $output;
+
+    if($initiatives) {
+      $list_data['Initiatives Backlog'][] = $output;
     }
   }
 
@@ -364,7 +369,7 @@ function trello_integration_roadmap($page = 'current') {
     '#suffix' => '</div>',
     '#weight' => 2
   );
-  $initiatives  += trello_integration_roadmap_columns("Backlog", $backlog_list->id, array('Large Initiatives'));
+  $initiatives  += trello_integration_roadmap_columns("Backlog", $backlog_list->id, array('Initiatives Backlog'));
 
   switch ($page) {
     case 'current':
@@ -420,6 +425,7 @@ function trello_integration_roadmap($page = 'current') {
         '#weight' => -100,
       );
 
+      $output['sidebar']['initiatives'] = $initiatives;
       $output['sidebar']['hotfix'] = $hotfix;
 
       break;
