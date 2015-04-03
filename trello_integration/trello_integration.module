@@ -288,7 +288,7 @@ function trello_integration_roadmap_columns_cards_data($cards, $list_name) {
     $list_data[$label][] = $output;
 
     if($initiatives) {
-      $list_data['Initiatives Backlog'][] = $output;
+      $list_data['Current Initiatives'][] = $output;
     }
   }
 
@@ -369,7 +369,7 @@ function trello_integration_roadmap($page = 'current') {
     '#suffix' => '</div>',
     '#weight' => 2
   );
-  $initiatives  += trello_integration_roadmap_columns("Backlog", $backlog_list->id, array('Initiatives Backlog'));
+  $initiatives  += trello_integration_roadmap_columns("Backlog", $backlog_list->id, array('Current Initiatives'));
 
   switch ($page) {
     case 'current':
