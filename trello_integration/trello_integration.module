@@ -361,6 +361,9 @@ function trello_integration_roadmap($page = 'current') {
     '#weight' => 2
   );
   $hotfix  += trello_integration_roadmap_columns($list_name, $current_list->id, array('Hotfix'));
+  if (empty($hotfix['lists'][0]['#items'])) {
+    $hotfix['lists'][0]['#items'][] = t('There are no hotfixes in progress');
+  }
 
   // The backlog list that has major intitives in it.
   $backlog_list = _trello_integration_get_lists($roadmap_id, "Backlog");
