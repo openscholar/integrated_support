@@ -91,6 +91,12 @@ ul.primary li:nth-of-type(4) a {
      /*padding-left: 0px;*/
 }
 
+
+ul.ticket-list > li > div.initiative {
+  background: #e3e3e3;
+}
+
+
 #os-initiative .item-list,
 #os-hotfixes .item-list {
      background: #EDEDED;
@@ -101,8 +107,15 @@ ul.primary li:nth-of-type(4) a {
 	margin-bottom: 20px;
 }
 
+#os-initiative .item-list {
+     background: #FFF;
+	border: none;
+	
+}
+
 #os-initiative .item-list h3 {
-  padding-left: 33px;
+padding-left: 34px;
+background: url('images/initiatives.png') no-repeat 5px center #888;
 }
 
 #os-hotfixes .item-list h3 {
