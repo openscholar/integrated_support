@@ -92,10 +92,6 @@ ul.primary li:nth-of-type(4) a {
 }
 
 
-ul.ticket-list > li > div.initiative {
-  background: #e3e3e3 !important;
-}
-
 
 #os-initiative .item-list,
 #os-hotfixes .item-list {
@@ -242,7 +238,7 @@ ul.ticket-list > li > a {
 }
 
 ul.ticket-list > li > div.initiative {
-     background: #F0DFD9;
+     background: #e3e3e3;
 }
 
 ul.ticket-list > li > a:hover {
