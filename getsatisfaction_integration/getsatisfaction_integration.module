@@ -555,7 +555,8 @@ function _getsatisfaction_integration_update_topic_table($topic) {
   if (!$stored ) {
     //new record
     drupal_write_record('getsatisfaction_topics', $record);
-  } elseif ($record['last_active_at'] != $stored['last_active_at']) {
+  }
+  else {
     db_update('getsatisfaction_topics')
       ->fields($record)
       ->condition('id', $topic->id)
