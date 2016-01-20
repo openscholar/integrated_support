@@ -197,7 +197,21 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status, $mi
   }
 
   $topic = $client->api('topic')->call('status', $update); //do you return the topic?
-  _getsatisfaction_integration_update_topic_table($topic);
+  if ($topic) {
+    _getsatisfaction_integration_update_topic_table($topic);
+  }
+  else {
+    db_update('getssatisfaction_topics')
+      ->fields(array('status' => $status))
+      ->condition('id', $topic_id)
+      ->execute();
+
+    $q = db_select('getsatisfaction_topics', 'gs')
+      ->fields('gs', array('*'))
+      ->condition('id','topic_id')
+      ->execute();
+    $topic = $q->fetchAssoc();
+  }
   return $topic;
 }
 
@@ -555,8 +569,7 @@ function _getsatisfaction_integration_update_topic_table($topic) {
   if (!$stored ) {
     //new record
     drupal_write_record('getsatisfaction_topics', $record);
-  }
-  else {
+  } else {
     db_update('getsatisfaction_topics')
       ->fields($record)
       ->condition('id', $topic->id)
