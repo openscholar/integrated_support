@@ -174,7 +174,7 @@ function getsatisfaction_integration_update_topic_status($topic_id, $status, $mi
     ),
   );
 
-  //send a reply when the topic is set to copmlete.
+  //send a reply when the topic is set to complete.
   if ($status == 'complete') {
     $stored_status = db_select('getsatisfaction_topics', 'gs')
       ->condition('id', $topic_id)

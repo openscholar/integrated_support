@@ -510,7 +510,7 @@ function trello_integration_roadmap($page = 'current') {
   //draw the current roadmap tab
   $output += trello_integration_roadmap_page($list_name);
 
-  $output['sidebar'] += array(
+  /*$output['sidebar'] += array(
     '#prefix' => '<div id="roadmap-sidebar">',
     '#suffix' => '</div>',
     'twitter' => array(
@@ -521,7 +521,7 @@ function trello_integration_roadmap($page = 'current') {
       '#weight' => 3,
     ),
     '#weight' => 100,
-  );
+  );*/
 
   if(isset($output['columns'])) {
     $output['columns']['#weight'] = 10;
