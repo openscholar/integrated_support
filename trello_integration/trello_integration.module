@@ -510,19 +510,6 @@ function trello_integration_roadmap($page = 'current') {
   //draw the current roadmap tab
   $output += trello_integration_roadmap_page($list_name);
 
-  /*$output['sidebar'] += array(
-    '#prefix' => '<div id="roadmap-sidebar">',
-    '#suffix' => '</div>',
-    'twitter' => array(
-      '#prefix' => '<div id="os-twitter">',
-      '#suffix' => '</div>',
-      '#markup' => '<a class="twitter-timeline" href="https://twitter.com/osharvardstatus" data-widget-id="457247458108506112">Tweets by @osharvardstatus</a>
-<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?\'http\':\'https\';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");</script>',
-      '#weight' => 3,
-    ),
-    '#weight' => 100,
-  );*/
-
   if(isset($output['columns'])) {
     $output['columns']['#weight'] = 10;
   }
